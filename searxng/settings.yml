@@ -1,0 +1,25 @@
+use_default_settings: true
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "super_secret_key_for_brute_force_finder"
+search:
+  formats:
+    - html
+    - json
+  request_timeout: 10.0
+
+enabled_plugins:
+  - 'Tracker plugin'
+
+engines:
+  - name: radio browser
+    tokens: []
+    engine: radio_browser
+    disabled: true
+  - name: google
+    disabled: false
+    timeout: 6.0
+  - name: duckduckgo
+    disabled: false
+    timeout: 6.0

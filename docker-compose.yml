@@ -1,0 +1,49 @@
+version: '3.8'
+
+networks:
+  finder_network:
+    driver: bridge
+
+services:
+  tor:
+      image: peterdavehello/tor-socks-proxy:latest
+      container_name: finder_tor
+      networks:
+        - finder_network
+      restart: unless-stopped
+
+  searxng:
+    build:
+      context: ./searxng
+      dockerfile: Dockerfile
+    image: searxng/searxng:latest
+    container_name: finder_searxng
+    volumes:
+      - ./searxng:/etc/searxng
+    ports:
+      - "8080:8080"
+    environment:
+      - SEARXNG_PROXIES_all=socks5h://tor:9050
+    networks:
+      - finder_network
+    depends_on:
+      - tor
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: ruby:4.0.5-slim
+    container_name: finder_rails
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - RAILS_ENV=development
+      - SEARXNG_URL=http://searxng:8080
+    networks:
+      - finder_network
+    depends_on:
+      - searxng
