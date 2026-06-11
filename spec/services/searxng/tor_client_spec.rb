@@ -1,4 +1,5 @@
-# spec/services/searxng/tor_client_spec.rb
+# frozen_string_literal: true
+
 require "rails_helper"
 
 RSpec.describe Searxng::TorClient, type: :service do

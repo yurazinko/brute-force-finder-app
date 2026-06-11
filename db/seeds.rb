@@ -9,3 +9,10 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+job_category = Category.create!(name: "ATS / Job Boards")
+job_category.targets.create!(name: "Lever", domain: "lever.co")
+job_category.targets.create!(name: "Greenhouse", domain: "greenhouse.io")
+
+estate_category = Category.create!(name: "Real Estate")
+estate_category.targets.create!(name: "OLX", domain: "olx.ua/d/nedvizhimost")
