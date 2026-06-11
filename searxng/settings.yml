@@ -14,12 +14,22 @@ enabled_plugins:
 
 engines:
   - name: radio browser
-    tokens: []
-    engine: radio_browser
     disabled: true
   - name: google
     disabled: false
     timeout: 6.0
   - name: duckduckgo
+    disabled: false
+    timeout: 6.0
+  - name: bing
+    disabled: false
+    timeout: 6.0
+  - name: brave
+    disabled: false
+    timeout: 6.0
+  - name: qwant
+    disabled: false
+    timeout: 6.0
+  - name: yahoo
     disabled: false
     timeout: 6.0
