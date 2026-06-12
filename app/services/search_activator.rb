@@ -14,11 +14,8 @@ class SearchActivator
   def call
     return false if @target_ids.blank? || targets_data.blank?
 
-    Prompt.upsert_all(
-      query_records,
-      unique_by: %i[target_id full_query_text],
-      update_only: %i[search_id status]
-    )
+    create_prompts
+    perform_workers
 
     @search.update!(status: "pending")
     true
@@ -28,6 +25,20 @@ class SearchActivator
   end
 
   private
+
+  def create_prompts
+    Prompt.upsert_all(
+      query_records,
+      unique_by: %i[target_id full_query_text],
+      update_only: %i[search_id status]
+    )
+  end
+
+  def perform_workers
+    @search.prompts.where(status: "pending").pluck(:id).each do |prompt_id|
+      PromptProcessorJob.perform_async(prompt_id)
+    end
+  end
 
   def targets_data
     @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)

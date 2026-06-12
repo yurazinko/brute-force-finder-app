@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   finder_network:
     driver: bridge
@@ -13,18 +11,22 @@ services:
     # restart: unless-stopped
 
   db:
-    image: postgres:18.3-alpine
+    image: postgres:18.4-alpine
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     environment:
       - POSTGRES_PASSWORD=password
     networks:
       - finder_network
+    stdin_open: true
+    tty: true
 
   redis:
     image: redis:8.6.2-alpine
     volumes:
       - redis_data:/data
+    networks:
+      - finder_network
 
   searxng:
     build:
@@ -60,12 +62,16 @@ services:
     environment:
       - RAILS_ENV=development
       - SEARXNG_URL=http://searxng:8080
+      - REDIS_URL=redis://redis:6379/1
     networks:
       - finder_network
     depends_on:
-      - searxng
-      - db
-      - redis
+      db:
+        condition: service_started
+      searxng:
+        condition: service_started
+      redis:
+        condition: service_started
 
 volumes:
   postgres_data:

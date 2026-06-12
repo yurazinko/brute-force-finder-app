@@ -11,10 +11,4 @@ class Search < ApplicationRecord
   def activate_search!(target_ids)
     SearchActivator.call(self, target_ids)
   end
-
-  private
-
-  def query_text(domain)
-    "site:#{domain} #{query_conditions}"
-  end
 end
