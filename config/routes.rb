@@ -13,4 +13,15 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  resources :searches, only: %i[index show new create destroy] do
+    member do
+      post :activate
+    end
+  end
+
+  resources :categories
+
+  resources :targets, only: %i[create destroy update]
+
+  root "searches#index"
 end

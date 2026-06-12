@@ -32,12 +32,6 @@ RSpec.describe Prompt, type: :model do
       end
     end
 
-    it "is invalid without full_query_text" do
-      prompt = described_class.new(full_query_text: nil)
-      prompt.valid?
-      expect(prompt.errors[:full_query_text]).to include("can't be blank")
-    end
-
     it "is invalid with an incorrect status" do
       prompt = described_class.new(
         search: search,

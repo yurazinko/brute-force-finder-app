@@ -25,9 +25,13 @@ RSpec.describe SearchResultHandler, type: :service do
 
   let(:raw_results) do
     [
-      { "url" => "https://lever.co/job1", "title" => "RoR Dev", "content" => "We need Ruby dev" },
-      { "url" => "https://lever.co/job2", "title" => "Lead Ruby", "content" => "Senior rails role" }
+      { "url" => "https://lever.co/job1?utm_source=google", "title" => "RoR Dev", "content" => "We need Ruby dev" },
+      { "url" => "https://LEVER.co/job2#anchor", "title" => "Lead Ruby", "content" => "Senior rails role" }
     ]
+  end
+
+  let(:expected_normalized_urls) do
+    ["https://lever.co/job1", "https://lever.co/job2"]
   end
 
   describe ".call" do
@@ -37,8 +41,19 @@ RSpec.describe SearchResultHandler, type: :service do
           described_class.call(prompt, raw_results)
         end.to change(Result, :count).by(2)
 
-        expect(Result.pluck(:url)).to match_array(["https://lever.co/job1", "https://lever.co/job2"])
+        expect(Result.pluck(:url)).to match_array(expected_normalized_urls)
         expect(Result.all).to all(have_attributes(search_id: search.id))
+      end
+
+      it "calculates and stores sha256 hashes for unique constraints" do
+        described_class.call(prompt, raw_results)
+
+        expect(Result.pluck(:url_hash)).to match_array(
+          [
+            Digest::SHA256.hexdigest("https://lever.co/job1"),
+            Digest::SHA256.hexdigest("https://lever.co/job2")
+          ]
+        )
       end
 
       it "updates prompt status to success" do
@@ -48,6 +63,23 @@ RSpec.describe SearchResultHandler, type: :service do
 
       it "returns true upon successful execution" do
         expect(described_class.call(prompt, raw_results)).to be_truthy
+      end
+    end
+
+    context "when raw results contain duplicate URLs" do
+      let(:duplicate_results) do
+        [
+          { "url" => "https://lever.co/job1?abc=1", "title" => "First" },
+          { "url" => "https://lever.co/job1?xyz=2", "title" => "Duplicate after normalization" }
+        ]
+      end
+
+      it "silently ignores duplicates on DB level due to unique_by constraint" do
+        expect do
+          described_class.call(prompt, duplicate_results)
+        end.to change(Result, :count).by(1)
+
+        expect(Result.pluck(:url)).to eq(["https://lever.co/job1"])
       end
     end
 

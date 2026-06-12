@@ -26,7 +26,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_122715) do
     t.text "error_message"
     t.string "full_query_text"
     t.bigint "search_id", null: false
-    t.string "status"
+    t.string "status", default: "pending"
     t.bigint "target_id", null: false
     t.datetime "updated_at", null: false
     t.index ["search_id"], name: "index_prompts_on_search_id"
@@ -40,15 +40,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_122715) do
     t.bigint "search_id", null: false
     t.string "title"
     t.datetime "updated_at", null: false
-    t.string "url"
+    t.string "url", null: false
+    t.string "url_hash", null: false
     t.datetime "viewed_at"
+    t.index ["search_id", "url_hash"], name: "index_results_on_search_id_and_url_hash", unique: true
     t.index ["search_id"], name: "index_results_on_search_id"
   end
 
   create_table "searches", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "query_conditions"
-    t.string "status"
+    t.string "status", default: "pending"
     t.string "title"
     t.datetime "updated_at", null: false
   end

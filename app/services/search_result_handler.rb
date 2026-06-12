@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SearchResultHandler
+  include Utils::UrlNormalizer
+
   def self.call(prompt, raw_results)
     new(prompt, raw_results).call
   end
@@ -10,12 +12,14 @@ class SearchResultHandler
     @search = prompt.search
     @raw_results = raw_results
     @now = Time.current
+    @result_records = []
   end
 
   def call
     handle_failure if @raw_results.blank?
 
-    bulk_insert_result_records
+    collect_records
+    bulk_insert_records
     check_search_completion
     true
   rescue StandardError => e
@@ -27,19 +31,24 @@ class SearchResultHandler
 
   private
 
-  def bulk_insert_result_records
-    result_records = @raw_results.map do |result|
-      {
+  def collect_records
+    @raw_results.each do |result|
+      next if (clean_url = Utils::UrlNormalizer.normalize(result["url"])).blank?
+
+      @result_records << {
         search_id: @search.id,
-        url: result["url"],
+        url: clean_url,
+        url_hash: Utils::UrlNormalizer.hash(clean_url),
         title: result["title"],
         content: result["content"],
         created_at: @now,
         updated_at: @now
       }
     end
+  end
 
-    Result.insert_all(result_records) if result_records.any?
+  def bulk_insert_records
+    Result.insert_all(@result_records, unique_by: %i[search_id url_hash]) if @result_records.any?
 
     @prompt.update!(status: "success")
   end

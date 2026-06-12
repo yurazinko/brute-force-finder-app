@@ -1,0 +1,11 @@
+<%
+  badge_classes = case search.status
+                  when 'completed' then 'bg-green-100 text-green-800'
+                  when 'pending' then 'bg-yellow-100 text-yellow-800 animate-pulse'
+                  when 'failed' then 'bg-red-100 text-red-800'
+                  else 'bg-gray-100 text-gray-800'
+                  end
+%>
+<span id="<%= dom_id(search) %>_badge" class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full <%= badge_classes %>">
+  <%= search.status.upcase %>
+</span>

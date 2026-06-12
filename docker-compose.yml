@@ -1,6 +1,19 @@
-networks:
-  finder_network:
-    driver: bridge
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  image: ruby:4.0.5-slim
+  stdin_open: true
+  tty: true
+  volumes:
+    - .:/app:cached
+    - bundle_cache:/usr/local/bundle
+  environment:
+    - RAILS_ENV=development
+    - REDIS_URL=redis://redis:6379/1
+    - SEARXNG_URL=http://searxng:8080
+  networks:
+    - finder_network
 
 services:
   tor:
@@ -8,25 +21,35 @@ services:
     container_name: finder_tor
     networks:
       - finder_network
-    # restart: unless-stopped
 
   db:
     image: postgres:18.4-alpine
+    container_name: finder_db
+    stdin_open: true
+    tty: true
     volumes:
       - postgres_data:/var/lib/postgresql
     environment:
       - POSTGRES_PASSWORD=password
     networks:
       - finder_network
-    stdin_open: true
-    tty: true
 
   redis:
     image: redis:8.6.2-alpine
+    container_name: finder_redis
     volumes:
       - redis_data:/data
     networks:
       - finder_network
+
+  sidekiq:
+    <<: *app
+    command: bundle exec sidekiq -q scraping -q default
+    networks:
+      - finder_network
+    depends_on:
+      - db
+      - redis
 
   searxng:
     build:
@@ -45,34 +68,26 @@ services:
       - finder_network
     depends_on:
       - tor
-    # restart: unless-stopped
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    stdin_open: true
-    tty: true
-    image: ruby:4.0.5-slim
+    <<: *app
     container_name: finder_rails
-    volumes:
-      - .:/app
+    command: bin/rails server -b 0.0.0.0
     ports:
       - "3000:3000"
-    environment:
-      - RAILS_ENV=development
-      - SEARXNG_URL=http://searxng:8080
-      - REDIS_URL=redis://redis:6379/1
-    networks:
-      - finder_network
     depends_on:
       db:
         condition: service_started
-      searxng:
-        condition: service_started
       redis:
+        condition: service_started
+      searxng:
         condition: service_started
 
 volumes:
   postgres_data:
   redis_data:
+  bundle_cache:
+
+networks:
+  finder_network:
+    driver: bridge

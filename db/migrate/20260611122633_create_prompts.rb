@@ -4,7 +4,7 @@ class CreatePrompts < ActiveRecord::Migration[8.1]
       t.references :search, null: false, foreign_key: true
       t.references :target, null: false, foreign_key: true
       t.string :full_query_text
-      t.string :status
+      t.string :status, default: "pending"
       t.text :error_message
 
       t.timestamps
