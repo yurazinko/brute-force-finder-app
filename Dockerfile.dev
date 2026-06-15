@@ -5,17 +5,25 @@ RUN apt-get update -qq && apt-get install -y \
     libvips \
     git \
     curl \
+    gnupg \
     libyaml-dev \
     && rm -rf /var/lib/apt/lists/*
 
-
 WORKDIR /app
 
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && corepack enable && corepack prepare yarn@stable --activate
+
+RUN yarn config set nodeLinker node-modules
 
 COPY Gemfile Gemfile.lock ./
-
 RUN gem install bundler && bundle install
+
+COPY package.json yarn.lock* ./
+RUN yarn install
 
 COPY . .
 
+EXPOSE 3000
 CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails s -b '0.0.0.0'"]

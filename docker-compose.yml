@@ -7,6 +7,7 @@ x-app: &app
   tty: true
   volumes:
     - .:/app:cached
+    - /app/node_modules
   environment:
     - RAILS_ENV=development
     - REDIS_URL=redis://redis:6379/1
@@ -81,6 +82,13 @@ services:
         condition: service_started
       searxng:
         condition: service_started
+
+  js_watcher:
+      <<: *app
+      container_name: finder_js_watcher
+      command: yarn build --watch
+      depends_on:
+        - app
 
   tailwind:
     <<: *app
