@@ -42,6 +42,11 @@ RSpec.configure do |config|
     Rails.root.join("spec/fixtures")
   ]
 
+  config.before(:each, type: :request) do
+    host! "localhost"
+    ActionController::Base.allow_forgery_protection = false
+  end
+
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.
@@ -78,6 +83,10 @@ RSpec.configure do |config|
 
   config.before(:each) do
     DatabaseCleaner.strategy = :transaction
+  end
+
+  config.before(:each, type: :request) do
+    DatabaseCleaner.strategy = :truncation
   end
 
   config.before(:each) do
