@@ -16,38 +16,42 @@
       </div>
     <% end %>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div>
-        <%= f.label :title, "Search Campaign Title", class: "block text-sm font-semibold text-gray-700 mb-1" %>
-        <%= f.text_field :title, placeholder: "e.g., Elixir Remote Backend Jobs", class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2" %>
-      </div>
+    <div class="bg-gray-50/40 p-4 rounded-xl border border-gray-200/80">
+      <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-3">1. General Settings</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= f.label :title, "Search Campaign Title", class: "block text-sm font-semibold text-gray-700 mb-1" %>
+          <%= f.text_field :title, placeholder: "e.g., Elixir Remote Backend Jobs", class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 bg-white" %>
+        </div>
 
-      <div>
-        <%= f.label :query_conditions, "Google Dork Conditions (Raw)", class: "block text-sm font-semibold text-gray-700 mb-1" %>
-        <%= f.text_field :query_conditions, placeholder: "e.g., (elixir OR phoenix) \"remote\"", class: "w-full font-mono text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2" %>
-        <p class="mt-1 text-xs text-gray-400">Combined with target domains auto-magically.</p>
+        <div>
+          <%= f.label :time_frame, "Default Engine Time Range", class: "block text-sm font-semibold text-gray-700 mb-1" %>
+          <%= f.select :time_frame,
+                       [
+                         ['Anytime (No filter)', nil],
+                         ['Past 24 Hours', 'day'],
+                         ['Past Week', 'week'],
+                         ['Past Month', 'month'],
+                         ['Past Year', 'year']
+                       ],
+                       {},
+                       { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 bg-white" } %>
+        </div>
       </div>
+    </div>
 
-      <div>
-        <%= f.label :time_frame, "Default Engine Time Range", class: "block text-sm font-semibold text-gray-700 mb-1" %>
-        <%= f.select :time_frame,
-                     [
-                       ['Anytime (No filter)', nil],
-                       ['Past 24 Hours', 'day'],
-                       ['Past Week', 'week'],
-                       ['Past Month', 'month'],
-                       ['Past Year', 'year']
-                     ],
-                     {},
-                     { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 bg-white" } %>
-        <p class="mt-1 text-xs text-gray-400">Sets the strict temporal boundary for backend scraping.</p>
+    <div class="border-t border-gray-200 pt-6">
+      <div class="mb-3">
+        <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wider">2. Dork Query Configuration</h2>
+        <p class="text-xs text-gray-500">Define query terms or switch to expert mode to type your own raw dork string.</p>
       </div>
+      <%= render 'dork_builder', initial_value: @search.query_conditions, input_name: 'search[query_conditions]' %>
     </div>
 
     <div class="border-t border-gray-200 pt-6" data-controller="targets-selector">
       <div class="flex justify-between items-center mb-4">
         <div>
-          <h2 class="text-lg font-bold text-gray-900">Link Target Websites</h2>
+          <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wider">3. Link Target Websites</h2>
           <p class="text-xs text-gray-500">Select which websites this campaign will monitor.</p>
         </div>
         <div class="flex space-x-2 text-xs font-medium">
@@ -57,7 +61,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="categories_selector_root">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="categories_selector_root">
         <% Category.includes(:targets).order(:name).each do |category| %>
           <% active_targets = category.targets.active %>
           <% next if active_targets.empty? %>

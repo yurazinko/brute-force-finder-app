@@ -4,11 +4,17 @@
 
 import { application } from "./application"
 
+import BulkSelectorController from "./bulk_selector_controller"
+application.register("bulk-selector", BulkSelectorController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
 import PipelineSelectorController from "./pipeline_selector_controller"
 application.register("pipeline-selector", PipelineSelectorController)
+
+import ReactPortalController from "./react_portal_controller"
+application.register("react-portal", ReactPortalController)
 
 import TargetsSelectorController from "./targets_selector_controller"
 application.register("targets-selector", TargetsSelectorController)
