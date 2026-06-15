@@ -16,5 +16,8 @@ application.register("pipeline-selector", PipelineSelectorController)
 import ReactPortalController from "./react_portal_controller"
 application.register("react-portal", ReactPortalController)
 
+import ReadStatusController from "./read_status_controller"
+application.register("read-status", ReadStatusController)
+
 import TargetsSelectorController from "./targets_selector_controller"
 application.register("targets-selector", TargetsSelectorController)

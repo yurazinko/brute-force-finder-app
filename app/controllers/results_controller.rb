@@ -9,6 +9,7 @@ class ResultsController < ApplicationController
         render turbo_stream: turbo_stream.remove("result_#{@result.id}")
       end
 
+      format.json { head :no_content }
       format.html { redirect_to search_path(@result.search) }
     end
   end
