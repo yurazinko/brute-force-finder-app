@@ -10,7 +10,7 @@ RSpec.describe Searxng::TorClient, type: :service do
   describe ".search" do
     it "instantiates the client and calls execute" do
       client_instance = instance_double(described_class, execute: [])
-      allow(described_class).to receive(:new).with(query).and_return(client_instance)
+      allow(described_class).to receive(:new).with(query, {}).and_return(client_instance)
 
       described_class.search(query)
 

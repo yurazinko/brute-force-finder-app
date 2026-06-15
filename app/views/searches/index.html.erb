@@ -1,37 +1,67 @@
 <div class="max-w-6xl mx-auto px-4 py-8">
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">Configure Search Rules</h1>
-    <%= link_to 'Categories and Targets', categories_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition" %>
-  </div>
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">Scraping Searches</h1>
-    <%= link_to 'New Search Criteria', new_search_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition" %>
+
+  <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8 pb-5 border-b border-gray-200">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Scraping Searches</h1>
+      <p class="text-sm text-gray-500 mt-1">Configure and manage your automated search campaigns and target constraints.</p>
+    </div>
+    <div class="flex items-center gap-3 shrink-0">
+      <%= link_to 'Categories & Targets', categories_path, class: "bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition text-sm flex items-center gap-1.5" %>
+      <%= link_to 'New Search Criteria', new_search_path, class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow transition text-sm flex items-center gap-1.5" %>
+    </div>
   </div>
 
-  <div class="bg-white shadow rounded-xl overflow-hidden">
+  <div class="bg-white shadow border border-gray-200 rounded-xl overflow-hidden">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Conditions</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
-          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Conditions</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Time Range</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Created At</th>
+          <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200" id="searches_list">
-        <% @searches.each do |search| %>
-          <tr id="<%= dom_id(search) %>" class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4 font-medium text-gray-900">
-              <%= link_to search.title, search_path(search), class: "hover:underline text-blue-600" %>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500 font-mono"><%= search.query_conditions %></td>
-            <td class="px-6 py-4">
-              <%= render "searches/status_badge", search: search %>
-            </td>
-            <td class="px-6 py-4 text-sm text-gray-500"><%= search.created_at.strftime("%Y-%m-%d %H:%M") %></td>
-            <td class="px-6 py-4 text-right text-sm font-medium">
-              <%= button_to 'Delete', search_path(search), method: :delete, data: { confirm: 'Are you sure?' }, class: "text-red-600 hover:text-red-900 inline-block ml-4" %>
+        <% if @searches.any? %>
+          <% @searches.each do |search| %>
+            <tr id="<%= dom_id(search) %>" class="hover:bg-gray-50/50 transition">
+              <td class="px-6 py-4 font-medium text-gray-900">
+                <%= link_to search.title, search_path(search), class: "hover:underline text-blue-600 font-semibold" %>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500 font-mono">
+                <span class="bg-gray-100 px-1.5 py-0.5 rounded text-xs border border-gray-200"><%= search.query_conditions %></span>
+              </td>
+
+              <td class="px-6 py-4 text-sm">
+                <% case search.time_frame %>
+                <% when 'day' %>
+                  <span class="inline-flex items-center text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">⏱️ Past 24h</span>
+                <% when 'week' %>
+                  <span class="inline-flex items-center text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">📅 Past Week</span>
+                <% when 'month' %>
+                  <span class="inline-flex items-center text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">🗓️ Past Month</span>
+                <% when 'year' %>
+                  <span class="inline-flex items-center text-xs font-medium text-gray-700 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">⏳ Past Year</span>
+                <% else %>
+                  <span class="inline-flex items-center text-xs font-medium text-gray-400 italic">♾️ Anytime</span>
+                <% end %>
+              </td>
+
+              <td class="px-6 py-4">
+                <%= render "searches/status_badge", search: search %>
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-500"><%= search.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+              <td class="px-6 py-4 text-right text-sm font-medium">
+                <%= button_to 'Delete', search_path(search), method: :delete, data: { confirm: 'Are you sure you want to delete this campaign?' }, class: "text-red-600 hover:text-red-900 inline-block ml-4 font-semibold cursor-pointer" %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-400 text-sm">
+              No scraping campaigns configured yet. Click <strong class="text-blue-600"><%= link_to 'New Search Criteria', new_search_path %></strong> to trigger your first scraper runner.
             </td>
           </tr>
         <% end %>

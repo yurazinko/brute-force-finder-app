@@ -23,5 +23,7 @@ Rails.application.routes.draw do
 
   resources :targets, only: %i[create destroy update]
 
+  resources :results, only: [:update]
+
   root "searches#index"
 end

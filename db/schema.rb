@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_122715) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_112243) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,11 +38,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_122715) do
     t.text "content"
     t.datetime "created_at", null: false
     t.bigint "search_id", null: false
+    t.string "status", default: "unread", null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "url", null: false
     t.string "url_hash", null: false
     t.datetime "viewed_at"
+    t.index ["search_id", "status"], name: "index_results_on_search_id_and_status"
     t.index ["search_id", "url_hash"], name: "index_results_on_search_id_and_url_hash", unique: true
     t.index ["search_id"], name: "index_results_on_search_id"
   end
@@ -51,6 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_122715) do
     t.datetime "created_at", null: false
     t.text "query_conditions"
     t.string "status", default: "pending"
+    t.string "time_frame"
     t.string "title"
     t.datetime "updated_at", null: false
   end

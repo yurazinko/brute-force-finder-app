@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
+<div class="max-w-7xl mx-auto px-4 py-8">
   <div class="mb-6">
     <%= link_to '← Back to List', searches_path, class: "text-sm font-medium text-gray-500 hover:text-gray-700 transition" %>
     <h1 class="text-3xl font-bold text-gray-900 mt-2">Create New Search Campaign</h1>
@@ -16,7 +16,7 @@
       </div>
     <% end %>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
         <%= f.label :title, "Search Campaign Title", class: "block text-sm font-semibold text-gray-700 mb-1" %>
         <%= f.text_field :title, placeholder: "e.g., Elixir Remote Backend Jobs", class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2" %>
@@ -25,7 +25,22 @@
       <div>
         <%= f.label :query_conditions, "Google Dork Conditions (Raw)", class: "block text-sm font-semibold text-gray-700 mb-1" %>
         <%= f.text_field :query_conditions, placeholder: "e.g., (elixir OR phoenix) \"remote\"", class: "w-full font-mono text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2" %>
-        <p class="mt-1 text-xs text-gray-400">This string will be combined with target domains auto-magically.</p>
+        <p class="mt-1 text-xs text-gray-400">Combined with target domains auto-magically.</p>
+      </div>
+
+      <div>
+        <%= f.label :time_frame, "Default Engine Time Range", class: "block text-sm font-semibold text-gray-700 mb-1" %>
+        <%= f.select :time_frame,
+                     [
+                       ['Anytime (No filter)', nil],
+                       ['Past 24 Hours', 'day'],
+                       ['Past Week', 'week'],
+                       ['Past Month', 'month'],
+                       ['Past Year', 'year']
+                     ],
+                     {},
+                     { class: "w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 bg-white" } %>
+        <p class="mt-1 text-xs text-gray-400">Sets the strict temporal boundary for backend scraping.</p>
       </div>
     </div>
 
@@ -85,7 +100,6 @@
 </div>
 
 <script>
-  // Функція для кнопки "Влупити всі з цієї категорії"
   function toggleCategoryGroup(button) {
     const card = button.closest('.category-card-group');
     const checkboxes = card.querySelectorAll('.target-item-checkbox');
@@ -104,7 +118,6 @@
     }
   }
 
-  // Глобальний вибір "Виділити взагалі все" або "Очистити все"
   function toggleGlobalTargets(status) {
     document.querySelectorAll('.target-item-checkbox').forEach(cb => cb.checked = status);
     document.querySelectorAll('.category-bulk-btn').forEach(button => {

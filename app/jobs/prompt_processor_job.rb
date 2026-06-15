@@ -12,7 +12,10 @@ class PromptProcessorJob
 
     prompt.update!(status: "active")
 
-    raw_results = Searxng::TorClient.search(prompt.full_query_text)
+    raw_results = Searxng::TorClient.search(
+      prompt.full_query_text,
+      time_range: prompt.search.time_frame
+    )
 
     SearchResultHandler.call(prompt, raw_results)
   end

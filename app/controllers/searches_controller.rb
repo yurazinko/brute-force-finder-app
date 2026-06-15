@@ -9,7 +9,22 @@ class SearchesController < ApplicationController
 
   def show
     @prompts = @search.prompts.includes(:target)
-    @results = @search.results.order(created_at: :desc)
+
+    @counts = @search.results.group(:status).size
+    @counts["all_clean"] = @counts.slice("unread", "watched", "interesting").values.sum
+
+    base_results = @search.results.by_time_frame(params[:d])
+
+    @current_status = params[:status]
+
+    @results = case @current_status
+               when "unread", "watched", "garbage", "interesting"
+                 base_results.by_status(@current_status)
+               else
+                 base_results.without_garbage
+               end
+
+    @results = @results.order(created_at: :desc)
   end
 
   def new
@@ -54,6 +69,6 @@ class SearchesController < ApplicationController
   end
 
   def search_params
-    params.expect(search: [:title, :query_conditions, { target_ids: [] }])
+    params.expect(search: [:title, :query_conditions, :time_frame, { target_ids: [] }])
   end
 end
