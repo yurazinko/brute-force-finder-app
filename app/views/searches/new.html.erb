@@ -44,16 +44,16 @@
       </div>
     </div>
 
-    <div class="border-t border-gray-200 pt-6">
+    <div class="border-t border-gray-200 pt-6" data-controller="targets-selector">
       <div class="flex justify-between items-center mb-4">
         <div>
           <h2 class="text-lg font-bold text-gray-900">Link Target Websites</h2>
           <p class="text-xs text-gray-500">Select which websites this campaign will monitor.</p>
         </div>
         <div class="flex space-x-2 text-xs font-medium">
-          <button type="button" onclick="toggleGlobalTargets(true)" class="text-blue-600 hover:underline cursor-pointer">Select Absolutely All</button>
+          <button type="button" data-action="click->targets-selector#toggleGlobal" data-targets-selector-status-param="true" class="text-blue-600 hover:underline cursor-pointer">Select Absolutely All</button>
           <span class="text-gray-300">|</span>
-          <button type="button" onclick="toggleGlobalTargets(false)" class="text-gray-500 hover:underline cursor-pointer">Clear All</button>
+          <button type="button" data-action="click->targets-selector#toggleGlobal" data-targets-selector-status-param="false" class="text-gray-500 hover:underline cursor-pointer">Clear All</button>
         </div>
       </div>
 
@@ -62,13 +62,14 @@
           <% active_targets = category.targets.active %>
           <% next if active_targets.empty? %>
 
-          <div class="category-card-group border border-gray-200 rounded-xl p-4 bg-gray-50/50 flex flex-col justify-between">
+          <div data-targets-selector-target="group" class="category-card-group border border-gray-200 rounded-xl p-4 bg-gray-50/50 flex flex-col justify-between">
             <div>
               <div class="flex justify-between items-center mb-3 pb-1 border-b border-gray-200">
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider"><%= category.name %></h3>
 
                 <button type="button"
-                        onclick="toggleCategoryGroup(this)"
+                        data-targets-selector-target="groupButton"
+                        data-action="click->targets-selector#toggleGroup"
                         data-status="false"
                         class="category-bulk-btn text-[11px] bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 px-2 py-0.5 rounded shadow-sm font-medium transition cursor-pointer">
                   Select All Group
@@ -78,7 +79,9 @@
               <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 <% active_targets.order(:name).each do |target| %>
                   <label class="flex items-start space-x-3 py-1 px-1.5 rounded hover:bg-white cursor-pointer transition text-sm">
-                    <%= check_box_tag "search[target_ids][]", target.id, false, class: "target-item-checkbox mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" %>
+                    <%= check_box_tag "search[target_ids][]", target.id, false,
+                                      class: "target-item-checkbox mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer",
+                                      data: { targets_selector_target: "checkbox" } %>
                     <div class="leading-tight">
                       <span class="text-gray-800 font-medium"><%= target.name %></span>
                       <span class="text-[11px] text-gray-400 block font-mono"><%= target.domain %></span>
@@ -98,34 +101,3 @@
     </div>
   <% end %>
 </div>
-
-<script>
-  function toggleCategoryGroup(button) {
-    const card = button.closest('.category-card-group');
-    const checkboxes = card.querySelectorAll('.target-item-checkbox');
-    const isChecked = button.getAttribute('data-status') === 'true';
-
-    checkboxes.forEach(cb => cb.checked = !isChecked);
-
-    if (!isChecked) {
-      button.setAttribute('data-status', 'true');
-      button.innerText = 'Clear Group';
-      button.className = 'category-bulk-btn text-[11px] bg-gray-200 border border-gray-400 text-gray-800 px-2 py-0.5 rounded shadow-inner font-medium transition cursor-pointer';
-    } else {
-      button.setAttribute('data-status', 'false');
-      button.innerText = 'Select All Group';
-      button.className = 'category-bulk-btn text-[11px] bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 px-2 py-0.5 rounded shadow-sm font-medium transition cursor-pointer';
-    }
-  }
-
-  function toggleGlobalTargets(status) {
-    document.querySelectorAll('.target-item-checkbox').forEach(cb => cb.checked = status);
-    document.querySelectorAll('.category-bulk-btn').forEach(button => {
-      button.setAttribute('data-status', status.toString());
-      button.innerText = status ? 'Clear Group' : 'Select All Group';
-      button.className = status
-        ? 'category-bulk-btn text-[11px] bg-gray-200 border border-gray-400 text-gray-800 px-2 py-0.5 rounded shadow-inner font-medium transition cursor-pointer'
-        : 'category-bulk-btn text-[11px] bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 px-2 py-0.5 rounded shadow-sm font-medium transition cursor-pointer';
-    });
-  }
-</script>

@@ -21,14 +21,14 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
     <div class="lg:col-span-1 space-y-6">
-      <div class="bg-white p-6 shadow-sm border border-gray-200 rounded-xl sticky top-6">
+      <div class="bg-white p-6 shadow-sm border border-gray-200 rounded-xl sticky top-6" data-controller="pipeline-selector">
 
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-bold text-gray-900">Target Pipeline</h2>
           <div class="flex items-center space-x-2 text-xs">
-            <button type="button" onclick="toggleAllCheckboxes(true)" class="text-blue-600 font-medium hover:underline focus:outline-none cursor-pointer">Select All</button>
+            <button type="button" data-action="click->pipeline-selector#toggleGlobal" data-pipeline-selector-status-param="true" class="text-blue-600 font-medium hover:underline focus:outline-none cursor-pointer">Select All</button>
             <span class="text-gray-300">|</span>
-            <button type="button" onclick="toggleAllCheckboxes(false)" class="text-gray-500 font-medium hover:underline focus:outline-none cursor-pointer">Clear All</button>
+            <button type="button" data-action="click->pipeline-selector#toggleGlobal" data-pipeline-selector-status-param="false" class="text-gray-500 font-medium hover:underline focus:outline-none cursor-pointer">Clear All</button>
           </div>
         </div>
 
@@ -40,16 +40,22 @@
                 <% active_targets = category.targets.active %>
                 <% next if active_targets.empty? %>
 
-                <div class="category-group border border-gray-100 rounded-lg p-3 bg-gray-50/50">
+                <div data-pipeline-selector-target="group" class="category-group border border-gray-100 rounded-lg p-3 bg-gray-50/50">
                   <div class="flex justify-between items-center mb-3 pb-1 border-b border-gray-200/60">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider"><%= category.name %></h3>
-                    <button type="button" onclick="toggleCategoryCheckboxes(this, true)" class="group-toggle-btn text-[10px] text-indigo-600 hover:underline font-semibold cursor-pointer">Select Group</button>
+                    <button type="button"
+                            data-pipeline-selector-target="groupButton"
+                            data-action="click->pipeline-selector#toggleGroup"
+                            data-status="true"
+                            class="group-toggle-btn text-[10px] text-indigo-600 hover:underline font-semibold cursor-pointer">Clear Group</button>
                   </div>
 
                   <div class="grid grid-cols-1 gap-1.5">
                     <% active_targets.order(:name).each do |target| %>
                       <label class="flex items-start space-x-3 py-1.5 px-2 rounded hover:bg-white border border-transparent hover:border-gray-100 cursor-pointer transition group">
-                        <%= check_box_tag "target_ids[]", target.id, true, class: "target-checkbox mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" %>
+                        <%= check_box_tag "target_ids[]", target.id, true,
+                                          class: "target-checkbox mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer",
+                                          data: { pipeline_selector_target: "checkbox" } %>
                         <div class="text-sm leading-tight">
                           <span class="text-gray-800 font-medium group-hover:text-blue-600 transition"><%= target.name %></span>
                           <span class="text-[11px] text-gray-400 block font-mono mt-0.5"><%= target.domain %></span>
@@ -140,26 +146,27 @@
 
                   <div class="mt-2 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
                     <div class="flex items-center gap-1.5">
+
                       <% unless result.status == "interesting" %>
-                        <%= button_to result_path(result, status: :interesting), method: :patch, class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
+                        <%= button_to result_path(result, status: :interesting), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
                           ⭐ Interesting
                         <% end %>
                       <% end %>
 
                       <% unless result.status == "watched" %>
-                        <%= button_to result_path(result, status: :watched), method: :patch, class: "text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
+                        <%= button_to result_path(result, status: :watched), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
                           👁️ Mark Watched
                         <% end %>
                       <% end %>
 
                       <% unless result.status == "garbage" %>
-                        <%= button_to result_path(result, status: :garbage), method: :patch, class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
+                        <%= button_to result_path(result, status: :garbage), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
                           🗑️ Trash
                         <% end %>
                       <% end %>
 
                       <% if %w[interesting watched garbage].include?(result.status) %>
-                        <%= button_to result_path(result, status: :unread), method: :patch, class: "text-xs font-medium bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-md transition cursor-pointer" do %>
+                        <%= button_to result_path(result, status: :unread), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-md transition cursor-pointer" do %>
                           ↩️ Move to Inbox
                         <% end %>
                       <% end %>
@@ -187,35 +194,3 @@
 
   </div>
 </div>
-
-<script>
-  function toggleAllCheckboxes(status) {
-    document.querySelectorAll('.target-checkbox').forEach(cb => {
-      cb.checked = status;
-    });
-
-    document.querySelectorAll('.group-toggle-btn').forEach(btn => {
-      updateGroupButtonState(btn, status);
-    });
-  }
-
-  function toggleCategoryCheckboxes(button, status) {
-    const group = button.closest('.category-group');
-    group.querySelectorAll('.target-checkbox').forEach(cb => {
-      cb.checked = status;
-    });
-    updateGroupButtonState(button, status);
-  }
-
-  function updateGroupButtonState(button, isSelected) {
-    if (isSelected) {
-      button.innerText = "Clear Group";
-      button.setAttribute('onclick', 'toggleCategoryCheckboxes(this, false)');
-      button.className = "group-toggle-btn text-[10px] text-gray-500 hover:underline font-medium cursor-pointer";
-    } else {
-      button.innerText = "Select Group";
-      button.setAttribute('onclick', 'toggleCategoryCheckboxes(this, true)');
-      button.className = "group-toggle-btn text-[10px] text-indigo-600 hover:underline font-semibold cursor-pointer";
-    }
-  }
-</script>
