@@ -1,9 +1,15 @@
+<%
+  is_watched = result.status == 'watched'
+  is_on_watched_tab = params[:status] == 'watched'
+  should_dim = is_watched && !is_on_watched_tab
+%>
+
 <div id="<%= dom_id(result) %>"
      data-controller="read-status"
      data-read-status-url-value="<%= result_path(result) %>"
      data-read-status-current-status-value="<%= result.status %>"
      data-turbo-permanent
-     class="p-5 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition bg-gray-50/50 flex flex-col gap-2 <%= 'opacity-60' if result.status == 'watched' %>">
+     class="p-5 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition bg-gray-50/50 flex flex-col gap-2 <%= 'opacity-50 duration-500' if should_dim %>">
 
   <a href="<%= result.url %>"
     target="_blank"

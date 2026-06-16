@@ -1,7 +1,12 @@
-<% if params[:current_tab] == "watched" %>
-  <%= turbo_stream.replace dom_id(@result), partial: "results/result_card", locals: { result: @result } %>
-<% else %>
+<%
+  should_remove = (@result.status == "garbage" && params[:current_tab] != "garbage") ||
+                    (@result.status == "unread" && params[:current_tab].present?)
+%>
+
+<% if should_remove %>
   <%= turbo_stream.remove dom_id(@result) %>
+<% else %>
+  <%= turbo_stream.replace dom_id(@result), partial: "results/result_card", locals: { result: @result } %>
 <% end %>
 
 <%= turbo_stream.update "counter_all_clean", html: (@search.calculate_counters[:all_clean] || 0).to_s %>
