@@ -22,10 +22,10 @@ The project is built following the principle of a minimalist yet powerful monoli
 ### 1. Cascade Pipeline Execution (Lifecycle)
 Every global search request is decomposed into atomic prompt records targeted at specific job categories/domains. The system fires up async workers, tracks the live status of each thread, and dynamically reflects the pipeline state on the frontend
 
-### 2. "Inbox Zero" & Graceful Removal
+### 2. "Inbox Zero" and Graceful Removal
 To provide a friction-free experience when triaging large pools of data, the UI implements a smart delayed-removal pattern:
 * The **Inbox** tab strictly shows new (`Unread`) and `Interesting` leads, filtering out `Watched` and `Garbage`.
-* When clicking *"Mark Watched"* inside the Inbox, the card **does not vanish instantly** (preventing jarring layout shifts and allowing quick undoing). Instead, it gracefully fades out (`opacity-50` via a CSS transition).
+* When clicking *"Mark Watched"* inside the Inbox, the card **does not vanish instantly** (preventing jarring layout shifts and allowing quick undoing). Instead, it gracefully fades out.
 * Buttons shift instantly allowing you to still change your mind or immediately toss it to *"Mark as Garbage"*. The card disappears from the Inbox view completely **only after** you change tabs or hit refresh. On the **Watched** tab itself, cards render at full 100% opacity.
 
 ### 3. Fully Decoupled and Atomized Live Counters (DRY Streams)
