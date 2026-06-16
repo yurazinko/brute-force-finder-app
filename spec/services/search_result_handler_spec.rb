@@ -153,5 +153,32 @@ RSpec.describe SearchResultHandler, type: :service do
         expect(described_class.call(prompt, raw_results)).to be_falsy
       end
     end
+
+    context "when action cable broadcasting fails" do
+      before do
+        allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to).and_raise(StandardError.new("Redis connection dropped"))
+        allow(Rails.logger).to receive(:error)
+      end
+
+      it "rescues the broadcast error gracefully and finishes successfully" do
+        expect do
+          expect(described_class.call(prompt, raw_results)).to be_truthy
+        end.to change(Result, :count).by(2)
+
+        expect(prompt.reload.status).to eq("success")
+        expect(Rails.logger).to have_received(:error).with(/ActionCable broadcast failed: Redis connection dropped/)
+      end
+    end
+
+    context "when broadcasting updates" do
+      it "calls calculate_counters on the search model to get fresh metrics" do
+        allow(search).to receive(:calculate_counters).and_call_original
+        allow(prompt).to receive(:search).and_return(search)
+
+        described_class.call(prompt, raw_results)
+
+        expect(search).to have_received(:calculate_counters).once
+      end
+    end
   end
 end

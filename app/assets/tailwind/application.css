@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+.custom-pagy-container nav {
+  @apply flex items-center space-x-1 text-sm font-medium;
+}
+
+.custom-pagy-container nav a {
+  @apply px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition shadow-sm;
+}
+
+.custom-pagy-container nav span.current {
+  @apply px-3 py-2 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-bold shadow-sm;
+}
+
+.custom-pagy-container nav span.gap {
+  @apply px-3 py-2 text-gray-400 cursor-default;
+}
+
+.custom-pagy-container nav span.disabled {
+  @apply px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed shadow-none;
+}

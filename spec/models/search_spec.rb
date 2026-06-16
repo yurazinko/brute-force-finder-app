@@ -69,7 +69,7 @@ RSpec.describe Search, type: :model do
         expect { search.activate_search!(target_ids) }
           .to change(search.prompts, :count).by(2)
 
-        expect(search.reload.status).to eq("pending")
+        expect(search.reload.status).to eq("processing")
 
         lever_prompt = search.prompts.find_by(target: target_lever)
         expect(lever_prompt.full_query_text).to eq('site:lever.co (ruby OR "rails") (backend)')
@@ -101,7 +101,7 @@ RSpec.describe Search, type: :model do
         expect { search.activate_search!(target_ids) }
           .not_to change(Prompt, :count)
 
-        expect(search.reload.status).to eq("pending")
+        expect(search.reload.status).to eq("processing")
 
         existing_prompt = Prompt.find_by(target: target_lever)
         expect(existing_prompt.search_id).to eq(search.id)

@@ -1,0 +1,4 @@
+<%= turbo_stream.update "search_lifecycle_status" do %>
+  <span class="text-gray-500 font-medium">Pipeline:</span>
+  <%= render "searches/status_badge", search: @search %>
+<% end %>

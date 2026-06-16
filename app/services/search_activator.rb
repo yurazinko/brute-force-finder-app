@@ -17,7 +17,7 @@ class SearchActivator
     create_prompts
     perform_workers
 
-    @search.update!(status: "pending")
+    @search.update!(status: "processing")
     true
   rescue StandardError => e
     Rails.logger.error("[SearchActivator] Critical failure during activation for Search##{@search.id}: #{e.message}")

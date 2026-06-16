@@ -10,11 +10,9 @@ class SearchesController < ApplicationController
   def show
     @prompts = @search.prompts.includes(:target)
 
-    @counts = @search.results.group(:status).size
-    @counts["all_clean"] = @counts.slice("unread", "watched", "interesting").values.sum
+    @counts = @search.calculate_counters(params[:d])
 
     base_results = @search.results.by_time_frame(params[:d])
-
     @current_status = params[:status]
 
     @results = case @current_status
@@ -24,7 +22,7 @@ class SearchesController < ApplicationController
                  base_results.without_garbage
                end
 
-    @results = @results.order(created_at: :desc)
+    @pagy, @results = pagy(@results.order(created_at: :desc))
   end
 
   def new
@@ -45,15 +43,20 @@ class SearchesController < ApplicationController
   def activate
     target_ids = params[:target_ids] || []
 
-    if target_ids.any?
-      if @search.activate_search!(target_ids)
-        redirect_to search_path(@search),
-                    notice: "Scraping pipeline successfully initialized! Check back in a few minutes."
-      else
-        redirect_to search_path(@search), alert: "Failed to activate search. Check system logs."
+    if target_ids.blank?
+      flash.now[:alert] = "Please select at least one target website to scrape."
+      return respond_with_flash
+    end
+
+    if @search.activate_search!(target_ids)
+      @search.reload
+      respond_to do |format|
+        format.turbo_stream
+        format.html { redirect_to search_path(@search), notice: "Scraping pipeline successfully initialized!" }
       end
     else
-      redirect_to search_path(@search), alert: "Please select at least one target website to scrape."
+      flash.now[:alert] = "Failed to activate search. Check system logs."
+      respond_with_flash
     end
   end
 
@@ -70,5 +73,12 @@ class SearchesController < ApplicationController
 
   def search_params
     params.expect(search: [:title, :query_conditions, :time_frame, { target_ids: [] }])
+  end
+
+  def respond_with_flash
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "shared/flash") }
+      format.html { redirect_to search_path(@search), alert: flash[:alert] }
+    end
   end
 end

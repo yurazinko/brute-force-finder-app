@@ -53,6 +53,11 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
+  config.action_cable.disable_request_forgery_protection = true
+
+  config.action_cable.url = "ws://localhost:3000/cable"
+
   config.hosts << "www.example.com"
   config.hosts << "example.com"
+  config.hosts << "localhost"
 end

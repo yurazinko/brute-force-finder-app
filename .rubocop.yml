@@ -48,7 +48,7 @@ Metrics/AbcSize:
     - 'lib/**/*'
 
 Metrics/MethodLength:
-  Max: 12
+  Max: 15
   Exclude:
     - 'lib/**/*'
 

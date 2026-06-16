@@ -1,30 +1,50 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static values = { url: String, currentStatus: String }
-  declare readonly urlValue: string
-  declare readonly currentStatusValue: string
-
   markAsRead(event: MouseEvent) {
-    if (this.currentStatusValue !== "unread" && this.currentStatusValue !== "") return
+    const link = event.currentTarget as HTMLElement
+    const url = link.getAttribute("data-read-url")
+    const status = link.getAttribute("data-read-status")
 
-    if (event.button === 2) return
+    if (status !== "unread" && status !== "") return
+    if (!url) return
 
-    fetch(this.urlValue, {
+    if (event.type === "click") {
+      event.preventDefault()
+      window.open(link.getAttribute("href") || "", "_blank", "noopener,noreferrer")
+    } else if (event.type === "contextmenu") {
+      event.stopPropagation()
+    } else {
+      return
+    }
+
+    const card = link.closest(".flex.flex-col.gap-2") as HTMLElement
+    if (card) {
+      card.classList.add("opacity-60")
+    }
+
+    fetch(url, {
       method: "PATCH",
       headers: {
         "X-CSRF-Token": this.getCsrfToken(),
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({ status: "watched" })
-    })
-    .then(response => {
-      if (response.ok) {
-        this.element.classList.add("opacity-60")
+        "Accept": "text/html; turbo-stream",
+        "X-Requested-With": "XMLHttpRequest"
       }
     })
-    .catch(error => console.error("Error marking as read:", error))
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      return response.text()
+    })
+    .then(html => {
+      const holder = document.createElement("div")
+      holder.innerHTML = html
+      document.body.appendChild(holder)
+      holder.remove()
+    })
+    .catch(error => {
+      console.error("Error marking as read:", error)
+      // if (card) card.classList.remove("opacity-60")
+    })
   }
 
   private getCsrfToken(): string {
@@ -32,3 +52,5 @@ export default class extends Controller {
     return meta ? meta.getAttribute("content") || "" : ""
   }
 }
+
+

@@ -26,42 +26,64 @@ RSpec.describe "Results", type: :request do
 
   describe "PATCH /results/:id (update)" do
     context "with Turbo Stream format (JS/Async)" do
-      it "updates the status and returns a turbo stream to remove the element" do
-        expect {
-          patch result_path(result),
-                params: { status: "garbage" },
-                as: :turbo_stream
-        }.to change { result.reload.status }.from("unread").to("garbage")
+      context "when the new status matches the current tab" do
+        it "updates the status and REPLACES the card element on the screen" do
+          expect do
+            patch result_path(result),
+                  params: { status: "watched", current_tab: "watched", d: "7", format: :turbo_stream }
+          end.to change { result.reload.status }.from("unread").to("watched")
 
-        expect(response).to have_http_status(:ok)
-        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response).to have_http_status(:ok)
 
-        expect(response.body).to include(%(<turbo-stream action="remove" target="result_#{result.id}"></turbo-stream>))
+          expect(response.body).to include(%(turbo-stream action="replace" target="result_#{result.id}"))
+          expect(response.body).to include(%(turbo-stream action="update" target="counter_watched"))
+          expect(response.body).to include(%(turbo-stream action="update" target="results_count"))
+        end
+      end
+
+      context "when the new status differs from the current tab" do
+        it "updates the status and REMOVES the card element from the screen" do
+          expect do
+            patch result_path(result),
+                  params: { status: "garbage", current_tab: "unread", d: "1", format: :turbo_stream }
+          end.to change { result.reload.status }.from("unread").to("garbage")
+
+          expect(response).to have_http_status(:ok)
+
+          expect(response.body).to include(%(turbo-stream action="remove" target="result_#{result.id}"))
+          expect(response.body).to include(%(turbo-stream action="update" target="counter_garbage"))
+          expect(response.body).to include(%(turbo-stream action="update" target="results_count"))
+        end
       end
     end
 
     context "with HTML format (Standard Fallback)" do
-      it "updates the status and redirects back to the search campaign page" do
-        expect {
+      it "updates the status and redirects back preserving all active filters" do
+        expect do
           patch result_path(result),
-                params: { status: "interesting" }
-        }.to change { result.reload.status }.from("unread").to("interesting")
+                params: { status: "interesting", current_tab: "unread", d: "30" }
+        end.to change { result.reload.status }.from("unread").to("interesting")
 
-        expect(response).to redirect_to(search_path(search))
+        expect(response).to redirect_to(search_path(search, status: "unread", d: "30"))
 
         follow_redirect!
         expect(response.body).to include("Ruby Remote Jobs")
       end
     end
 
-    context "when update fails due to invalid parameters" do
+    context "when update fails or returns unless verified" do
       before do
-        patch result_path(result), params: { status: "invalid_status_value" }
+        allow_any_instance_of(Result).to receive(:update).and_return(false)
+        allow_any_instance_of(Result).to receive(:update!).and_return(false)
+
+        patch result_path(result), params: { status: "unread", current_tab: "unread" }
       end
 
-      it "does not update the status and returns no content (or early returns)" do
+      it "early returns without modifying database state and redirects back" do
         expect(result.reload.status).to eq("unread")
-        expect(response).to have_http_status(:no_content)
+
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(search_path(search, status: "unread"))
       end
     end
   end

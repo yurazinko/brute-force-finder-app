@@ -46,6 +46,8 @@ gem "image_processing", "~> 1.2"
 
 gem "httparty", "~>  0.24.2"
 
+gem "pagy", "~> 43.5"
+
 gem "redis"
 
 group :development, :test do

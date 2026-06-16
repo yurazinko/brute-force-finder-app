@@ -36,7 +36,7 @@ RSpec.describe SearchActivator, type: :service do
 
       it "updates the search status to pending" do
         described_class.call(search, target_ids)
-        expect(search.reload.status).to eq("pending")
+        expect(search.reload.status).to eq("processing")
       end
 
       it "returns true upon successful execution" do

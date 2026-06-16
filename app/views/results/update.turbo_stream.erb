@@ -1,0 +1,11 @@
+<% if params[:current_tab] == "watched" %>
+  <%= turbo_stream.replace dom_id(@result), partial: "results/result_card", locals: { result: @result } %>
+<% else %>
+  <%= turbo_stream.remove dom_id(@result) %>
+<% end %>
+
+<%= turbo_stream.update "counter_all_clean", html: (@search.calculate_counters[:all_clean] || 0).to_s %>
+<%= turbo_stream.update "counter_interesting", html: (@search.calculate_counters[:interesting] || 0).to_s %>
+<%= turbo_stream.update "counter_watched", html: (@search.calculate_counters[:watched] || 0).to_s %>
+<%= turbo_stream.update "counter_garbage", html: (@search.calculate_counters[:garbage] || 0).to_s %>
+<%= turbo_stream.update "results_count", html: "Showing: #{@search.results.count}" %>

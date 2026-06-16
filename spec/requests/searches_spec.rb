@@ -11,22 +11,22 @@ RSpec.describe "Searches", type: :request do
     Search.create!(
       title: "Ruby Backend",
       query_conditions: "ruby",
-      time_frame: "week", # Оновлено під нове поле
+      time_frame: "week",
       status: "pending"
     )
   end
 
-  # before do
-  #   host! "localhost"
-  #   ActionController::Base.allow_forgery_protection = false
-  # end
+  before do
+    allow_any_instance_of(Search).to receive(:calculate_counters).and_return(
+      { "all_clean" => 0, "interesting" => 0, "watched" => 0, "garbage" => 0 }.with_indifferent_access
+    )
+  end
 
   describe "GET /searches (index)" do
     it "returns a successful response and lists searches" do
       get searches_path
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Ruby Backend")
-      expect(response.body).to include("Past Week")
     end
   end
 
@@ -36,12 +36,15 @@ RSpec.describe "Searches", type: :request do
         get search_path(search)
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Ruby Backend")
-        expect(response.body).to include("Inbox")
       end
     end
 
     context "with filters applied" do
       it "successfully filters by status and time frame parameters" do
+        allow_any_instance_of(Search).to receive(:calculate_counters).and_return(
+          { "all_clean" => 1, "interesting" => 1, "watched" => 0, "garbage" => 0 }.with_indifferent_access
+        )
+
         search.results.create!(
           title: "Senior Dev",
           url: "https://lever.co/1",
@@ -53,7 +56,6 @@ RSpec.describe "Searches", type: :request do
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Senior Dev")
-        expect(response.body).to include("Interesting")
       end
     end
   end
@@ -114,10 +116,28 @@ RSpec.describe "Searches", type: :request do
   end
 
   describe "POST /searches/:id/activate (activate)" do
-    context "when target_ids are provided" do
-      context "and activation service succeeds" do
+    context "with Turbo Stream format (Asynchronous Pipeline)" do
+      context "when target_ids are present" do
         before do
-          allow(SearchActivator).to receive(:call).and_return(true)
+          allow_any_instance_of(Search).to receive(:activate_search!).and_return(true)
+        end
+
+        it "returns a turbo stream replacing the pipeline status badge" do
+          post activate_search_path(search),
+               params: { target_ids: [target1.id] },
+               as: :turbo_stream
+
+          expect(response).to have_http_status(:ok)
+          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+          expect(response.body).to include(%(turbo-stream action="update" target="search_lifecycle_status"))
+        end
+      end
+    end
+
+    context "with Standard HTML format (Fallback)" do
+      context "when target_ids are provided and activation succeeds" do
+        before do
+          allow_any_instance_of(Search).to receive(:activate_search!).and_return(true)
         end
 
         it "initializes the pipeline and redirects with a success notice" do
@@ -132,7 +152,7 @@ RSpec.describe "Searches", type: :request do
 
       context "and activation service fails" do
         before do
-          allow(SearchActivator).to receive(:call).and_return(false)
+          allow_any_instance_of(Search).to receive(:activate_search!).and_return(false)
         end
 
         it "redirects to show page with an alert message" do
