@@ -1,6 +1,6 @@
 <nav class="flex space-x-6 text-sm" aria-label="Tabs">
   <%= link_to search_path(search, d: params[:d]), class: "pb-4 px-1 border-b-2 font-medium transition flex items-center gap-1.5 #{params[:status].blank? ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}" do %>
-    Inbox <span id="counter_all_clean" class="text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-mono"><%= counts[:all_clean] || 0 %></span>
+    Inbox <span id="counter_all_clean" class="text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-mono"><%= counts[:unread] || 0 %></span>
   <% end %>
 
   <%= link_to search_path(search, status: :interesting, d: params[:d]), class: "pb-4 px-1 border-b-2 font-medium transition flex items-center gap-1.5 #{params[:status] == 'interesting' ? 'border-yellow-500 text-yellow-600 font-bold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}" do %>

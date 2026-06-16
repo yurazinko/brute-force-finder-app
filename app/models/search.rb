@@ -19,7 +19,8 @@ class Search < ApplicationRecord
     raw_counts = scoped_results.group(:status).size
 
     {
-      all_clean: scoped_results.where.not(status: :garbage).count,
+      all_clean: scoped_results.where.not(status: :garbage).size,
+      unread: raw_counts["unread"] || 0,
       interesting: raw_counts["interesting"] || 0,
       watched: raw_counts["watched"] || 0,
       garbage: raw_counts["garbage"] || 0

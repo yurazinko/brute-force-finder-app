@@ -27,7 +27,7 @@ sites_data = [
       { name: "iCIMS", domain: "icims.com" },
       { name: "Jobvite", domain: "jobs.jobvite.com" },
       { name: "Breezy HR", domain: "breezy.hr" },
-      { name: "Teamtailor", domain: "career.teamtailor.com" }, # Відомі хлопці :)
+      { name: "Teamtailor", domain: "career.teamtailor.com" },
       { name: "Pinpoint", domain: "pinpointhq.com" },
       { name: "Workable", domain: "apply.workable.com" },
       { name: "Comeet", domain: "www.comeet.com" }

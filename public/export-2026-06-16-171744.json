@@ -1,0 +1,3684 @@
+{
+  "categories": [
+    {
+      "id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "name": "Job Boards",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 1,
+      "created_at": "2026-06-16 09:06:39 UTC",
+      "name": "ATS / Job Boards",
+      "updated_at": "2026-06-16 09:06:39 UTC"
+    }
+  ],
+  "targets": [
+    {
+      "id": 3,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "myworkdayjobs.com",
+      "is_active": true,
+      "name": "Workday",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 4,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "jobs.ashbyhq.com",
+      "is_active": true,
+      "name": "Ashby",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 5,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "ats.rippling.com",
+      "is_active": true,
+      "name": "Rippling",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 6,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "app.jazz.co",
+      "is_active": true,
+      "name": "JazzHR",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 7,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "personio.de",
+      "is_active": true,
+      "name": "Personio",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 8,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "recruitee.com",
+      "is_active": true,
+      "name": "Recruitee",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 9,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "jobs.smartrecruiters.com",
+      "is_active": true,
+      "name": "SmartRecruiters",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 10,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "taleo.net",
+      "is_active": true,
+      "name": "Taleo",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 11,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "icims.com",
+      "is_active": true,
+      "name": "iCIMS",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 12,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:09 UTC",
+      "domain": "jobs.jobvite.com",
+      "is_active": true,
+      "name": "Jobvite",
+      "updated_at": "2026-06-16 14:59:09 UTC"
+    },
+    {
+      "id": 13,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "breezy.hr",
+      "is_active": true,
+      "name": "Breezy HR",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 14,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "career.teamtailor.com",
+      "is_active": true,
+      "name": "Teamtailor",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 15,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "pinpointhq.com",
+      "is_active": true,
+      "name": "Pinpoint",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 16,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "apply.workable.com",
+      "is_active": true,
+      "name": "Workable",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 17,
+      "category_id": 1,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "www.comeet.com",
+      "is_active": true,
+      "name": "Comeet",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 18,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "linkedin.com/jobs",
+      "is_active": true,
+      "name": "LinkedIn",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 19,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "indeed.com",
+      "is_active": true,
+      "name": "Indeed",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 20,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "glassdoor.com",
+      "is_active": true,
+      "name": "Glassdoor",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 21,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "wellfound.com",
+      "is_active": true,
+      "name": "Wellfound",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 22,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "workatastartup.com",
+      "is_active": true,
+      "name": "Y Combinator",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 23,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "remotive.io",
+      "is_active": true,
+      "name": "Remotive",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 24,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "remoteok.com",
+      "is_active": true,
+      "name": "Remote OK",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 25,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "weworkremotely.com",
+      "is_active": true,
+      "name": "We Work Remotely",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 26,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "himalayas.app",
+      "is_active": true,
+      "name": "Himalayas",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 27,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "djinni.co",
+      "is_active": true,
+      "name": "Djinni",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 28,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "jobs.dou.ua",
+      "is_active": true,
+      "name": "DOU",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 29,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "eurotechjobs.com",
+      "is_active": true,
+      "name": "EuroTech Jobs",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 30,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "relocate.me",
+      "is_active": true,
+      "name": "Relocate.me",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 31,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "app.welcometothejungle.com/jobs",
+      "is_active": true,
+      "name": "Otta",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 32,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "news.ycombinator.com",
+      "is_active": true,
+      "name": "HN Hiring",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 33,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "reddit.com/r/forhire",
+      "is_active": true,
+      "name": "Reddit Jobs",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 34,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "stackoverflow.com/jobs",
+      "is_active": true,
+      "name": "Stack Overflow",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 35,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "dice.com",
+      "is_active": true,
+      "name": "Dice",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 36,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "simplyhired.com",
+      "is_active": true,
+      "name": "SimplyHired",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 37,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "monster.com",
+      "is_active": true,
+      "name": "Monster",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 38,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "jobicy.com",
+      "is_active": true,
+      "name": "Jobicy",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 39,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "nodesk.co",
+      "is_active": true,
+      "name": "NoDesk",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 40,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "4dayweek.io",
+      "is_active": true,
+      "name": "4 day week",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 41,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "swissdevjobs.ch",
+      "is_active": true,
+      "name": "Swissdevjobs",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 42,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "justremote.co",
+      "is_active": true,
+      "name": "Just Remote",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 43,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "jobspresso.co",
+      "is_active": true,
+      "name": "Jobspresso",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 44,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "workingnomads.com",
+      "is_active": true,
+      "name": "Working Nomads",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 45,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "cryptojobslist.com",
+      "is_active": true,
+      "name": "Crypto Jobs List",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 46,
+      "category_id": 2,
+      "created_at": "2026-06-16 14:59:10 UTC",
+      "domain": "web3.career",
+      "is_active": true,
+      "name": "web3.career",
+      "updated_at": "2026-06-16 14:59:10 UTC"
+    },
+    {
+      "id": 1,
+      "category_id": 1,
+      "created_at": "2026-06-16 09:06:39 UTC",
+      "domain": "lever.co",
+      "is_active": true,
+      "name": "Lever",
+      "updated_at": "2026-06-16 09:06:39 UTC"
+    },
+    {
+      "id": 2,
+      "category_id": 1,
+      "created_at": "2026-06-16 09:06:39 UTC",
+      "domain": "greenhouse.io",
+      "is_active": true,
+      "name": "Greenhouse",
+      "updated_at": "2026-06-16 09:06:39 UTC"
+    }
+  ],
+  "searches": [
+    {
+      "id": 10,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "query_conditions": "(ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "status": "completed",
+      "time_frame": "week",
+      "title": "Ruby in Poland - Boards",
+      "updated_at": "2026-06-16 17:05:49 UTC"
+    },
+    {
+      "id": 9,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "query_conditions": "\"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "status": "completed",
+      "time_frame": "week",
+      "title": "Ruby Remote - Worldwide - Boards",
+      "updated_at": "2026-06-16 17:12:29 UTC"
+    },
+    {
+      "id": 6,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "query_conditions": "(ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "status": "completed",
+      "time_frame": "week",
+      "title": "Ruby in Poland - ATS",
+      "updated_at": "2026-06-16 16:32:49 UTC"
+    },
+    {
+      "id": 8,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "query_conditions": "(ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "status": "completed",
+      "time_frame": "week",
+      "title": "Ruby in Krakow - Boards",
+      "updated_at": "2026-06-16 16:51:03 UTC"
+    },
+    {
+      "id": 7,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "query_conditions": " \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "status": "completed",
+      "time_frame": "week",
+      "title": "Ruby Remote - Worldwide - ATS",
+      "updated_at": "2026-06-16 16:54:31 UTC"
+    },
+    {
+      "id": 5,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "query_conditions": "(ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "status": "completed",
+      "time_frame": "week",
+      "title": "Ruby in Europe - ATS",
+      "updated_at": "2026-06-16 17:03:25 UTC"
+    }
+  ],
+  "prompts": [
+    {
+      "id": 126,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 17,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 128,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 6,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 137,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 14,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 196,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.jobvite.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 12,
+      "updated_at": "2026-06-16 16:32:49 UTC"
+    },
+    {
+      "id": 195,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:icims.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 11,
+      "updated_at": "2026-06-16 16:32:48 UTC"
+    },
+    {
+      "id": 167,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 19,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 129,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 12,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 131,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 7,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 140,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 11,
+      "updated_at": "2026-06-16 16:32:46 UTC"
+    },
+    {
+      "id": 134,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 5,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 136,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 10,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 138,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 16,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 188,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": null,
+      "full_query_text": "site:jobs.ashbyhq.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "success",
+      "target_id": 4,
+      "updated_at": "2026-06-16 16:32:47 UTC"
+    },
+    {
+      "id": 159,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 45,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 187,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:myworkdayjobs.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 3,
+      "updated_at": "2026-06-16 16:32:46 UTC"
+    },
+    {
+      "id": 191,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:personio.de (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 7,
+      "updated_at": "2026-06-16 16:32:47 UTC"
+    },
+    {
+      "id": 190,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:app.jazz.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 6,
+      "updated_at": "2026-06-16 16:32:47 UTC"
+    },
+    {
+      "id": 192,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:recruitee.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 8,
+      "updated_at": "2026-06-16 16:32:47 UTC"
+    },
+    {
+      "id": 194,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:taleo.net (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 10,
+      "updated_at": "2026-06-16 16:32:47 UTC"
+    },
+    {
+      "id": 165,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 32,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 180,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 34,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 184,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 44,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 161,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 35,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 158,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 40,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 160,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 28,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 186,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 46,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 164,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 20,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 163,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 29,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 150,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 8,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 183,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 21,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 168,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 38,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 169,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 43,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 173,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 39,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 176,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 30,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 174,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 31,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 178,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 23,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 179,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 36,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 181,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 41,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 153,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 10,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 143,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 17,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 141,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 4,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 145,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 6,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 149,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 15,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 147,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 151,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 5,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 152,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 9,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 156,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 3,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 157,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 11,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 114,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 7,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 120,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 14,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 119,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 10,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 108,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 13,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 111,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 6,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 117,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 5,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 112,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 12,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 113,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 122,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 3,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 121,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 16,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 123,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 11,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 125,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 13,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 124,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 4,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 127,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 2,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 133,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 8,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 132,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 15,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 130,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 135,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 9,
+      "updated_at": "2026-06-16 16:32:45 UTC"
+    },
+    {
+      "id": 139,
+      "created_at": "2026-06-16 16:27:57 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 3,
+      "updated_at": "2026-06-16 16:32:46 UTC"
+    },
+    {
+      "id": 189,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:ats.rippling.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 5,
+      "updated_at": "2026-06-16 16:32:46 UTC"
+    },
+    {
+      "id": 193,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": null,
+      "full_query_text": "site:jobs.smartrecruiters.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "success",
+      "target_id": 9,
+      "updated_at": "2026-06-16 16:32:47 UTC"
+    },
+    {
+      "id": 299,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 23,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 291,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 42,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 293,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 37,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 287,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 26,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 197,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:breezy.hr (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 13,
+      "updated_at": "2026-06-16 16:32:48 UTC"
+    },
+    {
+      "id": 207,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:wellfound.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 21,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 199,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:pinpointhq.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 15,
+      "updated_at": "2026-06-16 16:32:48 UTC"
+    },
+    {
+      "id": 204,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:linkedin.com/jobs (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 18,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 198,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:career.teamtailor.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 14,
+      "updated_at": "2026-06-16 16:32:48 UTC"
+    },
+    {
+      "id": 205,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:indeed.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 19,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 200,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": null,
+      "full_query_text": "site:apply.workable.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "success",
+      "target_id": 16,
+      "updated_at": "2026-06-16 16:32:48 UTC"
+    },
+    {
+      "id": 201,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:www.comeet.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 17,
+      "updated_at": "2026-06-16 16:32:48 UTC"
+    },
+    {
+      "id": 202,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:lever.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 16:32:49 UTC"
+    },
+    {
+      "id": 203,
+      "created_at": "2026-06-16 16:32:45 UTC",
+      "error_message": null,
+      "full_query_text": "site:greenhouse.io (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 6,
+      "status": "success",
+      "target_id": 2,
+      "updated_at": "2026-06-16 16:32:49 UTC"
+    },
+    {
+      "id": 206,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:glassdoor.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 20,
+      "updated_at": "2026-06-16 16:51:03 UTC"
+    },
+    {
+      "id": 289,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 38,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 288,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 19,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 294,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 39,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 290,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 43,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 301,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 34,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 307,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 46,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 296,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 33,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 292,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 18,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 302,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 41,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 295,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 31,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 309,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:indeed.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 19,
+      "updated_at": "2026-06-16 17:12:29 UTC"
+    },
+    {
+      "id": 298,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 24,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 297,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 30,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 300,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 36,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 303,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 25,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 304,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 21,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 305,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 44,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 306,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 22,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 308,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:linkedin.com/jobs \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 18,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 347,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:breezy.hr (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 13,
+      "updated_at": "2026-06-16 17:03:19 UTC"
+    },
+    {
+      "id": 162,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 27,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 166,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 26,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 171,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 18,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 172,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 37,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 170,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 42,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 177,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 24,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 175,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 33,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 182,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 25,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 185,
+      "created_at": "2026-06-16 16:30:54 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 22,
+      "updated_at": "2026-06-16 16:41:49 UTC"
+    },
+    {
+      "id": 221,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:dice.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 35,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 208,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:workatastartup.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 22,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 215,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:eurotechjobs.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 29,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 209,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:remotive.io (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 23,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 222,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:simplyhired.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 36,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 219,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:reddit.com/r/forhire (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 33,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 218,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:news.ycombinator.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 32,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 216,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:relocate.me (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 30,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 217,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:app.welcometothejungle.com/jobs (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 31,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 211,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:weworkremotely.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 25,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 210,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:remoteok.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 24,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 223,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:monster.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 37,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 220,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:stackoverflow.com/jobs (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 34,
+      "updated_at": "2026-06-16 16:50:57 UTC"
+    },
+    {
+      "id": 230,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:workingnomads.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 44,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 232,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:web3.career (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 46,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 214,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.dou.ua (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 28,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 224,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobicy.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 38,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 212,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:himalayas.app (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 26,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 213,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:djinni.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 27,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 225,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:nodesk.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 39,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 227,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:swissdevjobs.ch (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 41,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 228,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:justremote.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 42,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 226,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:4dayweek.io (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 40,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 146,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 12,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 148,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 7,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 231,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:cryptojobslist.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 45,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 229,
+      "created_at": "2026-06-16 16:41:49 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobspresso.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (krakow OR cracow)",
+      "search_id": 8,
+      "status": "failed",
+      "target_id": 43,
+      "updated_at": "2026-06-16 16:50:58 UTC"
+    },
+    {
+      "id": 144,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 2,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 142,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 13,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 155,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 16,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 154,
+      "created_at": "2026-06-16 16:29:27 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 14,
+      "updated_at": "2026-06-16 16:54:19 UTC"
+    },
+    {
+      "id": 266,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:personio.de  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 7,
+      "updated_at": "2026-06-16 16:54:25 UTC"
+    },
+    {
+      "id": 277,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:lever.co  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 268,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.smartrecruiters.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 9,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 278,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:greenhouse.io  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 2,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 264,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:ats.rippling.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 5,
+      "updated_at": "2026-06-16 16:54:25 UTC"
+    },
+    {
+      "id": 263,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.ashbyhq.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 4,
+      "updated_at": "2026-06-16 16:54:25 UTC"
+    },
+    {
+      "id": 262,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:myworkdayjobs.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 3,
+      "updated_at": "2026-06-16 16:54:25 UTC"
+    },
+    {
+      "id": 269,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:taleo.net  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 10,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 270,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:icims.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 11,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 267,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:recruitee.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 8,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 265,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:app.jazz.co  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 6,
+      "updated_at": "2026-06-16 16:54:31 UTC"
+    },
+    {
+      "id": 273,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:career.teamtailor.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 14,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 274,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:pinpointhq.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 15,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 272,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:breezy.hr  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 13,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 271,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.jobvite.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 12,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 275,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:apply.workable.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 16,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 276,
+      "created_at": "2026-06-16 16:54:19 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:www.comeet.com  \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 7,
+      "status": "failed",
+      "target_id": 17,
+      "updated_at": "2026-06-16 16:54:26 UTC"
+    },
+    {
+      "id": 281,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 28,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 282,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 35,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 284,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 29,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 285,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 20,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 286,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 32,
+      "updated_at": "2026-06-16 16:56:47 UTC"
+    },
+    {
+      "id": 279,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 40,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 280,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 45,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 283,
+      "created_at": "2026-06-16 16:56:40 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 27,
+      "updated_at": "2026-06-16 16:56:48 UTC"
+    },
+    {
+      "id": 313,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:remotive.io \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 23,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 314,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:remoteok.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 24,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 312,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:workatastartup.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 22,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 341,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:personio.de (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 7,
+      "updated_at": "2026-06-16 17:03:19 UTC"
+    },
+    {
+      "id": 342,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:recruitee.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 8,
+      "updated_at": "2026-06-16 17:03:25 UTC"
+    },
+    {
+      "id": 339,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:ats.rippling.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 5,
+      "updated_at": "2026-06-16 17:03:25 UTC"
+    },
+    {
+      "id": 107,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 4,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 109,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 17,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 110,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 2,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 116,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 8,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 115,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 15,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 118,
+      "created_at": "2026-06-16 16:26:03 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 9,
+      "updated_at": "2026-06-16 17:02:36 UTC"
+    },
+    {
+      "id": 349,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:pinpointhq.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 15,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 338,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.ashbyhq.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 4,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 344,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:taleo.net (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 10,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 345,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:icims.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 11,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 343,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.smartrecruiters.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 9,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 351,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:www.comeet.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 17,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 352,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:lever.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 353,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:greenhouse.io (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 2,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 346,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.jobvite.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 12,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 337,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:myworkdayjobs.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 3,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 348,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:career.teamtailor.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 14,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 340,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:app.jazz.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 6,
+      "updated_at": "2026-06-16 17:03:19 UTC"
+    },
+    {
+      "id": 350,
+      "created_at": "2026-06-16 17:02:36 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:apply.workable.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (europe OR eu OR emea)",
+      "search_id": 5,
+      "status": "failed",
+      "target_id": 16,
+      "updated_at": "2026-06-16 17:03:20 UTC"
+    },
+    {
+      "id": 372,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 45,
+      "updated_at": "2026-06-16 17:05:37 UTC"
+    },
+    {
+      "id": 373,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 28,
+      "updated_at": "2026-06-16 17:05:37 UTC"
+    },
+    {
+      "id": 374,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 35,
+      "updated_at": "2026-06-16 17:05:37 UTC"
+    },
+    {
+      "id": 375,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 27,
+      "updated_at": "2026-06-16 17:05:38 UTC"
+    },
+    {
+      "id": 376,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 29,
+      "updated_at": "2026-06-16 17:05:38 UTC"
+    },
+    {
+      "id": 387,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 31,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 378,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 32,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 381,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 38,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 377,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 20,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 405,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:remotive.io (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 23,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 406,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:remoteok.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 24,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 379,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 26,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 408,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:himalayas.app (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 26,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 380,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 19,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 384,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 18,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 382,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 43,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 383,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 42,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 404,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:workatastartup.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 22,
+      "updated_at": "2026-06-16 17:05:49 UTC"
+    },
+    {
+      "id": 388,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 33,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 385,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 37,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 386,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 39,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 410,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.dou.ua (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 28,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 392,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 36,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 391,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 23,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 396,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 21,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 394,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 41,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 397,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 44,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 398,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 22,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 371,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 40,
+      "updated_at": "2026-06-16 17:05:37 UTC"
+    },
+    {
+      "id": 402,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:glassdoor.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 20,
+      "updated_at": "2026-06-16 17:05:43 UTC"
+    },
+    {
+      "id": 401,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:indeed.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 19,
+      "updated_at": "2026-06-16 17:05:43 UTC"
+    },
+    {
+      "id": 400,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:linkedin.com/jobs (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 18,
+      "updated_at": "2026-06-16 17:05:43 UTC"
+    },
+    {
+      "id": 407,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:weworkremotely.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 25,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 390,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 24,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 389,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 30,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 393,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 34,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 395,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 25,
+      "updated_at": "2026-06-16 17:05:44 UTC"
+    },
+    {
+      "id": 399,
+      "created_at": "2026-06-16 17:05:22 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 46,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 414,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:news.ycombinator.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 32,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 409,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:djinni.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 27,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 411,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:eurotechjobs.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 29,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 422,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:4dayweek.io (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 40,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 421,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:nodesk.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 39,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 423,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:swissdevjobs.ch (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 41,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 412,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:relocate.me (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 30,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 413,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:app.welcometothejungle.com/jobs (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 31,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 420,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobicy.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 38,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 418,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:simplyhired.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 36,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 419,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:monster.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 37,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 415,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:reddit.com/r/forhire (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 33,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 416,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:stackoverflow.com/jobs (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 34,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 417,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:dice.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 35,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 424,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:justremote.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 42,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 428,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:web3.career (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 46,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 426,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:workingnomads.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 44,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 425,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobspresso.co (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 43,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 427,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:cryptojobslist.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 45,
+      "updated_at": "2026-06-16 17:05:45 UTC"
+    },
+    {
+      "id": 403,
+      "created_at": "2026-06-16 17:05:37 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:wellfound.com (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (poland OR polska)",
+      "search_id": 10,
+      "status": "failed",
+      "target_id": 21,
+      "updated_at": "2026-06-16 17:05:49 UTC"
+    },
+    {
+      "id": 317,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:djinni.co \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 27,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 319,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:eurotechjobs.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 29,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 318,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobs.dou.ua \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 28,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 320,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:relocate.me \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 30,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 315,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:weworkremotely.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 25,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 310,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:glassdoor.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 20,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 311,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:wellfound.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 21,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 316,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:himalayas.app \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 26,
+      "updated_at": "2026-06-16 17:12:23 UTC"
+    },
+    {
+      "id": 324,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:stackoverflow.com/jobs \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 34,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 335,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:cryptojobslist.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 45,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 334,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:workingnomads.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 44,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 321,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:app.welcometothejungle.com/jobs \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 31,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 322,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:news.ycombinator.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 32,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 323,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:reddit.com/r/forhire \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 33,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 333,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobspresso.co \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 43,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 332,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:justremote.co \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 42,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 331,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:swissdevjobs.ch \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 41,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 329,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:nodesk.co \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 39,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 328,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:jobicy.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 38,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 326,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:simplyhired.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 36,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 325,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:dice.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 35,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 327,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:monster.com \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 37,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 330,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:4dayweek.io \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 40,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    },
+    {
+      "id": 336,
+      "created_at": "2026-06-16 16:56:47 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": "site:web3.career \"remote\" (ruby OR \"ruby on rails\") (backend OR fullstack OR developer OR engineer) (worldwide OR anywhere)",
+      "search_id": 9,
+      "status": "failed",
+      "target_id": 46,
+      "updated_at": "2026-06-16 17:12:24 UTC"
+    }
+  ],
+  "results": [
+    {
+      "id": 210,
+      "content": "3 dni temu · Cracow Metropolitan Area 3 dni temu. Forward Deployed Engineer. Forward ... AI Engineer - Ruby on Rails. OnTheGoSystems. Polska. Aplikuj wcześnie. 3 dni ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Oferty pracy: 东京世田谷区找小姐上门服务预约『约小姐色情 ... - LinkedIn",
+      "updated_at": "2026-06-16 16:50:11 UTC",
+      "url": "https://pl.linkedin.com/jobs/%e4%b8%9c%e4%ba%ac%e4%b8%96%e7%94%b0%e8%b0%b7%e5%8c%ba%e6%89%be%e5%b0%8f%e5%a7%90%e4%b8%8a%e9%97%a8%e6%9c%8d%e5%8a%a1%e9%a2%84%e7%ba%a6%e3%80%8e%e7%ba%a6%e5%b0%8f%e5%a7%90%e8%89%b2%e6%83%85%e7%bd%91%e5%9d%80%ef%bd%93%ef%bd%8d%ef%bc%96%ef%bc%96%ef%bc%96%ef%bc%96%ef%bc%8e%ef%bd%96%ef%bd%89%ef%bd%90%e5%b0%8f%e5%a6%b9%e4%bb%bb%e9%80%89%e3%80%8f%e4%b8%9c%e4%ba%ac%e4%b8%96%e7%94%b0%e8%b0%b7%e5%8c%ba%e6%89%be%e5%b0%8f%e5%a7%90%e6%8c%89%e6%91%a9%e6%9c%8d%e5%8a%a1%e4%b9%84%e4%b8%9c%e4%ba%ac%e4%b8%96%e7%94%b0%e8%b0%b7%e5%8c%ba%e6%89%be%e5%b0%8f%e5%a7%90%e4%b8%8a%e9%97%a8%e6%8c%89%e6%91%a9%e5%85%a8%e5%a5%97%e6%9c%8d%e5%8a%a1%e4%b9%84%e4%b8%9c%e4%ba%ac%e4%b8%96%e7%94%b0%e8%b0%b7%e5%8c%ba%e6%89%be%e5%b0%8f%e5%a7%90%e5%ad%a6%e7%94%9f%e5%a6%b9%e8%bf%87%e5%a4%9c%e4%b8%8a%e9%97%a8%e6%8c%89%e6%91%a9%e6%9c%8d%e5%8a%a1.kk9epa-jobs",
+      "url_hash": "d30a826f489de7eb2c7837a8a2ba6a8fc2309f00a5a5fd3fe3a43bcb115e45b3",
+      "viewed_at": null
+    },
+    {
+      "id": 230,
+      "content": "5 days ago · Design and review full-stack solutions spanning frontend (React/TypeScript) and backend (Golang, Node.js) services. Apply an AI-first philosophy to the design of architectures, processes, and tooling integration throughout the development lifecycle.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Archie Labs hiring Technical Lead • Remote (Work from Home ...",
+      "updated_at": "2026-06-16 17:00:42 UTC",
+      "url": "https://himalayas.app/companies/archie-labs/jobs/technical-lead",
+      "url_hash": "b97994855eed89c5ffd48d14bbba85d99fe37a1d57733aeb926faf1cbf628168",
+      "viewed_at": null
+    },
+    {
+      "id": 212,
+      "content": "3 dni temu · Java Application Developer jobs · Senior Web Developer jobs · Django Developer jobs · Associate Software Engineer jobs · Ruby on Rails Developer jobs · Web ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "watched",
+      "title": "senior full stack ai engineer - SKM Group - LinkedIn",
+      "updated_at": "2026-06-16 16:49:56 UTC",
+      "url": "https://www.linkedin.com/jobs/view/senior-full-stack-ai-engineer-at-skm-group-4427296096",
+      "url_hash": "b7da8e64c2c3444a6b07039a1ed6476e2c4c4ac5a2dd577654dca293ab9b5513",
+      "viewed_at": null
+    },
+    {
+      "id": 211,
+      "content": "15 godzin temu · Strong experience in at least one backend or full-stack engineering environment, such as Python, JavaScript/TypeScript, Node.js, Java, C#, .NET, C++, Go, Ruby, ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "watched",
+      "title": "Node.js Software Engineer - Remote - LinkedIn",
+      "updated_at": "2026-06-16 16:50:14 UTC",
+      "url": "https://www.linkedin.com/jobs/view/node-js-software-engineer-remote-at-yo-it-consulting-4429180867",
+      "url_hash": "d607a8ccf88fb7f2d14ad250bfcadcae06e1d363ff3597b7526f1404d8a65ad5",
+      "viewed_at": null
+    },
+    {
+      "id": 237,
+      "content": "2 days ago · It let's developer do test planning and testing automation using their coding agents. The records of the testing sessions are then shareable and can be added to PRs, giving the reviewers visibility into how the feature works, what scenarios are handled and tested and what might have been missed.",
+      "created_at": "2026-06-16 16:56:57 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Ask HN: What are you working on? (June 2026) | Hacker News",
+      "updated_at": "2026-06-16 16:57:32 UTC",
+      "url": "https://news.ycombinator.com/item",
+      "url_hash": "266671e621f53edee1a34beefd59e765c7245783b6a6ff2ffb671a5103f951ac",
+      "viewed_at": null
+    },
+    {
+      "id": 203,
+      "content": "5 dni temu · Familiarity with back end frameworks Ruby on Rails/Angular and different types of DBs (Clickhouse, Mongo, Postgres). Knowledge of AI-driven coding tools and ...",
+      "created_at": "2026-06-16 16:32:47 UTC",
+      "search_id": 6,
+      "status": "unread",
+      "title": "Mid/Senior Frontend Developer @ Sensor Tower - Jobs",
+      "updated_at": "2026-06-16 16:32:47 UTC",
+      "url": "https://jobs.ashbyhq.com/sensor-tower/5791699f-0218-42ba-99f5-2a587e9f9350",
+      "url_hash": "ec07c38cb4ec4249d8916c220e809aaa1833cf015d7dd4e56c91ede4cae5da3a",
+      "viewed_at": null
+    },
+    {
+      "id": 229,
+      "content": "4 days ago · Looking for a remote job? Remote OK® is the #1 Remote Job Platform and has 1,133,415+ remote jobs as a Developer, Designer, Copywriter, Customer Support Rep, Sales Professional, Project Manager and more! Find a career where you can work remotely from anywhere.",
+      "created_at": "2026-06-16 16:56:55 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Remote Jobs in Programming, Design, Sales and more #OpenSalaries",
+      "updated_at": "2026-06-16 17:01:39 UTC",
+      "url": "https://remoteok.com/",
+      "url_hash": "b59d7b9f38721b48828bb163119926def35bd2f6fc5f5b69b25d3bf382674f89",
+      "viewed_at": null
+    },
+    {
+      "id": 201,
+      "content": "4 dni temu · You'll learn about the Ruby language and the Rails framework since it's used in many aspects of our projects and tools. You'll gain deep insights into ...",
+      "created_at": "2026-06-16 16:32:47 UTC",
+      "search_id": 6,
+      "status": "garbage",
+      "title": "DevOps Engineer @ Sensor Tower - Jobs",
+      "updated_at": "2026-06-16 16:34:36 UTC",
+      "url": "https://jobs.ashbyhq.com/sensor-tower/45e0028b-2e01-47c6-97a4-66355fb5b642",
+      "url_hash": "a1964300975d05a7f4e60e0702645432a8afc26be66497ed7324db58b1daea57",
+      "viewed_at": null
+    },
+    {
+      "id": 202,
+      "content": "3 dni temu · You'll learn about the Ruby language and the Rails framework since it's used in many aspects of our projects and tools. You'll gain deep insights into ...",
+      "created_at": "2026-06-16 16:32:47 UTC",
+      "search_id": 6,
+      "status": "garbage",
+      "title": "DevOps Engineer @ Sensor Tower - Jobs",
+      "updated_at": "2026-06-16 16:35:19 UTC",
+      "url": "https://jobs.ashbyhq.com/sensor-tower/58a5c0d6-c777-4d8f-9a3c-ada344bafe03",
+      "url_hash": "0fc620ca44cbb7b761bee1fe27fa77f29e74093484925f3f4e22841887af4b24",
+      "viewed_at": null
+    },
+    {
+      "id": 205,
+      "content": "7 dni temu · We are looking for a senior Ruby on Rails developer to help us build reliable, scalable products and apply AI/LLM technologies where they create real value.",
+      "created_at": "2026-06-16 16:32:48 UTC",
+      "search_id": 6,
+      "status": "watched",
+      "title": "Senior Ruby on Rails Developer (LLM) - OnTheGoSystems",
+      "updated_at": "2026-06-16 16:35:33 UTC",
+      "url": "https://apply.workable.com/on-the-go-systems/j/a5b2f7b0f2",
+      "url_hash": "9ae0f3d2eef1f96e7e4550dadf6f46af68aec4255de73f674787d0c43e3bbec3",
+      "viewed_at": null
+    },
+    {
+      "id": 206,
+      "content": "6 dni temu · Experience with object-oriented development using a scripting language (such as JavaScript, PHP, Python or Ruby). Most of our work is in JavaScript, PHP and CSS ...",
+      "created_at": "2026-06-16 16:32:49 UTC",
+      "search_id": 6,
+      "status": "garbage",
+      "title": "Job Application for Software Engineer III, Editing at Wikimedia Foundation",
+      "updated_at": "2026-06-16 16:36:04 UTC",
+      "url": "https://job-boards.greenhouse.io/wikimedia/jobs/7997194",
+      "url_hash": "02985ed18ff4aaeecd22429616534664712cd7109f75e7f517bcd45d89f8610b",
+      "viewed_at": null
+    },
+    {
+      "id": 204,
+      "content": "6 dni temu · Nice to have: Backend development experience (Ruby on Rails, PostgreSQL, Sidekiq); Experience with WebGL and libraries such as three.js; Experience developing ...",
+      "created_at": "2026-06-16 16:32:47 UTC",
+      "search_id": 6,
+      "status": "garbage",
+      "title": "Miratech Senior Front-End Developer (React, JS) | SmartRecruiters",
+      "updated_at": "2026-06-16 16:37:54 UTC",
+      "url": "https://jobs.smartrecruiters.com/miratech1/744000131694017-senior-front-end-developer-react-js-",
+      "url_hash": "e77033ea0d5ba9e5c7bc9c452577cc2cb524908692cb6c93c1386c856c3ed76a",
+      "viewed_at": null
+    },
+    {
+      "id": 209,
+      "content": "3 dni temu · Krakow Cabin Crew Opportunities (Dubai Based, Relocation Provided) ... Full-Stack Engineer (Ruby on Rails + React). Apoddo. Polska 2 dni temu. Senior ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "丽江站附近怎么叫美女上课服务<<极品网址▷ye666.vip网红模特>>哪个 ...",
+      "updated_at": "2026-06-16 16:48:15 UTC",
+      "url": "https://pl.linkedin.com/jobs/%e4%b8%bd%e6%b1%9f%e7%ab%99%e9%99%84%e8%bf%91%e6%80%8e%e4%b9%88%e5%8f%ab%e7%be%8e%e5%a5%b3%e4%b8%8a%e8%af%be%e6%9c%8d%e5%8a%a1%3c%3c%e6%9e%81%e5%93%81%e7%bd%91%e5%9d%80%e2%96%b7ye666.vip%e7%bd%91%e7%ba%a2%e6%a8%a1%e7%89%b9%3e%3e%e5%93%aa%e4%b8%aa%e9%85%92%e5%ba%97%e6%80%8e%e4%b9%88%e6%89%be%e7%be%8e%e5%a5%b3%e7%89%b9%e5%88%ab%e6%9c%8d%e5%8a%a1%e4%b9%84%e4%b8%bd%e6%b1%9f%e7%ab%99%e9%99%84%e8%bf%91%e5%93%aa%e9%87%8c%e6%9c%89%e5%a7%91%e5%a8%98%e5%a4%a7%e4%bf%9d%e5%81%a5%e6%9c%8d%e5%8a%a1%e4%b9%84%e4%b8%bd%e6%b1%9f%e7%ab%99%e9%99%84%e8%bf%91%e6%89%be%e6%bc%82%e4%ba%ae%e5%b0%8f%e5%a7%90%e4%b8%8a%e9%97%a8%e7%ba%a6%e6%9c%8d%e5%8a%a1%e4%b9%84%e4%b8%bd%e6%b1%9f%e7%ab%99%e9%99%84%e8%bf%91%e5%90%8c%e5%9f%8e%e9%99%84%e8%bf%91%e7%ba%a6%e7%82%ae-amhy/-jobs",
+      "url_hash": "5dde1eb8dc03e9885c677d1be2eedb6150b46ecb16462b4c63a1e84735b06732",
+      "viewed_at": null
+    },
+    {
+      "id": 207,
+      "content": "6 dni temu · At Ruby Labs we are looking for a Senior AI Engineer to own and drive the quality, reliability, and evolution of our AI systems in production. This is a high- ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "watched",
+      "title": "Ruby Labs hiring AI Engineer in European Union | LinkedIn",
+      "updated_at": "2026-06-16 16:48:49 UTC",
+      "url": "https://www.linkedin.com/jobs/view/ai-engineer-at-ruby-labs-4426329879",
+      "url_hash": "01cf0744ce5248eb8915510024bdf586c1dffc3d4990cde519b38f6d40294eef",
+      "viewed_at": null
+    },
+    {
+      "id": 231,
+      "content": "1 day ago · The Red Hat Identity Management Engineering team is seeking a Software Engineer with Python experience and dev-ops mindset with interest in automation, CIs to join our ranks.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Remote Software Engineer - CI and Automation Job at Red Hat",
+      "updated_at": "2026-06-16 16:58:57 UTC",
+      "url": "https://himalayas.app/companies/red-hat/jobs/software-engineer-ci-and-automation",
+      "url_hash": "293710ee9464b91f7379d19aa93e8cafaf020ff67f92f3aae3b4b968a12816ef",
+      "viewed_at": null
+    },
+    {
+      "id": 232,
+      "content": "5 days ago · Allshore Talent is hiring a remote Junior Project Coordinator (100% Remote) (Pakistan Only). Apply now on Himalayas.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Allshore Talent hiring Junior Project Coordinator (100% ...",
+      "updated_at": "2026-06-16 16:59:03 UTC",
+      "url": "https://himalayas.app/companies/allshore-talent/jobs/junior-project-coordinator-100-remote-pakistan-only",
+      "url_hash": "85610cd8ca1d637c2f081eba06db0face29c6074b75073eb77c46c2496820f94",
+      "viewed_at": null
+    },
+    {
+      "id": 218,
+      "content": "1 dzień temu · Browse 82 Ruby Junior Developer job openings from Remote. Discover flexible, work-from-home opportunities on Indeed in fields like tech, admin, and customer ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Ruby junior developer jobs in Remote - Indeed",
+      "updated_at": "2026-06-16 16:44:36 UTC",
+      "url": "https://ca.indeed.com/q-ruby-junior-developer-l-remote-jobs.html",
+      "url_hash": "91b948219cfd98e34a52c58febcfbf26fe123151b364116c8093d2125b3f89af",
+      "viewed_at": null
+    },
+    {
+      "id": 219,
+      "content": "3 dni temu · Ruby on Rails developer. LeanLogics. 30-148 Kraków. Elastyczne godziny pracy. Pasja rozwijania aplikacji z ruby on rails. Demonstracyjna znajomość technologii ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Ponad 800 ofert pracy (Qgis, Postgis, Postgresql), zatrudnienie - Indeed",
+      "updated_at": "2026-06-16 16:44:43 UTC",
+      "url": "https://pl.indeed.com/q-qgis,-postgis,-postgresql-oferty-pracy.html",
+      "url_hash": "5a6d65a50326dea9b7d3e8a7901525e58734bf1d9a8d1e71a79a108ede0187d0",
+      "viewed_at": null
+    },
+    {
+      "id": 220,
+      "content": "19 godzin temu · Backend Engineer (Python) - Poland. Delta Capita. Warszawa, mazowieckie ... Ruby On Rails Developer (Warszawa, Mazowieckie)Oferty pracy: Quantitative ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Ponad 200 ofert pracy (Backend Remote Python), zatrudnienie",
+      "updated_at": "2026-06-16 16:45:11 UTC",
+      "url": "https://pl.indeed.com/q-backend-remote-python-oferty-pracy.html",
+      "url_hash": "443834be932e4fb2d3babbb405bf7346cc0bb062a17d4c04c0a3dcd4705bcb09",
+      "viewed_at": null
+    },
+    {
+      "id": 221,
+      "content": "5 dni temu · Senior Fullstack Engineer (PHP + Vue). Digital Colliers. zdalnie. Pakiety ... Ruby Rails Developer (Kraków, Małopolskie)Oferty pracy: Programista Android ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Ponad 200 ofert pracy (Vue), zatrudnienie - Indeed",
+      "updated_at": "2026-06-16 16:45:13 UTC",
+      "url": "https://pl.indeed.com/q-vue-oferty-pracy.html",
+      "url_hash": "f2a7c75e36eaab8a9291aeff3ea1b7126e74c7ec7189693aff64d01a632cc961",
+      "viewed_at": null
+    },
+    {
+      "id": 222,
+      "content": "1 dzień temu · Jamstack Developer with Gatsby - Webinity CMS. Webinity. Kraków, małopolskie. Elastyczne godziny pracy ... Ruby Rails Developer (Kraków, Małopolskie)Oferty pracy: ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Ponad 75 ofert pracy (Wordpress Developer), zatrudnienie - Indeed",
+      "updated_at": "2026-06-16 16:45:20 UTC",
+      "url": "https://pl.indeed.com/q-wordpress-developer-oferty-pracy.html",
+      "url_hash": "7c1e53f0cd7542492760b57cb98565e297cd7339c8533229ca563da54a5b4937",
+      "viewed_at": null
+    },
+    {
+      "id": 223,
+      "content": "4 godziny temu · Ruby on Rails developer. LeanLogics. 30-148 Kraków. Elastyczne godziny pracy. Pasja rozwijania aplikacji z ruby on rails. Demonstracyjna znajomość technologii ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Oferty pracy: Informatyk (Kraków, Małopolskie) - Indeed",
+      "updated_at": "2026-06-16 16:45:41 UTC",
+      "url": "https://pl.indeed.com/q-informatyk-l-krak%c3%b3w,-ma%c5%82opolskie-oferty-pracy.html",
+      "url_hash": "40b0be76000f866029f4018ff762eb1d2f235e1cba2105e4ea122308ca8d9826",
+      "viewed_at": null
+    },
+    {
+      "id": 224,
+      "content": "3 dni temu · ... Developer (Warszawa, Mazowieckie)Wszystkie oferty pracy: Backend Developer PraktykiOferty pracy: Ruby Developer (Kraków, Małopolskie)Oferty pracy: Software ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Oferty pracy: Frontend - Poznań, wielkopolskie - Indeed",
+      "updated_at": "2026-06-16 16:47:11 UTC",
+      "url": "https://pl.indeed.com/q-frontend-l-pozna%c5%84,-wielkopolskie-oferty-pracy.html",
+      "url_hash": "d18f94642ef807c0f3d4cd2a4c8b4201f0763471239e64964ff9d2397c8bb2ed",
+      "viewed_at": null
+    },
+    {
+      "id": 226,
+      "content": "2 dni temu · Backend Developer (Node). Pressly. zdalnie. Elastyczne godziny pracy. Wykorzystujesz do codziennej pracy PHP/ Java/ Ruby/ C#/Python. Algorytmy i struktury ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Ponad 50 ofert pracy (Bielsku Białej), zatrudnienie - Indeed",
+      "updated_at": "2026-06-16 16:47:38 UTC",
+      "url": "https://pl.indeed.com/q-bielsku-bia%c5%82ej-oferty-pracy.html",
+      "url_hash": "cf175ef7ab5cab84d982f8068a9e5fb494feda28c44ccfb5bde9d612feb1ab7a",
+      "viewed_at": null
+    },
+    {
+      "id": 225,
+      "content": "3 dni temu · Znajomości SQL (używamy baz danych MySQL i PostgreSQL). Ruby on Rails, MySQL / PostgreSQL, AWS,. Doświadczenie w pracy z Ruby, Ruby on Rails i HTML/Javascript,.",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Oferty pracy: Programista baz danych sql - Indeed",
+      "updated_at": "2026-06-16 16:47:38 UTC",
+      "url": "https://pl.indeed.com/q-programista-baz-danych-sql-oferty-pracy.html",
+      "url_hash": "10e2b43e579fca7fe127f6695a8a635e6970b7a92477436d2332cb680acbbbea",
+      "viewed_at": null
+    },
+    {
+      "id": 216,
+      "content": "2 dni temu · Strong experience in at least one backend or full-stack engineering environment, such as Python, JavaScript/TypeScript, Node.js, Java, C#, .NET, C++, Go, Ruby, ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "YO IT Consulting hiring Go/Golang Developer - Remote in ... - LinkedIn",
+      "updated_at": "2026-06-16 16:48:16 UTC",
+      "url": "https://www.linkedin.com/jobs/view/go-golang-developer-remote-at-yo-it-consulting-4427448732",
+      "url_hash": "d2326732e6964e01f5f3ed5bdd1cdd346997ce6c97703bec2e9dc446dc9e366e",
+      "viewed_at": null
+    },
+    {
+      "id": 214,
+      "content": "3 dni temu · Cracow Metropolitan Area 2 dni temu. Senior Software Engineer (Remote) ... Full-Stack Engineer (Ruby on Rails + React). Apoddo. Polska 3 dni temu. Deep ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "上饶站附近小姐按摩服务电话«極品少女網ha520．vip肤色白嫩",
+      "updated_at": "2026-06-16 16:48:17 UTC",
+      "url": "https://pl.linkedin.com/jobs/%e4%b8%8a%e9%a5%b6%e7%ab%99%e9%99%84%e8%bf%91%e5%b0%8f%e5%a7%90%e6%8c%89%e6%91%a9%e6%9c%8d%e5%8a%a1%e7%94%b5%e8%af%9d%c2%ab%e6%a5%b5%e5%93%81%e5%b0%91%e5%a5%b3%e7%b6%b2%ef%bd%88%ef%bd%81%ef%bc%95%ef%bc%92%ef%bc%90%ef%bc%8e%ef%bd%96%ef%bd%89%ef%bd%90%e8%82%a4%e8%89%b2%e7%99%bd%e5%ab%a9%c2%bb%e4%b8%8a%e9%a5%b6%e7%ab%99%e9%99%84%e8%bf%91%e6%89%be%e5%b0%8f%e5%a7%90%e5%b0%8f%e5%a6%b9%e6%8c%89%e6%91%a9%e5%85%a8%e5%a5%97%e4%b8%8a%e9%97%a8%e6%9c%8d%e5%8a%a1-%e5%85%b0%e5%b7%9e%e6%83%b3%e7%ba%a6%e7%9a%84%e8%81%94%e7%b3%bb%e6%88%91%e5%90%a7-%e4%b8%8a%e9%a5%b6%e7%ab%99%e9%99%84%e8%bf%91%e5%b0%8f%e5%a7%90%e7%ba%a6%e7%82%ae-%e4%b8%8a%e9%a5%b6%e7%ab%99%e9%99%84%e8%bf%91%e5%93%aa%e9%87%8c%e6%9c%89%e5%b0%8f%e5%a7%90%e4%b8%8a%e9%97%a8%e5%8c%85%e5%a4%9c%e6%9c%8d%e5%8a%a1-jobs",
+      "url_hash": "81c9136289b367712c4688c6c5cf4c48b4bd0966a837053c26f3964474729097",
+      "viewed_at": null
+    },
+    {
+      "id": 215,
+      "content": "4 dni temu · Java Application Developer jobs · Senior Web Developer jobs · Django Developer jobs · Associate Software Engineer jobs · Ruby on Rails Developer jobs · Web ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "senior full stack (java / react) developer - SKM Group - LinkedIn",
+      "updated_at": "2026-06-16 16:48:20 UTC",
+      "url": "https://www.linkedin.com/jobs/view/senior-full-stack-java-react-developer-at-skm-group-4426957882",
+      "url_hash": "42234a0665b62fc3bdadca0c2ddff7b4f9f429ef2c5e739d5f9869a29fe08153",
+      "viewed_at": null
+    },
+    {
+      "id": 227,
+      "content": "6 dni temu · 5 вакансій в категорії Front End в Poland ; 10 червня. Frontend Engineer (Vue.js) — PawChamp · SKELAR ; 10 червня. Full Stack Engineer (React + Java) · Nortal ; 8 ...",
+      "created_at": "2026-06-16 16:41:51 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "5 вакансій в категорії Front End в Poland - Вакансії | DOU",
+      "updated_at": "2026-06-16 16:43:15 UTC",
+      "url": "https://jobs.dou.ua/vacancies/",
+      "url_hash": "6ed54443754be57e94dd5388344cb3acbd548140c53a94eaaceeede34ca91c2f",
+      "viewed_at": null
+    },
+    {
+      "id": 217,
+      "content": "2 dni temu · ... Software Engineer Intern (Warszawa, Mazowieckie)Oferty pracy: Ruby On Rails Developer (Warszawa, Mazowieckie)Oferty pracy: Project Management Office (Kraków ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Oferty pracy: Part time software developer - Indeed",
+      "updated_at": "2026-06-16 16:44:34 UTC",
+      "url": "https://pl.indeed.com/q-part-time-software-developer-oferty-pracy.html",
+      "url_hash": "099dfb02fa18514f461c0c0d876d7f19e99b6643e4215a0d948ba5ae88dc2330",
+      "viewed_at": null
+    },
+    {
+      "id": 213,
+      "content": "3 dni temu · Full-Stack Engineer (Ruby on Rails + React). Full-Stack Engineer (Ruby on Rails + React). Apoddo. Polska 3 dni temu. Backend Developer (Python) | Remote ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "Oferty pracy: 林芝站附近约炮平台｛在线客服网止→m5200．vip ...",
+      "updated_at": "2026-06-16 16:48:12 UTC",
+      "url": "https://pl.linkedin.com/jobs/%e6%9e%97%e8%8a%9d%e7%ab%99%e9%99%84%e8%bf%91%e7%ba%a6%e7%82%ae%e5%b9%b3%e5%8f%b0%ef%bd%9b%e5%9c%a8%e7%ba%bf%e5%ae%a2%e6%9c%8d%e7%bd%91%e6%ad%a2%e2%86%92%ef%bd%8d%ef%bc%95%ef%bc%92%ef%bc%90%ef%bc%90%ef%bc%8e%ef%bd%96%ef%bd%89%ef%bd%90%e5%9c%a8%e7%b7%9a%e9%81%b8%e5%a6%b9%ef%bd%9d%e6%9e%97%e8%8a%9d%e7%ab%99%e9%99%84%e8%bf%91%e5%93%aa%e9%87%8c%e6%9c%89%e7%be%8e%e5%a5%b3%e5%85%a8%e5%a5%97%e6%9c%8d%e5%8a%a1%e4%b9%80%e6%9e%97%e8%8a%9d%e7%ab%99%e9%99%84%e8%bf%91%e7%be%8e%e5%9b%a2%e6%80%8e%e4%b9%88%e6%89%be%e7%ba%a6%e7%82%ae%e6%9c%8d%e5%8a%a1%e4%b9%80%e5%a4%a7%e5%ad%a6%e5%9f%8e%e4%b8%8a%e9%97%a8400%e5%85%834%e4%b8%aa%e5%b0%8f%e6%97%b6%ef%bc%88150%e5%bf%ab%e9%a4%90%ef%bc%89%e4%b9%80%e6%9e%97%e8%8a%9d%e7%ab%99%e9%99%84%e8%bf%91%e5%a6%82%e4%bd%95%e6%89%be%e6%b4%97%e6%b5%b4%e4%b8%ad%e5%bf%83%e5%b0%8f%e5%a7%90%e6%9c%8d%e5%8a%a1vnv-jobs",
+      "url_hash": "e5d963984e93f74b84672e0b4a838460403795a1074105c5287b41682392b533",
+      "viewed_at": null
+    },
+    {
+      "id": 208,
+      "content": "3 dni temu · Cracow Metropolitan Area 2 dni temu. Senior Fullstack/AI Engineer. Senior ... AI Engineer - Ruby on Rails. OnTheGoSystems. Polska. Aplikuj wcześnie. 3 dni ...",
+      "created_at": "2026-06-16 16:41:50 UTC",
+      "search_id": 8,
+      "status": "garbage",
+      "title": "新宁县找小姐上门服务电话＜小姐预约网址sm6666．vip真实约炮 ...",
+      "updated_at": "2026-06-16 16:48:12 UTC",
+      "url": "https://pl.linkedin.com/jobs/%e6%96%b0%e5%ae%81%e5%8e%bf%e6%89%be%e5%b0%8f%e5%a7%90%e4%b8%8a%e9%97%a8%e6%9c%8d%e5%8a%a1%e7%94%b5%e8%af%9d%ef%bc%9c%e5%b0%8f%e5%a7%90%e9%a2%84%e7%ba%a6%e7%bd%91%e5%9d%80%ef%bd%93%ef%bd%8d%ef%bc%96%ef%bc%96%ef%bc%96%ef%bc%96%ef%bc%8e%ef%bd%96%ef%bd%89%ef%bd%90%e7%9c%9f%e5%ae%9e%e7%ba%a6%e7%82%ae%ef%bc%9e%e6%96%b0%e5%ae%81%e5%8e%bf%e6%89%be%e5%b0%8f%e5%a7%90%e6%8c%89%e6%91%a9%e6%9c%8d%e5%8a%a1%e4%bf%a1%e6%81%af%e3%8a%a3%e6%96%b0%e5%ae%81%e5%8e%bf%e6%89%be%e5%b0%8f%e5%a7%90%e4%b8%8a%e9%97%a8%e5%85%a8%e5%a5%97%e6%9c%8d%e5%8a%a1%e3%8a%a3%e6%96%b0%e5%ae%81%e5%8e%bf%e6%89%be%e5%b0%8f%e5%a7%90%e5%a4%a7%e4%bf%9d%e5%81%a5%e6%8c%89%e6%91%a9%e7%89%b9%e6%ae%8a%e6%9c%8d%e5%8a%a1%e3%8a%a3%e6%96%b0%e5%ae%81%e5%8e%bf%e6%89%be%e4%b8%aa%e5%b0%8f%e5%a7%90%e5%ad%a6%e7%94%9f%e5%a6%b9%e5%85%a8%e5%a5%97%e6%8c%89%e6%91%a9%e6%9c%8d%e5%8a%a1%e5%a4%9a%e5%b0%91%e9%92%b1.x-jobs",
+      "url_hash": "a91e6cf26f142a7d379cdb6eec2365984072ccf5f6e585ef4f2e94ee94e6dc16",
+      "viewed_at": null
+    },
+    {
+      "id": 233,
+      "content": "1 day ago · Red Hat is the world’s leading provider of enterprise open source software solutions, using a community-powered approach to deliver reliable and high-performing Linux, hybrid cloud, container, and Kubernetes technologies.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Red Hat hiring Principal Software Engineer - OpenShift ...",
+      "updated_at": "2026-06-16 16:59:29 UTC",
+      "url": "https://himalayas.app/companies/red-hat/jobs/principal-software-engineer-openshift-networking-emea",
+      "url_hash": "81ef6a44b1ae14c1efbfee0df72b16149c1b6da54d204eaf7d3fde1104bf3162",
+      "viewed_at": null
+    },
+    {
+      "id": 236,
+      "content": "1 day ago · Twilio is hiring a remote Business Process Analyst 3. Apply now on Himalayas.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Twilio hiring Business Process Analyst 3 • Remote (Work from ...",
+      "updated_at": "2026-06-16 17:00:17 UTC",
+      "url": "https://himalayas.app/companies/twilio/jobs/business-process-analyst-3",
+      "url_hash": "2432a395880495929c94bd9ec8f771119e3072e72b054ebc5be9258722e10499",
+      "viewed_at": null
+    },
+    {
+      "id": 234,
+      "content": "1 day ago · You'll enjoy the flexibility to work remotely * from anywhere within the U.S. as you take on some tough challenges. For all hires in the Minneapolis or Washington, D.C. area, you will be required to work in the office a minimum of four days per week.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Optum hiring Senior AI ML Engineer - Remote • Remote (Work ...",
+      "updated_at": "2026-06-16 17:01:04 UTC",
+      "url": "https://himalayas.app/companies/optum/jobs/senior-ai-ml-engineer-remote-5333852734",
+      "url_hash": "697e3fd40a279cdb004d7054123089b46523b5b386f034a6b7d0e0810c5cbcdb",
+      "viewed_at": null
+    },
+    {
+      "id": 235,
+      "content": "2 days ago · 13 remote jobs at Sprinklr Explore the variety of open remote roles at Sprinklr, offering flexible work options across multiple disciplines and skill levels.",
+      "created_at": "2026-06-16 16:56:56 UTC",
+      "search_id": 9,
+      "status": "garbage",
+      "title": "Sprinklr hiring Lead Solutions Consultant • Remote (Work from ...",
+      "updated_at": "2026-06-16 17:02:02 UTC",
+      "url": "https://himalayas.app/companies/sprinklr/jobs/lead-solutions-consultant-2604480654",
+      "url_hash": "fc3023e62b6f1d2b732956a0a3d4fe5514bddc3c872047f5b98f832f4354ba34",
+      "viewed_at": null
+    }
+  ]
+}
