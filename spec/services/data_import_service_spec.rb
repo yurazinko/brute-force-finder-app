@@ -37,10 +37,10 @@ RSpec.describe DataImportService, type: :service do
       end
 
       it "imports data into the database" do
-        expect {
+        expect do
           described_class.new(temp_file_path).call
-        }.to change(Category, :count).by(1)
-         .and change(Target, :count).by(1)
+        end.to change(Category, :count).by(1)
+                                       .and change(Target, :count).by(1)
 
         category = Category.find(1)
         expect(category.name).to eq("Tech")
@@ -49,9 +49,9 @@ RSpec.describe DataImportService, type: :service do
       it "performs an upsert if the record already exists" do
         Category.create!(id: 1, name: "Old Name")
 
-        expect {
+        expect do
           described_class.new(temp_file_path).call
-        }.not_to change(Category, :count)
+        end.not_to change(Category, :count)
 
         expect(Category.find(1).name).to eq("Tech")
       end
