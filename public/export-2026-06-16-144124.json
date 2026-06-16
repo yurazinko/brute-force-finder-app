@@ -1,0 +1,305 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "created_at": "2026-06-16 09:06:39 UTC",
+      "name": "ATS / Job Boards",
+      "updated_at": "2026-06-16 09:06:39 UTC"
+    }
+  ],
+  "targets": [
+    {
+      "id": 1,
+      "category_id": 1,
+      "created_at": "2026-06-16 09:06:39 UTC",
+      "domain": "lever.co",
+      "is_active": true,
+      "name": "Lever",
+      "updated_at": "2026-06-16 09:06:39 UTC"
+    },
+    {
+      "id": 2,
+      "category_id": 1,
+      "created_at": "2026-06-16 09:06:39 UTC",
+      "domain": "greenhouse.io",
+      "is_active": true,
+      "name": "Greenhouse",
+      "updated_at": "2026-06-16 09:06:39 UTC"
+    }
+  ],
+  "searches": [
+    {
+      "id": 16,
+      "created_at": "2026-06-16 12:59:13 UTC",
+      "query_conditions": "(ruby OR \"ruby on rails\") (backend OR fullstack OR developer)",
+      "status": "completed",
+      "time_frame": "month",
+      "title": "Ruby in Poland",
+      "updated_at": "2026-06-16 12:59:17 UTC"
+    }
+  ],
+  "prompts": [
+    {
+      "id": 60,
+      "created_at": "2026-06-16 12:59:13 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 16,
+      "status": "failed",
+      "target_id": 1,
+      "updated_at": "2026-06-16 12:59:16 UTC"
+    },
+    {
+      "id": 59,
+      "created_at": "2026-06-16 12:59:13 UTC",
+      "error_message": "No results found or client error",
+      "full_query_text": null,
+      "search_id": 16,
+      "status": "failed",
+      "target_id": 2,
+      "updated_at": "2026-06-16 12:59:16 UTC"
+    }
+  ],
+  "results": [
+    {
+      "id": 174,
+      "content": "28 maj 2026 · The ideal candidate will be capable and proficient across the tech stack, including Ruby on Rails on the backend and React and Javascript on the front end.",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for Fullstack Backend Engineer at Agile Six ... - Greenhouse",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/agilesix/jobs/7751622003",
+      "url_hash": "1c63dca21672f0febd1e58ea08237c2630701fabe56652c9a09f8c87cadc1c98",
+      "viewed_at": null
+    },
+    {
+      "id": 175,
+      "content": "28 maj 2026 · We're looking for a Mid/Senior Backend Engineer to join a team that keeps frameworks lean and focuses on what matters: clean, maintainable code, shipped fast ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for (Senior) Backend Engineer, Platform at Wheely",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/wheely/jobs/7746904003",
+      "url_hash": "e53a4187a79bdce1f8b966fed1c360c274755d7a11cd1116c079a5d764ded87f",
+      "viewed_at": null
+    },
+    {
+      "id": 186,
+      "content": "8 cze 2026 · Strong experience as a Fullstack Developer in high-scale web environments. · Backend expertise with Ruby on Rails, designing and maintaining robust RESTful APIs.",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Desenvolvedor(a) Fullstack Sênior - Atuação Tech Lead (Growth) - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/jobgether/c1730b90-8bed-48ca-b3bb-e0825db56963",
+      "url_hash": "876195ba57ff834c4a0112e97096af42b89cfcdc5f105717c5e9e359c96fd1cb",
+      "viewed_at": null
+    },
+    {
+      "id": 187,
+      "content": "4 cze 2026 · Proof platform's back-end is Ruby on Rails, Postgres SQL, Redis, hosted on AWS. Our front-end apps are built with React, GraphQL, Apollo and TypeScript. Our ...",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Proof - Senior Full Stack Software Engineer - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/proof/398186bb-457d-453f-a747-57c72217e12e",
+      "url_hash": "62ebccc8b78146a0c90753285806ef62a5e55441a46137c6c2e3a6c5b2fdd3ff",
+      "viewed_at": null
+    },
+    {
+      "id": 188,
+      "content": "26 maj 2026 · - Contribute to adjacent technical areas, including marketing tools, data contracts, backend development using Ruby on Rails, to support broader platform needs ...",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Swile - Senior Salesforce Developer - Montpellier - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/swile/59f04e65-bc11-457a-ba12-85d97ba5be22",
+      "url_hash": "5d455ee91507f4befaf2df56b85e7a821a8199f875902c9b6abe7190186d2d87",
+      "viewed_at": null
+    },
+    {
+      "id": 181,
+      "content": "5 cze 2026 · Job Summary: Ruby on Rails powers a lot of our infrastructure, and we're always looking for smart Ruby developers to help us reach the next level!",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "garbage",
+      "title": "Toptal - Talent Network: Senior Backend Engineer (New Business)",
+      "updated_at": "2026-06-16 14:02:34 UTC",
+      "url": "https://jobs.lever.co/toptal/d66ea352-4e5f-408f-b2f2-e4a3c0db7540",
+      "url_hash": "464c2110ffd7526996a1f2bdc3a28e30e7080ffcab8fc553b10d3434db2c1936",
+      "viewed_at": null
+    },
+    {
+      "id": 183,
+      "content": "4 cze 2026 · Senior Developer, Backend - Developer Infrastructure. Ottawa, ON ... Please briefly explain your experience with Ruby/Ruby on Rails.✱. Fullscript.",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Fullscript - Senior Developer, Backend - Developer Infrastructure - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/fullscript/bb12012d-5db4-4fd4-b868-0f87413defac/apply",
+      "url_hash": "2bed18f0f333d0d497ccb887b89185c7c0883bbb20f8723c7007401b4945b98e",
+      "viewed_at": null
+    },
+    {
+      "id": 184,
+      "content": "6 dni temu · We are looking for a full-stack Ruby on Rails Developer to join our engineering team. ... Strong (5+ years) experience with Ruby and Ruby on Rails.",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Toptal - Talent Network: Senior Fullstack Engineer (ActionTrace)",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/toptal/5ceee29b-b5dd-4f0d-90f7-413283fc54f9",
+      "url_hash": "6dcff3866fba3805382765af71ae320716489f76185c2accbe9307790609f425",
+      "viewed_at": null
+    },
+    {
+      "id": 169,
+      "content": "29 maj 2026 · Develop high-quality, robust backend APIs in Ruby that power responsive frontend experiences using React, JavaScript, and CSS. Implement and iterate on ML ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Full Stack Engineer, Growth - Stripe",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/stripe/jobs/7964956",
+      "url_hash": "4719fbf9b98674138693c68870074157a9d7c76367c397fd202fffb4b00281f2",
+      "viewed_at": null
+    },
+    {
+      "id": 170,
+      "content": "6 dni temu · Senior Fullstack Engineer · Frontend: React, TypeScript, AntD, Jest + React Testing Library, Playwright · Backend: Ruby, Rails, Node, Python, Postgres, Redis, ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for Senior Fullstack Engineer at Arkestro - Greenhouse",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/arkestroinc/jobs/5161290007",
+      "url_hash": "92fee90413f23e92328dcb274cca8f86693372f0e277e9ad16310f6f2008a401",
+      "viewed_at": null
+    },
+    {
+      "id": 171,
+      "content": "28 maj 2026 · Design and build scalable, resilient backend systems using Ruby on Rails, Python and PostgreSQL. Contribute to implementation of complex features and ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for Software Engineer II at Perch Energy - Greenhouse",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/perchenergycareers/jobs/8566109002",
+      "url_hash": "c52c74dfe6a88e736af588141a5cf71ad08f73074e05cc05cea433c543690b36",
+      "viewed_at": null
+    },
+    {
+      "id": 172,
+      "content": "3 cze 2026 · You'll be driving our migration from a Ruby on Rails monolith (Nexus) to TypeScript microservices. This is high-ownership work. When your team changes a ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for Sr. Software Engineer, Fullstack - Greenhouse",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/engine/jobs/7761814003",
+      "url_hash": "c5355c24c6a2a587ba47648dc18f487bacb7b44c2e59e292a155de13d2c46a45",
+      "viewed_at": null
+    },
+    {
+      "id": 173,
+      "content": "5 dni temu · Required skills · Experience with Ruby, Ruby on Rails, Typescript · At least 5 years of experience of full-stack engineering contributing development initiatives, ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for Software/Senior Engineer (Ruby) at Nava PBC",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/navapbc/jobs/4278469009",
+      "url_hash": "4fa885521c5f4c47e6dd418ca3c3b783e83c5cc9eef0acd28fe8ed4b832dcffc",
+      "viewed_at": null
+    },
+    {
+      "id": 176,
+      "content": "4 dni temu · Strong foundation in front-end engineering and modern web technologies (Ruby on Rails, React, GraphQL, or similar full-stack frameworks) with ability to build ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Frontend Full Stack Staff Software Engineer, AI Platform Experiences",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/gusto/jobs/7732015",
+      "url_hash": "9cf92fd5e14443ad8b1a8f1f27e3ef4ea80d248c187b4deeeb06de4fac9069c3",
+      "viewed_at": null
+    },
+    {
+      "id": 177,
+      "content": "5 dni temu · You will work with large data sets and have exposure to modern tech stacks around GoLang, Ruby on Rails, React, GraphQL and more. ... frontend, backend, and full- ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Job Application for Senior Full Stack Engineer, Total Media at StackAdapt",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/stackadapt/jobs/4282103009",
+      "url_hash": "f9371a19bf9fc1324441adfd8cd27860b4b99697562a6331a1c55f6cae6403a9",
+      "viewed_at": null
+    },
+    {
+      "id": 182,
+      "content": "3 dni temu · Responsibilities: · Develop and maintain full-stack web applications using Ruby on Rails and React. · Design and implement scalable backend services and APIs.",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "watched",
+      "title": "Onit, Inc. - Senior Software Engineer - RoR (Fullstack) - Lever",
+      "updated_at": "2026-06-16 14:04:38 UTC",
+      "url": "https://jobs.lever.co/onit/eb08109c-de9f-419f-9980-0afe224c395d",
+      "url_hash": "a467a50f74f3f71240afaf54ee5ed78aa48159cd4584da9ba4aad979016d8206",
+      "viewed_at": null
+    },
+    {
+      "id": 178,
+      "content": "7 dni temu · Proficiency in at least one backend language (e.g., Go, Ruby, Python, Java) and experience working with relational and/or NoSQL databases (e.g., Postgres, ...",
+      "created_at": "2026-06-16 12:59:16 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Software Engineer, Backend (Consumer - Risk), Remote - Canada",
+      "updated_at": "2026-06-16 12:59:16 UTC",
+      "url": "https://job-boards.greenhouse.io/coinbase/jobs/7991763",
+      "url_hash": "a28502dddaed876357b5fb5963a6a50615171880400c0ab167154d30c6913e09",
+      "viewed_at": null
+    },
+    {
+      "id": 179,
+      "content": "7 cze 2026 · Build and enhance backend systems using Ruby on Rails and Java. Architect APIs, real-time systems, and high-throughput microservices, with a heavy focus on ...",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "HONK - Senior Software Engineer - Fullstack - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/honkforhelp/f01e4a5f-7be8-4dd6-8ac8-ae6b9f0ec1c5",
+      "url_hash": "3c7a5821f3ba03415506241d820621e5dbeb29d4cf5dd840dd523a8cafd36fda",
+      "viewed_at": null
+    },
+    {
+      "id": 180,
+      "content": "5 cze 2026 · Work primarily with Ruby-based backend systems, evolving and maintaining core services. Collaborate closely with Product, Engineering, and cross-functional ...",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Senior Software Engineer, Backend (Payments) - Swile - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/swile/ba335751-9ae3-4d18-a5c8-b47596d577de",
+      "url_hash": "8918afd5871662b1291865e4cd3ceddc2ca05a4d4af8001089bdea5f6fbf1b80",
+      "viewed_at": null
+    },
+    {
+      "id": 185,
+      "content": "3 cze 2026 · Ruby experience is a plus. Experience across frontend (React.js), backend, and database layers. AWS experience, including core compute, storage, and ...",
+      "created_at": "2026-06-16 12:59:17 UTC",
+      "search_id": 16,
+      "status": "unread",
+      "title": "Firstup - Software Engineer, Fullstack (UK) - Lever",
+      "updated_at": "2026-06-16 12:59:17 UTC",
+      "url": "https://jobs.lever.co/firstup/ec51ee72-a369-4018-8a45-15a26b7e9309",
+      "url_hash": "923bb91704ed2aab9d78e06e8ec034021b094c9a0f6d0158be0119bc5cfef200",
+      "viewed_at": null
+    }
+  ]
+}

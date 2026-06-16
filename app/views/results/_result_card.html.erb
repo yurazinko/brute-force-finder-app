@@ -31,7 +31,7 @@
     <div class="flex items-center gap-1.5">
       <% unless result.status == "interesting" %>
         <%= button_to result_path(result, status: :interesting, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
-          ⭐ Interesting
+          ⭐ Mark as Interesting
         <% end %>
       <% end %>
 

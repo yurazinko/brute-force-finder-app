@@ -1,0 +1,28 @@
+<div class="container mx-auto p-8">
+  <%= turbo_stream_from "data_transfer_channel" %>
+
+  <h1 class="text-3xl font-bold mb-8">Database Sync & Backups</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Блок Експорту -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Export Database to JSON</h2>
+      <div id="export" class="mb-4">
+        <%= button_to "Launch Full Export", export_data_transfers_path, method: :post, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+      </div>
+    </div>
+
+
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Import & Upsert Sync</h2>
+      <div id="import" class="mb-4">
+        <%= form_with url: import_data_transfers_path, method: :post, local: false, multipart: true do |f| %>
+          <div class="mb-4">
+            <%= f.file_field :file, accept: '.json', class: "block w-full text-sm text-gray-500" %>
+          </div>
+          <%= f.submit "Upload & Sync Database", class: "bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

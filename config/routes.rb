@@ -25,5 +25,12 @@ Rails.application.routes.draw do
 
   resources :results, only: [:update]
 
+  resources :data_transfers, only: [:index] do
+    collection do
+      post :export
+      post :import
+    end
+  end
+
   root "searches#index"
 end

@@ -81,7 +81,6 @@ class SearchResultHandler
 
   def raise_failure(message)
     @prompt.update!(status: "failed", error_message: message)
-    # Прибираємо звідси LifecycleManager, бо він все одно виконається в ensure!
     raise(message)
   end
 

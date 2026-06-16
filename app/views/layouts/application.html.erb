@@ -23,9 +23,35 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-gray-50 text-gray-900">
+  <body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
     <%= render "layouts/flash" %>
-    <main>
+
+    <nav class="bg-white border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center space-x-8">
+            <div class="flex-shrink-0 flex items-center">
+              <%= link_to root_path, class: "text-xl font-bold text-indigo-600 tracking-wide flex items-center gap-2" do %>
+                ⚡ Brute Force Finder
+              <% end %>
+            </div>
+
+            <div class="hidden md:flex space-x-4">
+              <%= link_to "Searches", searches_path, class: "text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition" %>
+              <%= link_to "Categories", categories_path, class: "text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition" %>
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            <%= link_to data_transfers_path, class: "flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 transition" do %>
+              🔄 Sync & Data
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-grow">
       <%= yield %>
     </main>
   </body>
