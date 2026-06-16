@@ -21,6 +21,7 @@
 
     <div class="lg:col-span-2 border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-6" data-controller="pipeline-selector">
       <%= form_with(url: activate_search_path(@search), method: :post) do |f| %>
+        <% selected_target_ids = @search.target_ids %>
         <div class="flex justify-between items-center mb-2">
           <h2 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Target Pipeline</h2>
           <div class="flex items-center space-x-2 text-[11px]">
@@ -43,7 +44,7 @@
                 <div class="space-y-1 max-h-[60px] overflow-y-auto">
                   <% active_targets.order(:name).each do |target| %>
                     <label class="flex items-center space-x-2 cursor-pointer text-xs group">
-                      <%= check_box_tag "target_ids[]", target.id, true, class: "target-checkbox rounded border-gray-300 text-blue-600 scale-90 cursor-pointer", data: { pipeline_selector_target: "checkbox" } %>
+                      <%= check_box_tag "target_ids[]", target.id, selected_target_ids.include?(target.id), class: "target-checkbox rounded border-gray-300 text-blue-600 scale-90 cursor-pointer", data: { pipeline_selector_target: "checkbox" } %>
                       <span class="text-gray-700 truncate group-hover:text-blue-600" title="<%= target.domain %>"><%= target.name %></span>
                     </label>
                   <% end %>
