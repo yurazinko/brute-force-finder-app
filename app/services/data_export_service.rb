@@ -13,7 +13,10 @@ class DataExportService
     collect_records
 
     if block_given?
-      yield(100, "Done! Click <a href='/#{@output_path.basename}' download class='text-indigo-600 underline font-semibold'>here</a> to download.")
+      url = "/#{@output_path.basename}"
+      html = "Done! Click <a href='%s' download class='text-indigo-600 " \
+             "underline font-semibold'>here</a> to download."
+      yield(100, format(html, url))
     end
     true
   end
@@ -24,7 +27,9 @@ class DataExportService
     export_data = {}
     total_steps = TABLES.size
 
-    TABLES.each_with_index do |table, index|
+    TABLES.each_with_index do |table_name, index|
+      table = ActiveRecord::Base.connection.quote_table_name(table_name)
+
       if block_given?
         progress = ((index.to_f / total_steps) * 100).to_i
         yield(progress, "Exporting #{table}...")
@@ -37,7 +42,7 @@ class DataExportService
   end
 
   def default_output_path
-    timestamp = Time.current.strftime("%Y-%m-%d-%H%M%S") # Гарний формат: 2026-06-16-164036
+    timestamp = Time.current.strftime("%Y-%m-%d-%H%M%S")
     Rails.public_path.join("export-#{timestamp}.json")
   end
 end
