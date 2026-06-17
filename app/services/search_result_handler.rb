@@ -21,7 +21,7 @@ class SearchResultHandler
     handle_error(e)
     false
   ensure
-    Searches::LifecycleManager.check_completion(@search)
+    check_lifecycle_status
     @search.reload
     update_lifecycle_status
     update_counters
@@ -64,6 +64,12 @@ class SearchResultHandler
     )
   rescue StandardError => e
     Rails.logger.error("[Search::ResultHandler] ActionCable broadcast failed: #{e.message}")
+  end
+
+  def check_lifecycle_status
+    return if @search.prompts.exists?(status: %w[pending active])
+
+    @search.update!(status: "completed")
   end
 
   def update_lifecycle_status
