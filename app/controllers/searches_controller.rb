@@ -4,7 +4,7 @@ class SearchesController < ApplicationController
   before_action :set_search, only: %i[show activate destroy]
 
   def index
-    @searches = Search.order(created_at: :desc)
+    @searches = Search.includes(:results).order(created_at: :desc)
   end
 
   def show

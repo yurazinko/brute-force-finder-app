@@ -41,12 +41,6 @@
         <% end %>
       <% end %>
 
-      <% unless result.status == "watched" %>
-        <%= button_to result_path(result, status: :watched, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
-          👁️ Mark Watched
-        <% end %>
-      <% end %>
-
       <% unless result.status == "garbage" %>
         <%= button_to result_path(result, status: :garbage, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-1 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer" do %>
           🗑️ Mark as Garbage
