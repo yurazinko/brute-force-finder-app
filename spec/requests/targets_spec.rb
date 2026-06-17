@@ -73,7 +73,7 @@ RSpec.describe "Targets", type: :request do
     end
 
     it "updates the target and returns no content status (204)" do
-      patch target_path(target), params: update_params
+      patch target_path(target), params: update_params, as: :json
 
       expect(response).to have_http_status(:no_content)
       expect(response.body).to be_empty

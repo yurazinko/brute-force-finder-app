@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class TargetsController < ApplicationController
+  before_action :set_target, only: %i[edit update destroy]
+
+  def edit; end
+
   def create
     @category = Category.find(target_params[:category_id])
     @target = @category.targets.build(target_params)
@@ -13,19 +17,31 @@ class TargetsController < ApplicationController
   end
 
   def update
-    @target = Target.find(params.expect(:id))
-    @target.update(target_params)
-    head :no_content
+    if @target.update(target_params)
+      respond_to do |format|
+        format.html { redirect_to category_path(@target.category_id) }
+        format.json { head :no_content }
+        format.js   { head :no_content }
+      end
+    else
+      respond_to do |format|
+        format.html { render :edit, status: :unprocessable_content }
+        format.json { render json: @target.errors, status: :unprocessable_content }
+      end
+    end
   end
 
   def destroy
-    @target = Target.find(params.expect(:id))
     category = @target.category
     @target.destroy
     redirect_to category_path(category), notice: "Target was removed."
   end
 
   private
+
+  def set_target
+    @target = Target.find(params.expect(:id))
+  end
 
   def target_params
     params.expect(target: %i[name domain is_active category_id])
