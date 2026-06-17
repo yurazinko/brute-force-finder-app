@@ -7,7 +7,13 @@ search:
   formats:
     - html
     - json
-  request_timeout: 10.0
+  request_timeout: 8.0 # Трохи зменшили загальний таймаут, щоб воркери не висіли задовго на мертвих запитах
+
+outgoing:
+  request_timeout: 6.0
+  max_request_timeout: 10.0
+  pool_connections: 100
+  pool_maxsize: 20
 
 enabled_plugins:
   - 'Tracker plugin'
@@ -17,19 +23,24 @@ engines:
     disabled: true
   - name: google
     disabled: false
-    timeout: 6.0
+    timeout: 5.0
+
   - name: duckduckgo
     disabled: false
-    timeout: 6.0
+    timeout: 4.0 # Менший таймаут: якщо DDG викинув капчу, ми не чекаємо його 6 секунд
+
   - name: bing
     disabled: false
-    timeout: 6.0
+    timeout: 5.0
+
   - name: brave
     disabled: false
-    timeout: 6.0
+    timeout: 5.0
+
   - name: qwant
     disabled: false
-    timeout: 6.0
+    timeout: 4.0
+
   - name: yahoo
-    disabled: false
-    timeout: 6.0
+    disabled: false # Залишаємо увімкненим, алеOutgoing пул (вище) допоможе стабільніше тримати конект
+    timeout: 4.0

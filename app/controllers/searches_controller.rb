@@ -5,6 +5,9 @@ class SearchesController < ApplicationController
 
   def index
     @searches = Search.includes(:results).order(created_at: :desc)
+    @search_counts = Result.where(search_id: @searches.pluck(:id))
+                           .group(:search_id, :status)
+                           .size
   end
 
   def show

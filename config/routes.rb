@@ -21,6 +21,8 @@ Rails.application.routes.draw do
 
   resources :categories
 
+  resource :dashboard, only: [:show]
+
   resources :targets, only: %i[create destroy update]
 
   resources :results, only: [:update]
