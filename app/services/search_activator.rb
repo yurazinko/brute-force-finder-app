@@ -35,7 +35,7 @@ class SearchActivator
   end
 
   def perform_workers
-    @search.prompts.where(status: "pending").pluck(:id).each do |prompt_id|
+    @search.prompts.where(status: "pending").pluck(:id).shuffle.each do |prompt_id|
       PromptProcessorJob.perform_async(prompt_id)
     end
   end
