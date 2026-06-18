@@ -5,7 +5,10 @@ class PromptProcessorJob
 
   sidekiq_options queue: :scraping, retry: 3
 
-  def perform(prompt_id)
+  def perform(prompt_id, total_prompts, current_prompt_number)
+    sleep(rand(10..60)) if Rails.env.development?
+    @total_prompts = total_prompts
+    @current_prompt_number = current_prompt_number
     prompt = Prompt.find_by(id: prompt_id)
     return unless prompt&.status == "pending"
 
@@ -49,12 +52,13 @@ class PromptProcessorJob
   end
 
   def check_pipeline_completion(search)
-    total_prompts = search.prompts.count
-    finalized_prompts = search.prompts.where(status: %w[success failed]).count
+    search.with_lock do
+      return unless @current_prompt_number == @total_prompts
 
-    return unless finalized_prompts == total_prompts
+      search.update!(status: "completed") unless search.status == "completed"
 
-    broadcast_live_status(search, "Pipeline finished. All parallel streams successfully synced.")
+      broadcast_live_status(search, "Pipeline finished. All parallel streams synced.")
+    end
   end
 
   def broadcast_live_status(search, message)

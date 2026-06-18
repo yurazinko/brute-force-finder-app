@@ -25,7 +25,6 @@ class SearchActivator
   private
 
   def create_prompts
-    # upsert_all повертає масив хешів із поверненими колонками (id), якщо вказано returning
     Prompt.upsert_all(
       query_records,
       unique_by: %i[target_id full_query_text],
@@ -39,10 +38,9 @@ class SearchActivator
 
     broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
-    # Шафлимо тільки ID, отримані після upsert_all, захищаючись від Race Condition
     prompt_ids.shuffle.each_with_index do |prompt_id, index|
       delay = (index * 5) + rand(5..25)
-      PromptProcessorJob.perform_in(delay.seconds, prompt_id)
+      PromptProcessorJob.perform_in(delay.seconds, prompt_id, prompt_ids.size, index + 1)
     end
   end
 

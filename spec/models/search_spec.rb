@@ -128,7 +128,7 @@ RSpec.describe Search, type: :model do
         search.activate_search!(target_ids)
         expect(Rails.logger).to have_received(:error).with(
           /\[SearchActivator\] Critical failure for Search##{search.id}/
-          )
+        )
       end
 
       it "returns false instead of crashing the pipeline" do
