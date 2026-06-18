@@ -26,7 +26,7 @@ class PromptProcessorJob
 
   def process_handler_result(search, domain, result)
     if result[:error]
-      broadcast_live_status(search, "Engine error on #{domain}: #{result[:error]}")
+      broadcast_live_status(search, "[#{domain}] Engine error: #{result[:error]}")
     elsif result[:raw_count].positive?
       broadcast_success_status(search, domain, result)
     else

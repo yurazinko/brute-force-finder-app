@@ -8,4 +8,17 @@ class Target < ApplicationRecord
   validates :domain, uniqueness: true
 
   scope :active, -> { where(is_active: true) }
+
+  def self.top_by_prompts_count(limit_number)
+    joins(:prompts)
+      .left_joins(:category)
+      .select("targets.name, targets.domain, COUNT(DISTINCT prompts.id) as prompts_count")
+      .group("targets.id, targets.name, targets.domain")
+      .order(prompts_count: :desc)
+      .limit(limit_number)
+  end
+
+  def self.prompts_distribution_map
+    joins(:prompts).group("targets.name").order(count_all: :desc).limit(5).count
+  end
 end

@@ -17,4 +17,12 @@ class Result < ApplicationRecord
     else all
     end
   }
+
+  def self.top_domains_efficiency
+    group("SUBSTRING(url FROM 'https?://([^/]+)')")
+      .order(count_all: :desc)
+      .limit(5)
+      .count
+      .transform_keys { |k| k.nil? ? "Unknown" : k.to_s }
+  end
 end

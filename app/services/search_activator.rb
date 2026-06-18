@@ -40,7 +40,7 @@ class SearchActivator
     prompts = @search.prompts.where(status: "pending").pluck(:id).shuffle
 
     prompts.each_with_index do |prompt_id, index|
-      delay = (index * 3) + rand(3..10)
+      delay = (index * 3) + rand(5..15)
 
       PromptProcessorJob.perform_in(delay.seconds, prompt_id)
     end
