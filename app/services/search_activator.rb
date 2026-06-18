@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class SearchActivator
-  def self.call(search, target_ids)
-    new(search, target_ids).call
-  end
+  def self.call(search, target_ids) = new(search, target_ids).call
 
   def initialize(search, target_ids)
     @search = search
@@ -14,41 +12,41 @@ class SearchActivator
   def call
     return false if @target_ids.blank? || targets_data.blank?
 
-    create_prompts
-    perform_workers
+    inserted_ids = create_prompts
+    perform_workers(inserted_ids)
 
     @search.update!(status: "processing")
     true
   rescue StandardError => e
-    Rails.logger.error("[SearchActivator] Critical failure during activation for Search##{@search.id}: #{e.message}")
+    Rails.logger.error("[SearchActivator] Critical failure for Search##{@search.id}: #{e.message}")
     false
   end
 
   private
 
   def create_prompts
+    # upsert_all повертає масив хешів із поверненими колонками (id), якщо вказано returning
     Prompt.upsert_all(
       query_records,
       unique_by: %i[target_id full_query_text],
-      update_only: %i[search_id status]
-    )
+      update_only: %i[search_id status],
+      returning: %i[id]
+    ).pluck("id")
   end
 
-  def perform_workers
-    broadcast_live_status("Scraper engine is busy...")
+  def perform_workers(prompt_ids)
+    return if prompt_ids.blank?
 
-    prompts = @search.prompts.where(status: "pending").pluck(:id).shuffle
+    broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
-    prompts.each_with_index do |prompt_id, index|
+    # Шафлимо тільки ID, отримані після upsert_all, захищаючись від Race Condition
+    prompt_ids.shuffle.each_with_index do |prompt_id, index|
       delay = (index * 5) + rand(5..25)
-
       PromptProcessorJob.perform_in(delay.seconds, prompt_id)
     end
   end
 
-  def targets_data
-    @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)
-  end
+  def targets_data = @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)
 
   def query_records
     @query_records ||= targets_data.map do |target_id, domain|
@@ -70,6 +68,6 @@ class SearchActivator
       assigns: { message: message }
     )
   rescue StandardError => e
-    Rails.logger.error("[Search::ResultHandler] Live status broadcast failed: #{e.message}")
+    Rails.logger.error("[SearchActivator] Live status broadcast failed: #{e.message}")
   end
 end

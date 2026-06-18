@@ -64,26 +64,29 @@ class SearchResultHandler
 
   def update_counters
     counts = @search.calculate_counters
-    counter_targets(counts).each do |target_id, value|
+    total_db_count = current_results_count # Захист від повторного COUNT через зв'язок
+
+    counter_targets(counts, total_db_count).each do |target_id, value|
       Turbo::StreamsChannel.broadcast_update_to(@search, :results, target: target_id, html: (value || 0).to_s)
     end
   rescue StandardError => e
     Rails.logger.error("[Search::ResultHandler] Counters broadcast failed: #{e.message}")
   end
 
-  def counter_targets(counts)
+  def counter_targets(counts, total_count)
     {
       "counter_all_clean" => counts[:all_clean],
       "counter_unread" => counts[:unread],
       "counter_interesting" => counts[:interesting],
       "counter_watched" => counts[:watched],
       "counter_garbage" => counts[:garbage],
-      "results_count" => "Showing: #{@search.results.count}"
+      "results_count" => "Showing: #{total_count}"
     }
   end
 
   def update_content
-    latest_results = @search.results.without_garbage.order(created_at: :desc).limit(20)
+    # Використовуємо чистий зв'язок з бази даних Result.where, щоб уникнути ActiveRecord Cache Bloat
+    latest_results = Result.where(search_id: @search.id).without_garbage.order(created_at: :desc).limit(20)
 
     Turbo::StreamsChannel.broadcast_replace_to(
       @search, :results,

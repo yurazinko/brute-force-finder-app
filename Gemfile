@@ -17,7 +17,7 @@ gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
-gem "jbuilder"
+# gem "jbuilder"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
@@ -30,7 +30,7 @@ gem "sidekiq", "~> 8.1", ">= 8.1.2"
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cable"
 gem "solid_cache"
-gem "solid_queue"
+# gem "solid_queue"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -42,13 +42,13 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 1.2", require: false
 
-gem "httparty", "~>  0.24.2"
+gem "httparty", "~>  0.24.2", require: false
 
 gem "pagy", "~> 43.5"
 
-gem "redis"
+# gem "redis"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

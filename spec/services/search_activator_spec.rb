@@ -105,7 +105,7 @@ RSpec.describe SearchActivator, type: :service do
 
       it "logs the clean error message with context data" do
         described_class.call(search, target_ids)
-        expect(Rails.logger).to have_received(:error).with(/Critical failure during activation for Search##{search.id}/)
+        expect(Rails.logger).to have_received(:error).with(/\[SearchActivator\] Critical failure for Search/)
       end
     end
   end

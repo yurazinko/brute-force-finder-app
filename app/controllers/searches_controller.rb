@@ -4,33 +4,26 @@ class SearchesController < ApplicationController
   before_action :set_search, only: %i[show activate destroy]
 
   def index
-    @searches = Search.includes(:results).order(created_at: :desc)
-    @search_counts = Result.where(search_id: @searches.pluck(:id))
+    @searches = Search.order(created_at: :desc)
+    @search_counts = Result.where(search_id: @searches.select(:id))
                            .group(:search_id, :status)
-                           .size
+                           .count
   end
 
   def show
     @prompts = @search.prompts.includes(:target)
-
     @counts = @search.calculate_counters(params[:d])
-
-    base_results = @search.results.by_time_frame(params[:d])
     @current_status = params[:status]
 
-    @results = case @current_status
-               when "unread", "watched", "garbage", "interesting"
-                 base_results.by_status(@current_status)
-               else
-                 base_results.without_garbage.where.not(status: %w[interesting])
-               end.order(created_at: :desc)
+    base_results = @search.results.by_time_frame(params[:d])
+    filtered_results = filter_results_by_status(base_results)
 
-    @pagy, @results = pagy(@results.order(created_at: :desc))
+    @pagy, @results = pagy(filtered_results.order(created_at: :desc))
   end
 
   def new
     @search = Search.new
-    @categories = Category.includes(:targets).all
+    set_categories_for_form
   end
 
   def create
@@ -38,7 +31,7 @@ class SearchesController < ApplicationController
     if @search.save
       redirect_to search_path(@search), notice: "Search criteria was successfully created."
     else
-      @categories = Category.includes(:targets).all
+      set_categories_for_form
       render :new, status: :unprocessable_content
     end
   end
@@ -76,6 +69,19 @@ class SearchesController < ApplicationController
 
   def search_params
     params.expect(search: [:title, :query_conditions, :time_frame, { target_ids: [] }])
+  end
+
+  def set_categories_for_form
+    @categories = Category.includes(:targets).all
+  end
+
+  def filter_results_by_status(scope)
+    case @current_status
+    when "unread", "watched", "garbage", "interesting"
+      scope.by_status(@current_status)
+    else
+      scope.without_garbage.where.not(status: "interesting")
+    end
   end
 
   def respond_with_flash

@@ -12,6 +12,10 @@ x-app: &app
     - RAILS_ENV=development
     - REDIS_URL=redis://redis:6379/1
     - SEARXNG_URL=http://searxng:8080
+    - RUBY_GC_HEAP_INIT_SLOTS=10000
+    - RUBY_GC_HEAP_GROWTH_FACTOR=1.2
+    - RUBY_GC_HEAP_GROWTH_MAX_SLOTS=30000
+    - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
   networks:
     - finder_network
 

@@ -49,7 +49,10 @@ class PromptProcessorJob
   end
 
   def check_pipeline_completion(search)
-    return if search.prompts.exists?(status: %w[pending active])
+    total_prompts = search.prompts.count
+    finalized_prompts = search.prompts.where(status: %w[success failed]).count
+
+    return unless finalized_prompts == total_prompts
 
     broadcast_live_status(search, "Pipeline finished. All parallel streams successfully synced.")
   end
