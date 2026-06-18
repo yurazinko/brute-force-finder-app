@@ -10,6 +10,7 @@
 <% end %>
 
 <%= turbo_stream.update "counter_all_clean", html: (@search.calculate_counters[:all_clean] || 0).to_s %>
+<%= turbo_stream.update "counter_unread", html: (@search.calculate_counters[:unread] || 0).to_s %>
 <%= turbo_stream.update "counter_interesting", html: (@search.calculate_counters[:interesting] || 0).to_s %>
 <%= turbo_stream.update "counter_watched", html: (@search.calculate_counters[:watched] || 0).to_s %>
 <%= turbo_stream.update "counter_garbage", html: (@search.calculate_counters[:garbage] || 0).to_s %>

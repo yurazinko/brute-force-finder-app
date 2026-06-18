@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 class SearchResultHandler
-  def self.call(prompt, raw_results)
-    new(prompt, raw_results).call
-  end
+  def self.call(prompt, raw_results) = new(prompt, raw_results).call
 
   def initialize(prompt, raw_results)
     @prompt = prompt
@@ -14,43 +12,74 @@ class SearchResultHandler
   def call
     raise_failure("No results found or client error") if @raw_results.blank?
 
-    process_records
+    counts = process_records
     update_content
-    true
+
+    counts
   rescue StandardError => e
     handle_error(e)
-    false
+    { error: e.message, raw_count: 0, new_count: 0 }
   ensure
-    check_lifecycle_status
-    @search.reload
-    update_lifecycle_status
-    update_counters
+    finalize_search_lifecycle
   end
 
   private
 
   def process_records
     update_lifecycle_status
-    result_records = Results::DataTransformer.process(@search.id, @raw_results)
 
-    Result.insert_all(result_records, unique_by: %i[search_id url_hash]) if result_records.any?
+    result_records = Results::DataTransformer.process(@search.id, @raw_results)
+    raw_count = result_records.size
+
+    if raw_count.positive?
+      insert_and_calculate_metrics(result_records, raw_count)
+    else
+      @prompt.update!(status: "success")
+      { raw_count: 0, new_count: 0, total: current_results_count }
+    end
+  end
+
+  def insert_and_calculate_metrics(result_records, raw_count)
+    exact_count_before = current_results_count
+
+    Result.insert_all(result_records, unique_by: %i[search_id url_hash])
+
+    exact_count_after = current_results_count
+    new_count = exact_count_after - exact_count_before
+
+    @search.results.reset
     @prompt.update!(status: "success")
+
+    { raw_count: raw_count, new_count: new_count, total: exact_count_after }
+  end
+
+  def current_results_count = Result.where(search_id: @search.id).count
+
+  def finalize_search_lifecycle
+    check_lifecycle_status
+    @search.reload
+    update_lifecycle_status
+    update_counters
   end
 
   def update_counters
     counts = @search.calculate_counters
-
-    {
-      "counter_all_clean" => counts[:all_clean],
-      "counter_interesting" => counts[:interesting],
-      "counter_watched" => counts[:watched],
-      "counter_garbage" => counts[:garbage],
-      "results_count" => "Showing: #{@search.results.count}"
-    }.each do |target_id, value|
+    counter_targets(counts).each do |target_id, value|
       Turbo::StreamsChannel.broadcast_update_to(@search, :results, target: target_id, html: (value || 0).to_s)
     end
   rescue StandardError => e
     Rails.logger.error("[Search::ResultHandler] Counters broadcast failed: #{e.message}")
+  end
+
+  def counter_targets(counts)
+    {
+      "counter_all_clean" => counts[:all_clean],
+      "counter_unread" => counts[:unread],
+      "counter_interesting" => counts[:interesting],
+      "counter_watched" => counts[:watched],
+      "counter_garbage" => counts[:garbage],
+      "results_count" => "Showing: #{@search.results.count}"
+    }
   end
 
   def update_content

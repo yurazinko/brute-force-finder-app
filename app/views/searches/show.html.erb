@@ -13,9 +13,12 @@
           <%= @search.query_conditions %>
         </code>
       </div>
-      <div id="search_lifecycle_status" class="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded-lg border border-gray-100 w-fit">
-        <span class="text-gray-500 font-medium">Pipeline:</span>
-        <%= render "searches/status_badge", search: @search %>
+      <div class="flex items-center gap-3">
+        <div id="search_lifecycle_status" class="flex items-center gap-2 text-sm bg-gray-50 p-2 rounded-lg border border-gray-100 w-fit">
+          <span class="text-gray-500 font-medium">Pipeline:</span>
+          <%= render "searches/status_badge", search: @search %>
+        </div>
+        <%= render "searches/live_tracker", message: "Waiting for scraper engine..." %>
       </div>
     </div>
 

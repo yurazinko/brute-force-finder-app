@@ -19,6 +19,7 @@ services:
   tor:
     image: peterdavehello/tor-socks-proxy:latest
     container_name: finder_tor
+    restart: always
     networks:
       - finder_network
 
@@ -57,7 +58,6 @@ services:
       dockerfile: Dockerfile
     image: searxng/searxng:latest
     container_name: finder_searxng
-    command: tor -f /etc/tor/torrc --Log "info stdout"
     volumes:
       - ./searxng:/etc/searxng
     ports:

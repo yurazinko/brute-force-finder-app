@@ -99,7 +99,9 @@ RSpec.describe SearchResultHandler, type: :service do
       end
 
       it "returns false gracefully" do
-        expect(described_class.call(prompt, [])).to be_falsy
+        expect(described_class.call(prompt, [])).to eq(
+          { error: "No results found or client error", new_count: 0, raw_count: 0 }
+        )
       end
     end
 
@@ -150,7 +152,9 @@ RSpec.describe SearchResultHandler, type: :service do
       end
 
       it "returns false instead of crashing the whole Sidekiq worker thread" do
-        expect(described_class.call(prompt, raw_results)).to be_falsy
+        expect(described_class.call(prompt, raw_results)).to eq(
+          { error: "Database deadlock", new_count: 0, raw_count: 0 }
+        )
       end
     end
 

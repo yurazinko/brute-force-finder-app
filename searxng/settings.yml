@@ -18,6 +18,10 @@ outgoing:
 enabled_plugins:
   - 'Tracker plugin'
 
+proxies:
+  all://:
+    - socks5h://tor:9050
+
 engines:
   - name: radio browser
     disabled: true
@@ -27,7 +31,7 @@ engines:
 
   - name: duckduckgo
     disabled: false
-    timeout: 4.0 # Менший таймаут: якщо DDG викинув капчу, ми не чекаємо його 6 секунд
+    timeout: 4.0
 
   - name: bing
     disabled: false
@@ -42,5 +46,5 @@ engines:
     timeout: 4.0
 
   - name: yahoo
-    disabled: false # Залишаємо увімкненим, алеOutgoing пул (вище) допоможе стабільніше тримати конект
+    disabled: false
     timeout: 4.0
