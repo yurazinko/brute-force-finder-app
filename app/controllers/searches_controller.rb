@@ -22,8 +22,8 @@ class SearchesController < ApplicationController
                when "unread", "watched", "garbage", "interesting"
                  base_results.by_status(@current_status)
                else
-                 base_results.without_garbage.where.not(status: %w[watched interesting])
-               end
+                 base_results.without_garbage.where.not(status: %w[interesting])
+               end.order(created_at: :desc)
 
     @pagy, @results = pagy(@results.order(created_at: :desc))
   end
