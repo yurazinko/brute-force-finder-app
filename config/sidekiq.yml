@@ -1,1 +1,8 @@
 :concurrency: 3
+
+:scheduler:
+  :schedule:
+    nightly_scraping:
+      cron: "0 2 * * *"
+      class: "NightlyScrapingCronJob"
+      queue: default

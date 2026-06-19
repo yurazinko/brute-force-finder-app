@@ -26,6 +26,7 @@ gem "stimulus-rails"
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 gem "sidekiq", "~> 8.1", ">= 8.1.2"
+gem "sidekiq-cron", "~> 2.4.0"
 
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cable"
@@ -53,6 +54,10 @@ gem "redis"
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+
+  gem "factory_bot_rails"
+
+  gem "faker"
 
   gem "pry-rails"
 

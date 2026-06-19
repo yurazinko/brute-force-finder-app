@@ -6,7 +6,7 @@ class PromptProcessorJob
   sidekiq_options queue: :scraping, retry: 3
 
   def perform(prompt_id, total_prompts, current_prompt_number)
-    sleep(rand(10..60)) if Rails.env.development?
+    sleep(rand(60..120)) if Rails.env.development?
     @total_prompts = total_prompts
     @current_prompt_number = current_prompt_number
     prompt = Prompt.find_by(id: prompt_id)

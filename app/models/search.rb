@@ -6,7 +6,7 @@ class Search < ApplicationRecord
   has_many :results, dependent: :destroy
 
   validates :title, :query_conditions, presence: true
-  validates :status, inclusion: { in: %w[pending processing completed] }
+  validates :status, inclusion: { in: %w[pending processing completed failed] }
 
   validates :time_frame, inclusion: { in: [nil, "day", "week", "month", "year"] }, allow_nil: true
 
