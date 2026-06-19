@@ -1,6 +1,7 @@
 # Brute Force Finder
 
 **Brute Force Finder** is your autonomous assistant for continuous web monitoring, job hunting, and lead generation. It is designed for professionals who are tired of manual searching, dealing with endless algorithmic noise, and wasting hours re-evaluating the same low-quality results. Instead of browsing multiple platforms daily, you define your targets once. The system runs in the background, continuously filters the spam, and delivers a clean, actionable stream of fresh opportunities.
+
 ---
 
 ## The Problems It Solves

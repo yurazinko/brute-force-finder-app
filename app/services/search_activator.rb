@@ -40,6 +40,8 @@ class SearchActivator
 
     prompt_ids.shuffle.each_with_index do |prompt_id, index|
       delay = (index * 5) + rand(5..25)
+      sleep(delay) if Rails.env.development?
+
       PromptProcessorJob.perform_in(delay.seconds, prompt_id, prompt_ids.size, index + 1)
     end
   end
