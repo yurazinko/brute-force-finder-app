@@ -1,0 +1,21 @@
+[botdetection]
+ipv4_prefix = 32
+ipv6_prefix = 48
+
+trusted_proxies = []
+
+[botdetection.ip_lists]
+block_ip = []
+
+pass_ip = [
+  "127.0.0.1",
+  "::1",
+  "172.16.0.0/12",  # Дефолтна підмережа Docker (захистить твої воркери в контейнерах)
+  "192.168.0.0/16" # Твоя локальна мережа, якщо потрібно
+]
+
+pass_searxng_org = true
+
+[botdetection.ip_limit]
+filter_link_local = false
+link_token = false
