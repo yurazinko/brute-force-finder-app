@@ -13,8 +13,6 @@ class NightlyScrapingCronJob
     searches.each_with_index do |search, index|
       campaign_delay = (index * 20) + rand(10..30)
 
-      sleep(campaign_delay * 500) if Rails.env.development?
-
       SearchActivationJob.perform_in(campaign_delay.minutes, search.id)
     end
   end

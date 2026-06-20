@@ -47,7 +47,7 @@
         <% end %>
       <% end %>
 
-      <% if %w[interesting watched garbage].include?(result.status) %>
+      <% if %w[interesting garbage].include?(result.status) %>
         <%= button_to result_path(result, status: :unread, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-md transition cursor-pointer" do %>
           ↩️ Move to Inbox
         <% end %>
