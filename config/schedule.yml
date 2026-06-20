@@ -1,0 +1,6 @@
+
+nightly_scraping_job:
+  cron: "0 2 * * *"
+  class: "NightlyScrapingCronJob"
+  queue: "default"
+  description: "Nightly scraping job"
