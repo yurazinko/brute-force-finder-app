@@ -10,6 +10,9 @@ application.register("bulk-selector", BulkSelectorController)
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
+import InfiniteScrollController from "./infinite_scroll_controller"
+application.register("infinite-scroll", InfiniteScrollController)
+
 import PipelineSelectorController from "./pipeline_selector_controller"
 application.register("pipeline-selector", PipelineSelectorController)
 

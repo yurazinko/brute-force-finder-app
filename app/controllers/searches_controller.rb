@@ -19,6 +19,11 @@ class SearchesController < ApplicationController
     filtered_results = filter_results_by_status(base_results)
 
     @pagy, @results = pagy(filtered_results.order(created_at: :desc))
+
+    respond_to do |format|
+      format.html
+      format.turbo_stream
+    end
   end
 
   def new

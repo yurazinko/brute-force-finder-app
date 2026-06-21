@@ -63,45 +63,60 @@
     </div>
   </div>
 
-<div class="bg-white p-6 shadow-sm border border-gray-200 rounded-xl min-h-[500px] flex flex-col justify-between">
+  <div class="bg-white p-6 shadow-sm border border-gray-200 rounded-xl min-h-[500px] flex flex-col justify-between">
+      <%= turbo_frame_tag "results_pool", class: "block w-full flex flex-col justify-between min-h-[450px]", data: { turbo_action: "advance" } do %>
+        <div>
+          <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
+            <h2 class="text-xl font-bold text-gray-900">Scraped Results Pool</h2>
+            <span class="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full" id="results_count">
+              Showing: <%= (@pagy.page - 1) * @pagy.limit + @results.count %> / <%= @pagy.count %>
+            </span>
+          </div>
 
-    <%= turbo_frame_tag "results_pool", class: "block w-full", data: { turbo_action: "advance" } do %>
-      <div>
-        <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
-          <h2 class="text-xl font-bold text-gray-900">Scraped Results Pool</h2>
-          <span class="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full" id="results_count">
-            Showing: <%= @results.count %>
-          </span>
-        </div>
+          <div class="flex items-center gap-4 text-xs text-gray-500 mb-6 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+            <span class="font-semibold text-gray-400 uppercase tracking-wider">Discovery Period:</span>
+            <div class="flex items-center gap-3">
+              <%= link_to "All time", search_path(@search, status: params[:status]), class: "font-medium #{params[:d].blank? ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
+              <span class="text-gray-300">|</span>
+              <%= link_to "Past 24h", search_path(@search, status: params[:status], d: :day), class: "font-medium #{params[:d] == 'day' ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
+              <span class="text-gray-300">|</span>
+              <%= link_to "Past Week", search_path(@search, status: params[:status], d: :week), class: "font-medium #{params[:d] == 'week' ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
+              <span class="text-gray-300">|</span>
+              <%= link_to "Past Month", search_path(@search, status: params[:status], d: :month), class: "font-medium #{params[:d] == 'month' ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
+            </div>
+          </div>
 
-        <div class="flex items-center gap-4 text-xs text-gray-500 mb-6 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-          <span class="font-semibold text-gray-400 uppercase tracking-wider">Discovery Period:</span>
-          <div class="flex items-center gap-3">
-            <%= link_to "All time", search_path(@search, status: params[:status]), class: "font-medium #{params[:d].blank? ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
-            <span class="text-gray-300">|</span>
-            <%= link_to "Past 24h", search_path(@search, status: params[:status], d: :day), class: "font-medium #{params[:d] == 'day' ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
-            <span class="text-gray-300">|</span>
-            <%= link_to "Past Week", search_path(@search, status: params[:status], d: :week), class: "font-medium #{params[:d] == 'week' ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
-            <span class="text-gray-300">|</span>
-            <%= link_to "Past Month", search_path(@search, status: params[:status], d: :month), class: "font-medium #{params[:d] == 'month' ? 'text-blue-600 underline font-bold' : 'text-gray-600 hover:text-gray-900'}" %>
+          <div class="border-b border-gray-200 mb-6" id="search_tabs_navigation">
+            <%= render "searches/tabs_counters", search: @search, counts: @counts %>
+          </div>
+
+          <div class="space-y-4" id="results_pool_list">
+            <% if @results.any? %>
+              <% @results.each do |result| %>
+                <%= render partial: "results/result_card", locals: { result: result }, formats: [:html] %>
+              <% end %>
+            <% else %>
+              <div class="text-center py-24 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/30 w-full" id="empty_state">
+                <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <p class="text-base font-medium text-gray-600">No matching data in this filter</p>
+              </div>
+            <% end %>
           </div>
         </div>
 
-        <div class="border-b border-gray-200 mb-6" id="search_tabs_navigation">
-          <%= render "searches/tabs_counters", search: @search, counts: @counts %>
+        <div class="mt-6 pt-4 border-t border-gray-100 flex justify-center custom-pagy-container">
+          <%= turbo_frame_tag "results_pool_pagination", data: { controller: "infinite-scroll" } do %>
+            <% if @pagy.next %>
+              <%= link_to "Load more updates...",
+                          search_path(@search, status: params[:status], d: params[:d], page: @pagy.next, format: :turbo_stream),
+                          data: { infinite_scroll_target: "link" },
+                          class: "invisible block text-center py-2 w-full" %>
+            <% end %>
+          <% end %>
         </div>
-
-      <%= turbo_frame_tag "results_pool" do %>
-        <%= render "searches/results_pool_content", results: @results %>
       <% end %>
-      </div>
-    <% end %>
-
-    <% if @pagy && @pagy.pages > 1 %>
-      <div class="mt-6 pt-4 border-t border-gray-100 flex justify-center custom-pagy-container">
-        <%== @pagy.series_nav %>
-      </div>
-    <% end %>
-
+    </div>
   </div>
 </div>
