@@ -13,7 +13,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
-  resources :searches, only: %i[index show new create destroy] do
+  resources :searches, only: %i[index show new edit update create destroy] do
     member do
       post :activate
     end

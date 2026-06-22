@@ -64,7 +64,7 @@ class SearchResultHandler
 
   def update_counters
     counts = @search.calculate_counters
-    total_db_count = current_results_count # Захист від повторного COUNT через зв'язок
+    total_db_count = current_results_count
 
     counter_targets(counts, total_db_count).each do |target_id, value|
       Turbo::StreamsChannel.broadcast_update_to(@search, :results, target: target_id, html: (value || 0).to_s)
@@ -85,7 +85,6 @@ class SearchResultHandler
   end
 
   def update_content
-    # Використовуємо чистий зв'язок з бази даних Result.where, щоб уникнути ActiveRecord Cache Bloat
     latest_results = Result.where(search_id: @search.id).without_garbage.order(created_at: :desc).limit(20)
 
     Turbo::StreamsChannel.broadcast_replace_to(

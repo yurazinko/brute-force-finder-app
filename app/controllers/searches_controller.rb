@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SearchesController < ApplicationController
-  before_action :set_search, only: %i[show activate destroy]
+  before_action :set_search, only: %i[show edit update activate destroy]
 
   def index
     @searches = Search.order(created_at: :desc)
@@ -31,6 +31,10 @@ class SearchesController < ApplicationController
     set_categories_for_form
   end
 
+  def edit
+    set_categories_for_form
+  end
+
   def create
     @search = Search.new(search_params)
     if @search.save
@@ -38,6 +42,15 @@ class SearchesController < ApplicationController
     else
       set_categories_for_form
       render :new, status: :unprocessable_content
+    end
+  end
+
+  def update
+    if @search.update(search_params)
+      redirect_to search_path(@search), notice: "Search criteria was successfully updated."
+    else
+      set_categories_for_form
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -69,6 +82,7 @@ class SearchesController < ApplicationController
   private
 
   def set_search
+    params.expect(:id)
     @search = Search.find(params.expect(:id))
   end
 
