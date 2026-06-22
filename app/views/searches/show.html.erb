@@ -68,7 +68,7 @@
                   <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate"><%= category.name %></h3>
                   <button type="button" data-pipeline-selector-target="groupButton" data-action="click->pipeline-selector#toggleGroup" data-status="true" class="group-toggle-btn text-[9px] text-indigo-600 hover:underline font-semibold cursor-pointer shrink-0">Clear Group</button>
                 </div>
-                <div class="space-y-1 max-h-[80px] sm:max-h-[60px] overflow-y-auto">
+                <div class="space-y-1 max-h-[80px] sm:max-h-[70px] overflow-y-auto">
                   <% active_targets.order(:name).each do |target| %>
                     <label class="flex items-center space-x-2 cursor-pointer text-xs group py-0.5">
                       <%= check_box_tag "target_ids[]", target.id, selected_target_ids.include?(target.id), class: "target-checkbox rounded border-gray-300 text-blue-600 scale-90 cursor-pointer", data: { pipeline_selector_target: "checkbox" } %>

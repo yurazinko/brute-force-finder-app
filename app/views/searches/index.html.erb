@@ -31,7 +31,7 @@
       <tbody class="divide-y divide-gray-100 bg-white block md:table-row-group" id="searches_list">
         <% if @searches.any? %>
           <% @searches.each do |search| %>
-            <% last_discovery_time = search.updated_at %>
+            <% last_action = search.updated_at %>
             <% unread_count      = @search_counts[[search.id, "unread"]] || 0 %>
             <% interesting_count = @search_counts[[search.id, "interesting"]] || 0 %>
             <% watched_count     = @search_counts[[search.id, "watched"]] || 0 %>
@@ -66,13 +66,13 @@
                     <span>⬇️</span>
                     <span class="font-mono font-bold <%= unread_count > 0 ? 'text-emerald-600' : 'text-gray-400' %>"><%= unread_count %></span>
                   </div>
-                  <div class="inline-flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 text-gray-500" title="Starred">
-                    <span>⭐</span>
-                    <span class="font-mono font-bold <%= interesting_count > 0 ? 'text-amber-500' : 'text-gray-400' %>"><%= interesting_count %></span>
-                  </div>
                   <div class="inline-flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 text-gray-500" title="Watched">
                     <span>👁️</span>
                     <span class="font-mono font-semibold <%= watched_count > 0 ? 'text-indigo-600' : 'text-gray-400' %>"><%= watched_count %></span>
+                  </div>
+                  <div class="inline-flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 text-gray-500" title="Starred">
+                    <span>⭐</span>
+                    <span class="font-mono font-bold <%= interesting_count > 0 ? 'text-amber-500' : 'text-gray-400' %>"><%= interesting_count %></span>
                   </div>
                   <div class="inline-flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 text-gray-500" title="Garbage">
                     <span>🗑️</span>
@@ -122,9 +122,9 @@
                   <span class="font-medium text-gray-700"><%= search.created_at.strftime("%Y-%m-%d") %></span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <span class="text-gray-400">Found:</span>
-                  <span class="font-medium <%= last_discovery_time ? 'text-gray-700' : 'text-gray-400 italic' %>">
-                    <%= last_discovery_time ? "#{time_ago_in_words(last_discovery_time).gsub('about ', '')} ago" : "Never run" %>
+                  <span class="text-gray-400">Last action:</span>
+                  <span class="font-medium <%= last_action ? 'text-gray-700' : 'text-gray-400 italic' %>">
+                    <%= last_action ? "#{time_ago_in_words(last_action).gsub('about ', '')} ago" : "Never run" %>
                   </span>
                 </div>
               </td>

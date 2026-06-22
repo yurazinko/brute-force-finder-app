@@ -2,12 +2,11 @@
 
 class SearchesController < ApplicationController
   before_action :set_search, only: %i[show edit update activate destroy]
+  before_action :set_categories_for_form, only: %i[new edit create update]
 
   def index
     @searches = Search.order(created_at: :desc)
-    @search_counts = Result.where(search_id: @searches.select(:id))
-                           .group(:search_id, :status)
-                           .count
+    @search_counts = Result.where(search_id: @searches.select(:id)).group(:search_id, :status).count
   end
 
   def show
@@ -26,41 +25,31 @@ class SearchesController < ApplicationController
     end
   end
 
-  def new
-    @search = Search.new
-    set_categories_for_form
-  end
+  def new = @search = Search.new
 
-  def edit
-    set_categories_for_form
-  end
+  def edit; end
 
   def create
     @search = Search.new(search_params)
     if @search.save
       redirect_to search_path(@search), notice: "Search criteria was successfully created."
     else
-      set_categories_for_form
       render :new, status: :unprocessable_content
     end
   end
 
   def update
     if @search.update(search_params)
-      redirect_to search_path(@search), notice: "Search criteria was successfully updated."
+      handle_successful_update
     else
-      set_categories_for_form
-      render :edit, status: :unprocessable_content
+      handle_failed_update
     end
   end
 
   def activate
     target_ids = params[:target_ids] || []
 
-    if target_ids.blank?
-      flash.now[:alert] = "Please select at least one target website to scrape."
-      return respond_with_flash
-    end
+    return respond_with_flash("Please select at least one target website to scrape.") if target_ids.blank?
 
     if @search.activate_search!(target_ids)
       @search.reload
@@ -69,8 +58,7 @@ class SearchesController < ApplicationController
         format.html { redirect_to search_path(@search), notice: "Scraping pipeline successfully initialized!" }
       end
     else
-      flash.now[:alert] = "Failed to activate search. Check system logs."
-      respond_with_flash
+      respond_with_flash("Failed to activate search. Check system logs.")
     end
   end
 
@@ -81,18 +69,11 @@ class SearchesController < ApplicationController
 
   private
 
-  def set_search
-    params.expect(:id)
-    @search = Search.find(params.expect(:id))
-  end
+  def set_search = @search = Search.find(params.expect(:id))
 
-  def search_params
-    params.expect(search: [:title, :query_conditions, :time_frame, { target_ids: [] }])
-  end
+  def search_params = params.expect(search: [:title, :query_conditions, :time_frame, { target_ids: [] }])
 
-  def set_categories_for_form
-    @categories = Category.includes(:targets).all
-  end
+  def set_categories_for_form = @categories = Category.includes(:targets).all
 
   def filter_results_by_status(scope)
     case @current_status
@@ -103,10 +84,43 @@ class SearchesController < ApplicationController
     end
   end
 
-  def respond_with_flash
+  def respond_with_flash(alert_msg)
+    flash.now[:alert] = alert_msg
+    respond_to do |f|
+      f.html { redirect_to search_path(@search), alert: alert_msg }
+      f.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "shared/flash") }
+    end
+  end
+
+  def handle_successful_update
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "shared/flash") }
-      format.html { redirect_to search_path(@search), alert: flash[:alert] }
+      format.turbo_stream do
+        flash.now[:notice] = "Search criteria was successfully updated."
+        render turbo_stream: [
+          turbo_stream.replace("search_lifecycle_status", partial: "searches/status_badge",
+                                                          locals: { search: @search }),
+          turbo_stream.prepend("flash", partial: "shared/flash")
+        ]
+      end
+      format.html { redirect_to determine_update_redirect_path, notice: "Search criteria was successfully updated." }
+    end
+  end
+
+  def handle_failed_update
+    respond_to do |format|
+      format.html { render :edit, status: :unprocessable_content }
+      format.turbo_stream do
+        flash.now[:alert] = @search.errors.full_messages.to_sentence
+        render turbo_stream: turbo_stream.prepend("flash", partial: "shared/shared_flash_or_alert")
+      end
+    end
+  end
+
+  def determine_update_redirect_path
+    if request.referer&.include?(searches_path) && !request.referer&.include?(search_path(@search))
+      searches_path
+    else
+      search_path(@search)
     end
   end
 end
