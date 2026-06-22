@@ -19,10 +19,7 @@ The system acts like a smart email client. The Inbox strictly displays leads you
 
 - One-Click Dismissal: Spotted a bad result? Hit "Mark as Garbage" or "Mark Watched".
 
-- Permanent Blacklisting: Once dismissed, that specific result is muted forever. Even if the scraper encounters it again next week, it will never clutter your Inbox again. Your feed becomes cleaner over time.
-
-#### Graceful UI Feedback
-Elements never vanish abruptly from under your cursor. Marking a lead as watched smoothly dims the card. This gives you immediate visual confirmation while keeping the controls active, allowing you to quickly undo the action or instantly toss it into "Garbage" if you change your mind. The card disappears completely only when you refresh or switch tabs.
+- Permanent Blacklisting: Once dismissed, that specific result is muted forever. Even if the scraper encounters it next week, it will never clutter your Inbox again. Your feed becomes cleaner over time.
 
 #### The "Gold Standard" Shortlist
 Isolate top-tier opportunities instantly. The "Interesting" tab acts as your dedicated shortlist, allowing you to archive high-value leads for personalized outreach (e.g., tailored cover letters or cold emails) while the background engine keeps processing the rest.

@@ -39,7 +39,7 @@ class SearchActivator
     broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
     prompt_ids.shuffle.each_with_index do |prompt_id, index|
-      delay = (index * 5) + rand(5..25)
+      delay = (index * 10) + rand(10..50)
 
       sleep(delay) if Rails.env.development?
 
