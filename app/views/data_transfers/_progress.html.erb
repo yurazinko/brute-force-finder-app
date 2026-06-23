@@ -1,9 +1,9 @@
-<div id="<%= id %>" class="w-full bg-gray-100 p-4 rounded border border-gray-200 animate-fade-in">
+<div id="<%= id %>" class="w-full bg-breeze-bg p-4 rounded border border-breeze-border animate-fade-in">
   <div class="flex justify-between mb-1">
-    <span class="text-sm font-medium text-gray-700"><%= raw message %></span>
-    <span class="text-sm font-medium text-gray-700"><%= progress %>%</span>
+    <span class="text-sm font-medium text-breeze-text"><%= raw message %></span>
+    <span class="text-sm font-medium text-breeze-text"><%= progress %>%</span>
   </div>
   <div class="w-full bg-gray-200 rounded-full h-2.5">
-    <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: <%= progress %>%"></div>
+    <div class="bg-breeze-accent h-2.5 rounded-full transition-all duration-300" style="width: <%= progress %>%"></div>
   </div>
 </div>

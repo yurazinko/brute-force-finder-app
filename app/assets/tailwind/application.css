@@ -1,21 +1,62 @@
 @import "tailwindcss";
 
+@theme {
+  --color-breeze-bg: #31363b;
+  --color-breeze-view: #232629;
+  --color-breeze-text: #fcfcfc;
+  --color-breeze-muted: #a5a8aa;
+  --color-breeze-border: #4d5053;
+  --color-breeze-accent: #3daee9;
+}
+
 .custom-pagy-container nav {
   @apply flex items-center space-x-1 text-sm font-medium;
 }
 
 .custom-pagy-container nav a {
-  @apply px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600 transition shadow-sm;
+  @apply px-3 py-2 rounded-lg border border-breeze-border bg-breeze-view text-breeze-muted hover:bg-breeze-bg hover:text-breeze-accent transition shadow-sm;
 }
 
 .custom-pagy-container nav span.current {
-  @apply px-3 py-2 rounded-lg border border-blue-600 bg-blue-50 text-blue-600 font-bold shadow-sm;
+  @apply px-3 py-2 rounded-lg border border-breeze-accent bg-breeze-bg text-breeze-accent font-bold shadow-sm;
 }
 
 .custom-pagy-container nav span.gap {
-  @apply px-3 py-2 text-gray-400 cursor-default;
+  @apply px-3 py-2 text-breeze-muted cursor-default;
 }
 
 .custom-pagy-container nav span.disabled {
-  @apply px-3 py-2 rounded-lg border border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed shadow-none;
+  @apply px-3 py-2 rounded-lg border border-breeze-border bg-breeze-bg text-breeze-muted/40 cursor-not-allowed shadow-none;
+}
+
+@utility body {
+  background-color: var(--color-breeze-bg);
+  color: var(--color-breeze-text);
+  transition-property: color, background-color;
+  transition-duration: 150ms;
+}
+
+@layer base {
+  body {
+    @apply bg-breeze-bg text-breeze-text transition-colors duration-150;
+  }
+
+  input, select, textarea {
+    @apply bg-breeze-view border-breeze-border text-breeze-text focus:ring-breeze-accent focus:border-breeze-accent shadow-inner rounded-md;
+  }
+
+  label {
+    @apply text-breeze-text font-semibold;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-breeze-view;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-breeze-border rounded-md hover:bg-breeze-muted/50;
+  }
 }

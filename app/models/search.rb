@@ -5,6 +5,8 @@ class Search < ApplicationRecord
   has_many :targets, through: :prompts
   has_many :results, dependent: :destroy
 
+  normalizes :time_frame, with: ->(value) { value.presence }
+
   validates :title, :query_conditions, presence: true
   validates :status, inclusion: { in: %w[pending processing completed failed] }
 

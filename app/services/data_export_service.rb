@@ -14,7 +14,7 @@ class DataExportService
 
     if block_given?
       url = "/#{@output_path.basename}"
-      html = "Done! Click <a href='%s' download class='text-indigo-600 " \
+      html = "Done! Click <a href='%s' download class='text-breeze-accent " \
              "underline font-semibold'>here</a> to download."
       yield(100, format(html, url))
     end

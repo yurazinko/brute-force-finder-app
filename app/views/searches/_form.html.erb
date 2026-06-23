@@ -1,0 +1,108 @@
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <%= link_to back_path, class: "text-sm font-medium text-breeze-muted hover:text-breeze-text transition" do %>
+      <%= back_label %>
+    <% end %>
+    <h1 class="text-3xl font-bold text-breeze-text mt-2"><%= title %></h1>
+  </div>
+
+  <%= form_with(model: search, data: { turbo: false }, class: "space-y-6 bg-breeze-view p-6 shadow border border-breeze-border rounded-xl") do |f| %>
+    <% if search.errors.any? %>
+      <div class="bg-red-900/40 border border-red-500/50 p-4 rounded-lg text-red-200 text-sm">
+        <h2 class="font-bold mb-2"><%= pluralize(search.errors.count, "error") %> prohibited this search from being saved:</h2>
+        <ul class="list-disc pl-5">
+          <% search.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="bg-breeze-bg/40 p-4 rounded-xl border border-breeze-border/80">
+      <h2 class="text-sm font-bold text-breeze-text uppercase tracking-wider mb-3">1. General Settings</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <%= f.label :title, "Search Campaign Title", class: "block text-sm font-semibold text-breeze-text mb-1" %>
+          <%= f.text_field :title, placeholder: "e.g., Elixir Remote Backend Jobs", class: "w-full rounded-md border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent text-sm py-2 bg-breeze-view" %>
+        </div>
+
+        <div>
+          <%= f.label :time_frame, "Default Engine Time Range", class: "block text-sm font-semibold text-breeze-text mb-1" %>
+          <%= f.select :time_frame,
+                       [
+                         ['Anytime (No filter)', nil],
+                         ['Past 24 Hours', 'day'],
+                         ['Past Week', 'week'],
+                         ['Past Month', 'month'],
+                         ['Past Year', 'year']
+                       ],
+                       {},
+                       { class: "w-full rounded-md border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent text-sm py-2 bg-breeze-view" } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-breeze-border pt-6">
+      <div class="mb-3">
+        <h2 class="text-sm font-bold text-breeze-text uppercase tracking-wider">2. Dork Query Configuration</h2>
+        <p class="text-xs text-breeze-muted">Define query terms or switch to expert mode to type your own raw dork string.</p>
+      </div>
+      <%= render 'dork_builder', initial_value: search.query_conditions, input_name: 'search[query_conditions]' %>
+    </div>
+
+    <div class="border-t border-breeze-border pt-6" data-controller="targets-selector">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-sm font-bold text-breeze-text uppercase tracking-wider">3. Link Target Websites</h2>
+          <p class="text-xs text-breeze-muted">Select which websites this campaign will monitor.</p>
+        </div>
+        <div class="flex space-x-2 text-xs font-medium">
+          <button type="button" data-action="click->targets-selector#toggleGlobal" data-targets-selector-status-param="true" class="text-breeze-accent hover:underline cursor-pointer">Select Absolutely All</button>
+          <span class="text-breeze-border">|</span>
+          <button type="button" data-action="click->targets-selector#toggleGlobal" data-targets-selector-status-param="false" class="text-breeze-muted hover:underline cursor-pointer">Clear All</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="categories_selector_root">
+        <% Category.includes(:targets).order(:name).each do |category| %>
+          <% active_targets = category.targets.active %>
+          <% next if active_targets.empty? %>
+
+          <div data-targets-selector-target="group" class="category-card-group border border-breeze-border rounded-xl p-4 bg-breeze-bg/50 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-3 pb-1 border-b border-breeze-border">
+                <h3 class="text-xs font-bold text-breeze-muted uppercase tracking-wider"><%= category.name %></h3>
+                <button type="button"
+                        data-targets-selector-target="groupButton"
+                        data-action="click->targets-selector#toggleGroup"
+                        data-status="false"
+                        class="category-bulk-btn text-[11px] bg-breeze-view border border-breeze-border text-breeze-text hover:bg-breeze-bg px-2 py-0.5 rounded shadow-sm font-medium transition cursor-pointer">
+                  Select All Group
+                </button>
+              </div>
+
+              <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <% active_targets.order(:name).each do |target| %>
+                  <label class="flex items-start space-x-3 py-1 px-1.5 rounded hover:bg-breeze-view cursor-pointer transition text-sm">
+                    <%= check_box_tag "search[target_ids][]", target.id, search.target_ids.include?(target.id),
+                                      class: "target-item-checkbox mt-0.5 rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer",
+                                      data: { targets_selector_target: "checkbox" } %>
+                    <div class="leading-tight">
+                      <span class="text-breeze-text font-medium"><%= target.name %></span>
+                      <span class="text-[11px] text-breeze-muted block font-mono"><%= target.domain %></span>
+                    </div>
+                  </label>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="border-t border-breeze-border pt-4 flex justify-end space-x-3">
+      <%= link_to 'Cancel', back_path, class: "py-2 px-4 border border-breeze-border rounded-md text-sm font-medium text-breeze-text hover:bg-breeze-bg cursor-pointer" %>
+      <%= f.submit submit_label, class: "py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-breeze-view bg-breeze-accent hover:opacity-90 focus:outline-none cursor-pointer font-semibold" %>
+    </div>
+  <% end %>
+</div>

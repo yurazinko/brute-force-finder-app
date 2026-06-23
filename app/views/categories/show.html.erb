@@ -1,59 +1,59 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
   <div class="mb-6">
-    <%= link_to '⬅️ Back to Categories', categories_path, class: "text-sm text-gray-500 hover:text-gray-700" %>
-    <h1 class="text-3xl font-bold text-gray-900 mt-2">Manage Category: <%= @category.name %></h1>
+    <%= link_to '⬅️ Back to Categories', categories_path, class: "text-sm text-breeze-muted hover:text-breeze-text" %>
+    <h1 class="text-3xl font-bold text-breeze-text mt-2">Manage Category: <%= @category.name %></h1>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-    <div class="md:col-span-1 bg-white p-6 shadow rounded-xl h-fit">
-      <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Add New Target Site</h2>
+    <div class="md:col-span-1 bg-breeze-view p-6 shadow rounded-xl h-fit">
+      <h2 class="text-sm font-semibold text-breeze-muted uppercase tracking-wider mb-4">Add New Target Site</h2>
       <%= form_with(model: Target.new, class: "space-y-4") do |f| %>
         <%= f.hidden_field :category_id, value: @category.id %>
 
         <div>
-          <%= f.label :name, "Site Name", class: "block text-xs font-medium text-gray-700 mb-1" %>
-          <%= f.text_field :name, placeholder: "e.g., Workable", class: "w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+          <%= f.label :name, "Site Name", class: "block text-xs font-medium text-breeze-text mb-1" %>
+          <%= f.text_field :name, placeholder: "e.g., Workable", class: "w-full text-sm rounded-md border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent" %>
         </div>
 
         <div>
-          <%= f.label :domain, "Domain", class: "block text-xs font-medium text-gray-700 mb-1" %>
-          <%= f.text_field :domain, placeholder: "e.g., workable.com", class: "w-full text-sm font-mono rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" %>
+          <%= f.label :domain, "Domain", class: "block text-xs font-medium text-breeze-text mb-1" %>
+          <%= f.text_field :domain, placeholder: "e.g., workable.com", class: "w-full text-sm font-mono rounded-md border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent" %>
         </div>
 
         <%= f.submit "Add Site", class: "w-full py-2 px-4 bg-gray-900 hover:bg-gray-800 text-white font-medium text-sm rounded-md shadow cursor-pointer transition" %>
       <% end %>
     </div>
 
-    <div class="md:col-span-2 bg-white p-6 shadow rounded-xl">
-      <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Linked Target Sites (<%= @category.targets.count %>)</h2>
+    <div class="md:col-span-2 bg-breeze-view p-6 shadow rounded-xl">
+      <h2 class="text-sm font-semibold text-breeze-muted uppercase tracking-wider mb-4">Linked Target Sites (<%= @category.targets.count %>)</h2>
 
       <div class="divide-y divide-gray-100" id="targets_list">
         <% if @category.targets.any? %>
           <% @category.targets.order(:name).each do |target| %>
-            <div id="<%= dom_id(target) %>" class="py-3 flex justify-between items-center hover:bg-gray-50 px-2 rounded-lg transition">
+            <div id="<%= dom_id(target) %>" class="py-3 flex justify-between items-center hover:bg-breeze-bg px-2 rounded-lg transition">
               <div>
-                <div class="font-medium text-gray-900 text-sm"><%= target.name %></div>
-                <div class="text-xs text-gray-400 font-mono"><%= target.domain %></div>
+                <div class="font-medium text-breeze-text text-sm"><%= target.name %></div>
+                <div class="text-xs text-breeze-muted font-mono"><%= target.domain %></div>
               </div>
               <div class="flex items-center space-x-3">
                 <%= button_to target_path(target),
                               method: :patch,
                               params: { target: { is_active: !target.is_active? } },
-                              class: "inline-flex items-center px-2 py-1 rounded text-xs font-semibold border transition cursor-pointer #{target.is_active? ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}" do %>
+                              class: "inline-flex items-center px-2 py-1 rounded text-xs font-semibold border transition cursor-pointer #{target.is_active? ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-breeze-bg text-gray-300 border-breeze-border hover:bg-breeze-bg'}" do %>
                   <span class="mr-1.5 flex h-1.5 w-1.5 items-center">
                     <span class="absolute inline-flex h-1.5 w-1.5 rounded-full <%= target.is_active? ? 'bg-green-500 animate-pulse' : 'bg-gray-400' %>"></span>
                   </span>
                   <%= target.is_active? ? 'Active' : 'Disabled' %>
                 <% end %>
 
-                <%= link_to "Edit", edit_target_path(target), class: "text-xs text-gray-500 hover:text-indigo-600 font-medium px-2 py-1 border border-gray-200 rounded hover:border-indigo-200 transition" if respond_to?(:edit_target_path) %>
+                <%= link_to "Edit", edit_target_path(target), class: "text-xs text-breeze-muted hover:text-breeze-accent font-medium px-2 py-1 border border-breeze-border rounded hover:border-indigo-200 transition" if respond_to?(:edit_target_path) %>
 
                 <%= button_to "Remove", target_path(target), method: :delete, data: { confirm: "Delete #{target.name}?" }, class: "text-xs text-red-600 hover:text-red-900 font-medium cursor-pointer" %>
               </div>
             </div>
           <% end %>
         <% else %>
-          <p class="text-gray-400 text-sm py-4 text-center">No target sites added to this category yet.</p>
+          <p class="text-breeze-muted text-sm py-4 text-center">No target sites added to this category yet.</p>
         <% end %>
       </div>
     </div>

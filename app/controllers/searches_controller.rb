@@ -88,7 +88,7 @@ class SearchesController < ApplicationController
     flash.now[:alert] = alert_msg
     respond_to do |f|
       f.html { redirect_to search_path(@search), alert: alert_msg }
-      f.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "shared/flash") }
+      f.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "layouts/flash") }
     end
   end
 
@@ -99,7 +99,7 @@ class SearchesController < ApplicationController
         render turbo_stream: [
           turbo_stream.replace("search_lifecycle_status", partial: "searches/status_badge",
                                                           locals: { search: @search }),
-          turbo_stream.prepend("flash", partial: "shared/flash")
+          turbo_stream.prepend("flash", partial: "layouts/flash")
         ]
       end
       format.html { redirect_to determine_update_redirect_path, notice: "Search criteria was successfully updated." }
@@ -111,7 +111,7 @@ class SearchesController < ApplicationController
       format.html { render :edit, status: :unprocessable_content }
       format.turbo_stream do
         flash.now[:alert] = @search.errors.full_messages.to_sentence
-        render turbo_stream: turbo_stream.prepend("flash", partial: "shared/shared_flash_or_alert")
+        render turbo_stream: turbo_stream.prepend("flash", partial: "layouts/flash")
       end
     end
   end

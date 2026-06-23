@@ -5,10 +5,10 @@ export default class extends BulkSelectorController {
   protected getInactiveText(): string { return "Select Group" }
 
   protected getActiveClasses(): string {
-    return "group-toggle-btn text-[10px] text-gray-500 hover:underline font-medium cursor-pointer"
+    return "group-toggle-btn text-[10px] text-breeze-muted hover:underline font-medium cursor-pointer"
   }
 
   protected getInactiveClasses(): string {
-    return "group-toggle-btn text-[10px] text-indigo-600 hover:underline font-semibold cursor-pointer"
+    return "group-toggle-btn text-[10px] text-breeze-accent hover:underline font-semibold cursor-pointer"
   }
 }

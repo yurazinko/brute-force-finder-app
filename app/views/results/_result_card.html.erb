@@ -9,7 +9,7 @@
      data-read-status-url-value="<%= result_path(result) %>"
      data-read-status-current-status-value="<%= result.status %>"
      data-turbo-permanent
-     class="p-4 sm:p-5 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition bg-gray-50/50 flex flex-col gap-2 <%= 'opacity-50 duration-500' if should_dim %>">
+     class="p-4 sm:p-5 border border-breeze-border rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition bg-breeze-bg/50 flex flex-col gap-2 <%= 'opacity-50 duration-500' if should_dim %>">
 
   <a href="<%= result.url %>"
     target="_blank"
@@ -18,24 +18,24 @@
     data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
     data-read-url="<%= result_path(result, status: :watched, current_tab: (params[:status].presence || "unread"), d: params[:d]) %>"
     data-read-status="<%= result.status %>"
-    class="text-blue-600 font-bold hover:underline text-base sm:text-lg leading-tight break-words">
+    class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight break-words">
     <%= result.title.presence || "Untitled Result" %>
   </a>
 
-  <div class="text-xs text-gray-400 font-mono flex items-center gap-1.5 w-full min-w-0">
-    <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="text-xs text-breeze-muted font-mono flex items-center gap-1.5 w-full min-w-0">
+    <svg class="w-3.5 h-3.5 text-breeze-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
     </svg>
     <span class="truncate block w-full" title="<%= result.url %>"><%= result.url %></span>
   </div>
 
   <% if result.content.present? %>
-    <p class="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-3 bg-white p-3 rounded-lg border border-gray-100 shadow-sm font-sans break-words">
+    <p class="text-xs sm:text-sm text-gray-300 mt-1 line-clamp-3 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm font-sans break-words">
       <%= result.content %>
     </p>
   <% end %>
 
-  <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-gray-100">
+  <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-breeze-border">
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">
       <% unless result.status == "interesting" %>
         <%= button_to result_path(result, status: :interesting, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
@@ -50,13 +50,13 @@
       <% end %>
 
       <% if %w[interesting garbage].include?(result.status) %>
-        <%= button_to result_path(result, status: :unread, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
+        <%= button_to result_path(result, status: :unread, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
           <span>↩️ Move to Inbox</span>
         <% end %>
       <% end %>
     </div>
 
-    <div class="text-[10px] text-gray-400 font-medium order-1 sm:order-2 self-start sm:self-auto">
+    <div class="text-[10px] text-breeze-muted font-medium order-1 sm:order-2 self-start sm:self-auto">
       Discovered <%= time_ago_in_words(result.created_at) %> ago
     </div>
   </div>
