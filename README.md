@@ -63,20 +63,22 @@ The application environment runs fully isolated via Docker Compose, bridging the
   ```
 
 2. Build the image:
-   ```console
-   docker-compose build
-   ```
+
+```console
+docker-compose build
+```
 
 3. Install the dependencies and prepare the database:
 
-   ```console
-   docker-compose run app bundle install
-   docker-compose run app bundle exec rails db:setup
-   ```
+```console
+docker-compose run app bundle install
+docker-compose run app bundle exec rails db:setup
+```
 
 4. Launch the application:
 
-   ```console
-   docker-compose up
+```console
+docker-compose up
+```
 
 Once ready, navigate to: [http://localhost:3000](http://localhost:3000)
