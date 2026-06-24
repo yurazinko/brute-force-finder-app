@@ -48,7 +48,7 @@
 
                 <%= link_to "Edit", edit_target_path(target), class: "text-xs text-breeze-muted hover:text-breeze-accent font-medium px-2 py-1 border border-breeze-border rounded hover:border-indigo-200 transition" if respond_to?(:edit_target_path) %>
 
-                <%= button_to "Remove", target_path(target), method: :delete, data: { confirm: "Delete #{target.name}?" }, class: "text-xs text-red-600 hover:text-red-900 font-medium cursor-pointer" %>
+                <%= button_to "Remove", target_path(target), method: :delete, data: { confirm: "Delete #{target.name}?" }, class: "text-xs rounded bg-red-50 text-red-600 hover:text-red-900 font-medium cursor-pointer" %>
               </div>
             </div>
           <% end %>
