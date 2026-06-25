@@ -3,6 +3,8 @@
 class Result < ApplicationRecord
   belongs_to :search
 
+  after_update :broadcast_acknowledged, if: :saved_change_to_status?
+
   validates :status, inclusion: { in: %w[unread watched garbage interesting] }
 
   scope :without_garbage, -> { where.not(status: "garbage") }
@@ -24,5 +26,13 @@ class Result < ApplicationRecord
       .limit(5)
       .count
       .transform_keys { |k| k.nil? ? "Unknown" : k.to_s }
+  end
+
+  private
+
+  def broadcast_acknowledged
+    return if status == "unread"
+
+    Result.where(url_hash: url_hash).update_all(acknowledged: true, updated_at: Time.current)
   end
 end

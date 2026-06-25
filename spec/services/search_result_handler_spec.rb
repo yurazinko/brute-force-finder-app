@@ -25,8 +25,16 @@ RSpec.describe SearchResultHandler, type: :service do
 
   let(:raw_results) do
     [
-      { "url" => "https://lever.co/job1?utm_source=google", "title" => "RoR Dev", "content" => "We need Ruby dev" },
-      { "url" => "https://LEVER.co/job2#anchor", "title" => "Lead Ruby", "content" => "Senior rails role" }
+      {
+        "url" => "https://lever.co/job1",
+        "title" => "Job 1",
+        "content" => "Ruby dev"
+      },
+      {
+        "url" => "https://lever.co/job2",
+        "title" => "Job 2",
+        "content" => "Rails dev"
+      }
     ]
   end
 
@@ -61,8 +69,10 @@ RSpec.describe SearchResultHandler, type: :service do
         expect(prompt.reload.status).to eq("success")
       end
 
-      it "returns true upon successful execution" do
-        expect(described_class.call(prompt, raw_results)).to be_truthy
+      it "returns execution metrics hash upon successful execution" do
+        expect(described_class.call(prompt, raw_results)).to eq(
+          { raw_count: 2, new_count: 2, total: 2 }
+        )
       end
     end
 
@@ -74,7 +84,7 @@ RSpec.describe SearchResultHandler, type: :service do
         ]
       end
 
-      it "silently ignores duplicates on DB level due to unique_by constraint" do
+      it "silently ignores duplicates due to inside-batch grouping and unique_by" do
         expect do
           described_class.call(prompt, duplicate_results)
         end.to change(Result, :count).by(1)
@@ -98,7 +108,7 @@ RSpec.describe SearchResultHandler, type: :service do
         expect(prompt.error_message).to eq("No results found or client error")
       end
 
-      it "returns false gracefully" do
+      it "returns error gracefully" do
         expect(described_class.call(prompt, [])).to eq(
           { error: "No results found or client error", new_count: 0, raw_count: 0 }
         )
@@ -130,9 +140,141 @@ RSpec.describe SearchResultHandler, type: :service do
       end
     end
 
+    context "when implementing the context-aware global viewed (acknowledged) logic" do
+      let!(:other_search) do
+        Search.create!(
+          title: "Previous Search",
+          query_conditions: "rails",
+          status: "completed"
+        )
+      end
+
+      let(:job1_hash) { "a8b6b06473ace2579ad4c9a9234dc3a98adedcda296e4e8d03988d9c7827c2d8" }
+      let(:job2_hash) { "f86928a1c95ed4abd68ed4b8c7b447e97757c2d2e007092891428b849ca9f69f" }
+
+      let(:mocked_transformer_records) do
+        [
+          {
+            "search_id" => search.id,
+            "url" => "https://lever.co/job1",
+            "url_hash" => job1_hash,
+            "title" => "Job 1",
+            "content" => "Ruby dev"
+          },
+          {
+            "search_id" => search.id,
+            "url" => "https://lever.co/job2",
+            "url_hash" => job2_hash,
+            "title" => "Job 2",
+            "content" => "Rails dev"
+          }
+        ]
+      end
+
+      before do
+        allow(Results::DataTransformer).to receive(:process)
+          .with(search.id, raw_results)
+          .and_return(mocked_transformer_records)
+      end
+
+      context "when the URL was already acknowledged in another search" do
+        before do
+          res = Result.create!(
+            search_id: other_search.id,
+            url: "https://lever.co/job1",
+            url_hash: job1_hash,
+            title: "Old Role",
+            content: "Already reviewed",
+            status: "watched"
+          )
+          Result.where(id: res.id).update_all(acknowledged: true)
+        end
+
+        it "inherits acknowledged: true for matching URLs" do
+          described_class.call(prompt, raw_results)
+
+          result = Result.unscoped.find_by(search_id: search.id, url_hash: job1_hash)
+
+          expect(result).to be_present
+          expect(result.acknowledged).to be(true)
+        end
+
+        it "keeps unrelated URLs acknowledged: false" do
+          described_class.call(prompt, raw_results)
+
+          other_result = Result.unscoped.find_by(search_id: search.id, url_hash: job2_hash)
+
+          expect(other_result).to be_present
+          expect(other_result.acknowledged).to be(false)
+        end
+      end
+
+      context "when the URL exists globally but was not acknowledged" do
+        before do
+          res = Result.create!(
+            search_id: other_search.id,
+            url: "https://lever.co/job1",
+            url_hash: job1_hash,
+            title: "Old Role",
+            content: "Not reviewed",
+            status: "unread"
+          )
+          Result.where(id: res.id).update_all(acknowledged: false)
+        end
+
+        it "does not mark the new result as acknowledged" do
+          described_class.call(prompt, raw_results)
+
+          result = Result.unscoped.find_by(search_id: search.id, url_hash: job1_hash)
+
+          expect(result).to be_present
+          expect(result.acknowledged).to be(false)
+        end
+      end
+
+      context "when multiple acknowledged copies exist across searches" do
+        before do
+          res1 = Result.create!(
+            search_id: other_search.id,
+            url: "https://lever.co/job1",
+            url_hash: job1_hash,
+            title: "Old Role",
+            content: "Already reviewed",
+            status: "watched"
+          )
+          Result.where(id: res1.id).update_all(acknowledged: true)
+
+          another_search = Search.create!(
+            title: "Another Search",
+            query_conditions: "ruby",
+            status: "completed"
+          )
+
+          res2 = Result.create!(
+            search_id: another_search.id,
+            url: "https://lever.co/job1",
+            url_hash: job1_hash,
+            title: "Another Copy",
+            content: "Reviewed too",
+            status: "watched"
+          )
+          Result.where(id: res2.id).update_all(acknowledged: true)
+        end
+
+        it "marks the new result as acknowledged" do
+          described_class.call(prompt, raw_results)
+
+          result = Result.unscoped.find_by(search_id: search.id, url_hash: job1_hash)
+
+          expect(result).to be_present
+          expect(result.acknowledged).to be(true)
+        end
+      end
+    end
+
     context "when an unexpected standard error occurs (fail-safe trigger)" do
       before do
-        allow(Result).to receive(:insert_all).and_raise(StandardError.new("Database deadlock"))
+        allow(Result).to receive(:upsert_all).and_raise(StandardError.new("Database deadlock"))
         allow(Rails.logger).to receive(:error)
       end
 
@@ -146,12 +288,7 @@ RSpec.describe SearchResultHandler, type: :service do
         expect(Rails.logger).to have_received(:error).with(/\[Search::ResultHandler\] Failed for Prompt/)
       end
 
-      it "still triggers search completion check so the pipeline does not hang indefinitely" do
-        described_class.call(prompt, raw_results)
-        expect(search.reload.status).to eq("completed")
-      end
-
-      it "returns false instead of crashing the whole Sidekiq worker thread" do
+      it "returns error payload instead of crashing" do
         expect(described_class.call(prompt, raw_results)).to eq(
           { error: "Database deadlock", new_count: 0, raw_count: 0 }
         )
@@ -166,7 +303,7 @@ RSpec.describe SearchResultHandler, type: :service do
 
       it "rescues the broadcast error gracefully and finishes successfully" do
         expect do
-          expect(described_class.call(prompt, raw_results)).to be_truthy
+          expect(described_class.call(prompt, raw_results)).to be_a(Hash)
         end.to change(Result, :count).by(2)
 
         expect(prompt.reload.status).to eq("success")

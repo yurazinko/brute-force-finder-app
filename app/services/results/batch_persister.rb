@@ -1,0 +1,82 @@
+# frozen_string_literal: true
+
+module Results
+  class BatchPersister
+    def self.call(search_id, result_records) = new(search_id, result_records).call
+
+    def initialize(search_id, result_records)
+      @search_id = search_id
+      @result_records = result_records
+    end
+
+    def call
+      return { raw_count: 0, new_count: 0 } if @result_records.blank?
+
+      exact_count_before = current_results_count
+
+      records = prepare_records(@result_records)
+      records = deduplicate_by_hash(records)
+      records = enrich_with_global_acknowledgement(records)
+
+      execute_upsert(records)
+
+      {
+        raw_count: @result_records.size,
+        new_count: current_results_count - exact_count_before
+      }
+    end
+
+    private
+
+    def prepare_records(records)
+      records.map { |r| r.transform_keys(&:to_s) }
+    end
+
+    def deduplicate_by_hash(records)
+      records.group_by { |r| r["url_hash"] }.values.map(&:first)
+    end
+
+    def enrich_with_global_acknowledgement(records)
+      global_ack_set = fetch_global_acknowledged_hashes(records)
+
+      records.map do |record|
+        build_db_payload(record, global_ack_set)
+      end
+    end
+
+    def fetch_global_acknowledged_hashes(records)
+      incoming_hashes = records.pluck("url_hash")
+      incoming_hashes.compact!
+      incoming_hashes.uniq!
+
+      Result.unscoped
+            .where(url_hash: incoming_hashes, acknowledged: true)
+            .pluck(:url_hash)
+            .to_set
+    end
+
+    def build_db_payload(record, global_ack_set)
+      {
+        "search_id" => @search_id,
+        "url" => record["url"],
+        "url_hash" => record["url_hash"],
+        "title" => record["title"],
+        "content" => record["content"],
+        "status" => record["status"] || "unread",
+        "acknowledged" => global_ack_set.include?(record["url_hash"]),
+        "created_at" => record["created_at"] || Time.current,
+        "updated_at" => record["updated_at"] || Time.current
+      }
+    end
+
+    def execute_upsert(enriched_records)
+      ActiveRecord::Base.transaction(requires_new: true) do
+        Result.upsert_all(enriched_records, unique_by: %i[search_id url_hash])
+      end
+    end
+
+    def current_results_count
+      Result.where(search_id: @search_id).count
+    end
+  end
+end

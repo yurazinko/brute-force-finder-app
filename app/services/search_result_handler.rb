@@ -29,37 +29,30 @@ class SearchResultHandler
     update_lifecycle_status
 
     result_records = Results::DataTransformer.process(@search.id, @raw_results)
-    raw_count = result_records.size
 
-    if raw_count.positive?
-      insert_and_calculate_metrics(result_records, raw_count)
-    else
-      @prompt.update!(status: "success")
-      { raw_count: 0, new_count: 0, total: current_results_count }
-    end
-  end
-
-  def insert_and_calculate_metrics(result_records, raw_count)
-    exact_count_before = current_results_count
-
-    Result.insert_all(result_records, unique_by: %i[search_id url_hash])
-
-    exact_count_after = current_results_count
-    new_count = exact_count_after - exact_count_before
+    metrics = Results::BatchPersister.call(@search.id, result_records)
 
     @search.results.reset
     @prompt.update!(status: "success")
 
-    { raw_count: raw_count, new_count: new_count, total: exact_count_after }
+    {
+      raw_count: metrics[:raw_count],
+      new_count: metrics[:new_count],
+      total: current_results_count
+    }
   end
 
   def current_results_count = Result.where(search_id: @search.id).count
 
   def finalize_search_lifecycle
+    return if @prompt.reload.status == "failed"
+
     check_lifecycle_status
     @search.reload
     update_lifecycle_status
     update_counters
+  rescue StandardError => e
+    Rails.logger.error("[Search::ResultHandler] Lifecycle completion failed: #{e.message}")
   end
 
   def update_counters
@@ -85,6 +78,8 @@ class SearchResultHandler
   end
 
   def update_content
+    return if @prompt.reload.status == "failed"
+
     latest_results = Result.where(search_id: @search.id).without_garbage.order(created_at: :desc).limit(20)
 
     Turbo::StreamsChannel.broadcast_replace_to(

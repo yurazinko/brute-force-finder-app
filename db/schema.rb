@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_112243) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_25_095216) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,6 +35,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_112243) do
   end
 
   create_table "results", force: :cascade do |t|
+    t.boolean "acknowledged", default: false, null: false
     t.text "content"
     t.datetime "created_at", null: false
     t.bigint "search_id", null: false
@@ -47,6 +48,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_112243) do
     t.index ["search_id", "status"], name: "index_results_on_search_id_and_status"
     t.index ["search_id", "url_hash"], name: "index_results_on_search_id_and_url_hash", unique: true
     t.index ["search_id"], name: "index_results_on_search_id"
+    t.index ["url_hash"], name: "index_results_on_url_hash"
   end
 
   create_table "searches", force: :cascade do |t|
