@@ -7,7 +7,6 @@ module Searxng
     include HTTParty
 
     base_uri ENV.fetch("SEARXNG_URL", "http://localhost:8080")
-
     default_timeout 15
 
     def self.search(query, options = {})
@@ -20,16 +19,25 @@ module Searxng
     end
 
     def execute
-      return [] if @query.blank?
+      return { success: true, data: [] } if @query.blank?
 
       response = self.class.get("/search", query_options)
 
-      raise("Unexpected status code #{response.code}") unless response.code == 200
+      return { success: false, error: "SearXNG returned HTTP #{response.code}" } if response.code != 200
 
       parse_urls(response.body)
+    rescue HTTParty::Error, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
+      error_msg = "Network unreachable (Tor/SearXNG dead?): #{e.message}"
+      Rails.logger.error("[Searxng::TorClient] #{error_msg}")
+      { success: false, error: error_msg }
+    rescue Timeout::Error
+      error_msg = "SearXNG gateway timeout"
+      Rails.logger.error("[Searxng::TorClient] #{error_msg}")
+      { success: false, error: error_msg }
     rescue StandardError => e
-      Rails.logger.error("[Searxng::TorClient] Error: #{e.message}")
-      []
+      error_msg = "Unexpected internal client error: #{e.message}"
+      Rails.logger.error("[Searxng::TorClient] #{error_msg}")
+      { success: false, error: error_msg }
     end
 
     private
@@ -52,11 +60,15 @@ module Searxng
 
     def parse_urls(response_body)
       data = JSON.parse(response_body)
+
+      return { success: false, error: "SearXNG Engine Error: #{data['error']}" } if data["error"]
+
       results = data["results"]&.map { |hash| hash.slice("url", "title", "content") } || []
-      results.uniq { |hash| hash["url"] }
+      { success: true, data: results.uniq { |hash| hash["url"] }, failed_engines: data["unresponsive_engines"] || [] }
     rescue JSON::ParserError => e
-      Rails.logger.error("[Searxng::TorClient] Failed to parse JSON response: #{e.message}")
-      []
+      error_msg = "Malformed JSON response (Engine blocked or bad proxy config)"
+      Rails.logger.error("[Searxng::TorClient] #{error_msg}: #{e.message}")
+      { success: false, error: error_msg }
     end
   end
 end

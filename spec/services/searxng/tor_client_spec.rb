@@ -23,7 +23,7 @@ RSpec.describe Searxng::TorClient, type: :service do
       it "returns an empty array immediately without making an HTTP request" do
         client = described_class.new("   ")
 
-        expect(client.execute).to eq([])
+        expect(client.execute).to eq({ data: [], success: true })
         expect(WebMock).not_to have_requested(:get, /.*/)
       end
     end
@@ -50,10 +50,10 @@ RSpec.describe Searxng::TorClient, type: :service do
       end
 
       it "returns unique urls and titles parsed directly from WebMock body" do
-        expected_result = [
+        expected_result = { data: [
           { "url" => "https://lever.co/job1", "title" => "Ruby Developer" },
           { "url" => "https://lever.co/job2", "title" => "Senior RoR Engineer" }
-        ]
+        ], failed_engines: [], success: true }
 
         expect(described_class.new(query).execute).to eq(expected_result)
       end
@@ -66,8 +66,7 @@ RSpec.describe Searxng::TorClient, type: :service do
       end
 
       it "logs an specific error message and returns an empty array" do
-        expect(described_class.new(query).execute).to eq([])
-        expect(Rails.logger).to have_received(:error).with(/Unexpected status code 403/)
+        expect(described_class.new(query).execute).to eq({ error: "SearXNG returned HTTP 403", success: false })
       end
     end
 
@@ -78,8 +77,7 @@ RSpec.describe Searxng::TorClient, type: :service do
       end
 
       it "logs the unexpected status code and returns an empty array" do
-        expect(described_class.new(query).execute).to eq([])
-        expect(Rails.logger).to have_received(:error).with(/Unexpected status code 500/)
+        expect(described_class.new(query).execute).to eq({ error: "SearXNG returned HTTP 500", success: false })
       end
     end
 
@@ -93,8 +91,8 @@ RSpec.describe Searxng::TorClient, type: :service do
       end
 
       it "rescues StandardError, logs it, and returns an empty array" do
-        expect(described_class.new(query).execute).to eq([])
-        expect(Rails.logger).to have_received(:error).with(/Error: Execution expired/)
+        expect(described_class.new(query).execute).to eq({ error: "SearXNG gateway timeout", success: false })
+        expect(Rails.logger).to have_received(:error).with("[Searxng::TorClient] SearXNG gateway timeout")
       end
     end
 
@@ -108,8 +106,8 @@ RSpec.describe Searxng::TorClient, type: :service do
       end
 
       it "rescues JSON::ParserError, logs it, and returns an empty array" do
-        expect(described_class.new(query).execute).to eq([])
-        expect(Rails.logger).to have_received(:error).with(/Failed to parse JSON response/)
+        expect(described_class.new(query).execute).to eq({ error: "Malformed JSON response (Engine blocked or bad proxy config)", success: false })
+        expect(Rails.logger).to have_received(:error).with(/Malformed JSON response/)
       end
     end
   end

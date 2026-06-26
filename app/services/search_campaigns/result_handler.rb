@@ -8,11 +8,12 @@ module SearchCampaigns
       @prompt = prompt
       @search = prompt.search
       @raw_results = raw_results
+      @scraped_data = raw_results.try(:[], :data) || []
       @coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
     end
 
     def call
-      if @raw_results.blank?
+      if @scraped_data.blank?
         @coordinator.fail!("No results found or client error")
         return { error: "No results found or client error", raw_count: 0, new_count: 0 }
       end
@@ -31,7 +32,7 @@ module SearchCampaigns
     private
 
     def process_records
-      result_records = Results::DataTransformer.process(@search.id, @raw_results)
+      result_records = Results::DataTransformer.process(@search.id, @scraped_data)
       metrics = Results::BatchPersister.call(@search.id, result_records)
 
       @search.results.reset

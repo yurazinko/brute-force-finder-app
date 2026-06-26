@@ -17,16 +17,16 @@ class PromptProcessorJob
     raw_results = Searxng::TorClient.search(prompt.full_query_text, time_range: search.time_frame)
 
     handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
-    process_handler_result(search, domain, handler_result)
+    broadcast_handler_result(search, domain, handler_result)
   end
 
   private
 
-  def process_handler_result(search, domain, result)
-    if result[:error]
+  def broadcast_handler_result(search, domain, result)
+    if result[:error].present?
       broadcast_live_status(search, "[#{domain}] Engine error: #{result[:error]}")
     elsif result[:raw_count].positive?
-      broadcast_success_status(search, domain, result)
+      broadcast_success_status(search, domain, result[:data])
     else
       broadcast_live_status(search, "[#{domain}] 0 valid URLs extracted (no matches or engine temporary blocked).")
     end

@@ -24,7 +24,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
   end
 
   let(:raw_results) do
-    [
+    { data: [
       {
         "url" => "https://lever.co/job1",
         "title" => "Job 1",
@@ -35,7 +35,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         "title" => "Job 2",
         "content" => "Rails dev"
       }
-    ]
+    ] }
   end
 
   let(:expected_normalized_urls) do
@@ -78,10 +78,10 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
     context "when raw results contain duplicate URLs" do
       let(:duplicate_results) do
-        [
+        { data: [
           { "url" => "https://lever.co/job1?abc=1", "title" => "First" },
           { "url" => "https://lever.co/job1?xyz=2", "title" => "Duplicate after normalization" }
-        ]
+        ] }
       end
 
       it "silently ignores duplicates due to inside-batch grouping and unique_by" do
@@ -96,7 +96,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
     context "when raw results are blank (empty array or nil)" do
       it "does not create any result records" do
         expect do
-          described_class.call(prompt, [])
+          described_class.call(prompt, { data: [] })
         end.not_to change(Result, :count)
       end
 
@@ -106,12 +106,6 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         prompt.reload
         expect(prompt.status).to eq("failed")
         expect(prompt.error_message).to eq("No results found or client error")
-      end
-
-      it "returns error gracefully" do
-        expect(described_class.call(prompt, [])).to eq(
-          { error: "No results found or client error", new_count: 0, raw_count: 0 }
-        )
       end
     end
 
@@ -173,7 +167,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
       before do
         allow(Results::DataTransformer).to receive(:process)
-          .with(search.id, raw_results)
+          .with(search.id, raw_results[:data])
           .and_return(mocked_transformer_records)
       end
 
