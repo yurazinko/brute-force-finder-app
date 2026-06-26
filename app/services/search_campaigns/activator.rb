@@ -44,7 +44,7 @@ module SearchCampaigns
 
         sleep(delay) if Rails.env.development?
 
-        PromptProcessorJob.perform_in(delay.seconds, prompt_id, prompt_ids.size, index + 1)
+        PromptProcessorJob.perform_in(delay.seconds, prompt_id)
       end
     end
 

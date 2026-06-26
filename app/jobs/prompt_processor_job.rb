@@ -46,16 +46,6 @@ class PromptProcessorJob
     end
   end
 
-  def check_pipeline_completion(search)
-    search.with_lock do
-      return unless @current_prompt_number == @total_prompts
-
-      search.update!(status: "completed") unless search.status == "completed"
-
-      broadcast_live_status(search, "Pipeline finished. All parallel streams synced.")
-    end
-  end
-
   def broadcast_live_status(search, message)
     Turbo::StreamsChannel.broadcast_render_later_to(
       search, :results,
