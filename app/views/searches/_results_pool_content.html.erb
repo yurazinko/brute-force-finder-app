@@ -1,38 +1,27 @@
 <div class="space-y-4" id="results_pool_list">
   <% if results.any? %>
-    <template data-turbo-stream-target="append">
-      <turbo-stream action="append" target="results_pool_list">
-        <template>
-          <% results.each do |result| %>
-            <%= render "results/result_card", result: result %>
-          <% end %>
-        </template>
-      </turbo-stream>
-    </template>
 
-    <% if @pagy && @pagy.next %>
-      <turbo-stream action="replace" target="results_pool_pagination">
-        <template>
-          <%= turbo_frame_tag "results_pool_pagination" do %>
-            <%= link_to "Load more updates...",
-                        search_path(@search, status: params[:status], d: params[:d], page: @pagy.next),
-                        data: { infinite_scroll_target: "link" },
-                        class: "invisible block text-center py-2" %>
-          <% end %>
-        </template>
-      </turbo-stream>
-    <% else %>
-      <turbo-stream action="replace" target="results_pool_pagination">
-        <template>
-          <%= turbo_frame_tag "results_pool_pagination" do %>
-            <p class="text-center text-xs text-breeze-muted py-4">🎉 You've reached the end of the pool.</p>
-          <% end %>
-        </template>
-      </turbo-stream>
+    <% results.each do |result| %>
+      <%= render "results/result_card", result: result %>
     <% end %>
 
+    <div id="results_pool_pagination_container" class="mt-4">
+      <% if @pagy && @pagy.next %>
+        <%= turbo_frame_tag "results_pool_pagination" do %>
+          <%= link_to "Load more updates...",
+                      search_path(@search, status: params[:status], d: params[:d], page: @pagy.next),
+                      data: { infinite_scroll_target: "link" },
+                      class: "invisible block text-center py-2" %>
+        <% end %>
+      <% else %>
+        <%= turbo_frame_tag "results_pool_pagination" do %>
+          <p class="text-center text-xs text-breeze-muted py-4">🎉 You've reached the end of the pool.</p>
+        <% end %>
+      <% end %>
+    </div>
+
   <% else %>
-    <% if @pagy&.page == 1 %>
+    <% if @pagy&.page == 1 || @pagy.nil? %>
       <div class="text-center py-24 text-breeze-muted border-2 border-dashed border-breeze-border rounded-xl bg-breeze-bg/30 w-full" id="empty_state">
         <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         <p class="text-base font-medium text-gray-300">No matching data in this filter</p>
