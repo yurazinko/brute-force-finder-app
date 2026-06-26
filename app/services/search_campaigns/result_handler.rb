@@ -14,8 +14,8 @@ module SearchCampaigns
 
     def call
       if @scraped_data.blank?
-        @coordinator.fail!("No results found or client error")
-        return { error: "No results found or client error", raw_count: 0, new_count: 0 }
+        @coordinator.fail!("No results found")
+        return { error: "No results found", raw_count: 0, new_count: 0 }
       end
 
       metrics = process_records
@@ -25,8 +25,8 @@ module SearchCampaigns
       @coordinator.fail!(e.message)
       { error: e.message, raw_count: 0, new_count: 0 }
     ensure
-      @coordinator.evaluate_completion!
       SearchCampaigns::LifecycleNotifier.broadcast_status(@search)
+      @coordinator.evaluate_completion!
     end
 
     private

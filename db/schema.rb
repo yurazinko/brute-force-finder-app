@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_26_092937) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_26_183215) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,7 +24,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_26_092937) do
   create_table "prompts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "error_message"
-    t.string "full_query_text"
+    t.string "full_query_text", null: false
     t.bigint "search_id", null: false
     t.string "status", default: "pending"
     t.bigint "target_id", null: false

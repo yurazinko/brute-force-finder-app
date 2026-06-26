@@ -105,7 +105,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
         prompt.reload
         expect(prompt.status).to eq("failed")
-        expect(prompt.error_message).to eq("No results found or client error")
+        expect(prompt.error_message).to eq("No results found")
       end
     end
 
