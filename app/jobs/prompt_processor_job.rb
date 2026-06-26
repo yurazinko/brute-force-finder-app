@@ -25,15 +25,15 @@ class PromptProcessorJob
   def broadcast_handler_result(search, domain, result)
     if result[:error].present?
       broadcast_live_status(search, "[#{domain}] Engine error: #{result[:error]}")
-    elsif result[:raw_count].positive?
-      broadcast_success_status(search, domain, result[:data])
+    elsif result[:raw_count].to_i.positive?
+      broadcast_success_status(search, domain, result)
     else
       broadcast_live_status(search, "[#{domain}] 0 valid URLs extracted (no matches or engine temporary blocked).")
     end
   end
 
   def broadcast_success_status(search, domain, result)
-    if result[:new_count].positive?
+    if result[:new_count].to_i.positive?
       broadcast_live_status(
         search,
         "[#{domain}] Extracted #{result[:raw_count]} links. Imported #{result[:new_count]} NEW leads!"

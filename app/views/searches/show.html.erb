@@ -38,7 +38,7 @@
           <span class="text-breeze-muted font-medium">Pipeline:</span>
           <%= render "searches/status_badge", search: @search %>
         </div>
-        <%= render "searches/live_tracker", message: "Waiting for scraper engine..." %>
+        <%= render "searches/live_tracker", message: @search.status == "processing" ? "Scraper engine is busy..." : "Waiting for scraper engine..." %>
       </div>
     </div>
 
