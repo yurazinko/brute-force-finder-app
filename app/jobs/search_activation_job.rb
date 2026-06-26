@@ -14,6 +14,6 @@ class SearchActivationJob
 
     sleep(rand(10..30) * 100) if Rails.env.development?
 
-    SearchActivator.call(search, target_ids)
+    SearchCampaigns::Activator.call(search, target_ids)
   end
 end

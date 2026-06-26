@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe SearchResultHandler, type: :service do
+RSpec.describe SearchCampaigns::ResultHandler, type: :service do
   let(:category) { Category.create!(name: "Platforms") }
   let(:target) { Target.create!(category: category, name: "Lever", domain: "lever-#{SecureRandom.hex(4)}.co") }
 
@@ -308,7 +308,7 @@ RSpec.describe SearchResultHandler, type: :service do
         end.to change(Result, :count).by(2)
 
         expect(prompt.reload.status).to eq("success")
-        expect(Rails.logger).to have_received(:error).with(/Frontend broadcast failed: Redis connection dropped/)
+        expect(Rails.logger).to have_received(:error).with(/Metrics broadcast failed: Redis connection dropped/)
       end
     end
 

@@ -12,7 +12,7 @@ RSpec.describe SearchActivationJob, type: :job do
 
     before do
       # Переносимо allow всередину before блоку
-      allow(SearchActivator).to receive(:call).and_return(true)
+      allow(SearchCampaigns::Activator).to receive(:call).and_return(true)
     end
 
     context "when search campaign exists" do
@@ -21,10 +21,10 @@ RSpec.describe SearchActivationJob, type: :job do
         create(:prompt, search: search, target: inactive_target)
       end
 
-      it "calls SearchActivator with active target ids" do
+      it "calls SearchCampaigns::Activator with active target ids" do
         described_class.new.perform(search.id)
 
-        expect(SearchActivator).to have_received(:call).with(
+        expect(SearchCampaigns::Activator).to have_received(:call).with(
           search,
           [active_target.id]
         )
@@ -35,7 +35,7 @@ RSpec.describe SearchActivationJob, type: :job do
       it "safely returns without calling activator" do
         described_class.new.perform(999_999)
 
-        expect(SearchActivator).not_to have_received(:call)
+        expect(SearchCampaigns::Activator).not_to have_received(:call)
       end
     end
   end

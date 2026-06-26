@@ -5,9 +5,7 @@ class PromptProcessorJob
 
   sidekiq_options queue: :scraping, retry: 3
 
-  def perform(prompt_id, total_prompts, current_prompt_number)
-    @total_prompts = total_prompts
-    @current_prompt_number = current_prompt_number
+  def perform(prompt_id)
     prompt = Prompt.find_by(id: prompt_id)
     return unless prompt&.status == "pending"
 
@@ -18,10 +16,8 @@ class PromptProcessorJob
     broadcast_live_status(search, "[#{domain}] Requesting data from SearXNG via Tor...")
     raw_results = Searxng::TorClient.search(prompt.full_query_text, time_range: search.time_frame)
 
-    handler_result = SearchResultHandler.call(prompt, raw_results)
+    handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
     process_handler_result(search, domain, handler_result)
-
-    check_pipeline_completion(search)
   end
 
   private
@@ -61,13 +57,11 @@ class PromptProcessorJob
   end
 
   def broadcast_live_status(search, message)
-    Thread.new do # rubocop:disable ThreadSafety/NewThread
-      Turbo::StreamsChannel.broadcast_render_to(
-        search, :results,
-        template: "searches/update_status",
-        assigns: { message: message }
-      )
-    end
+    Turbo::StreamsChannel.broadcast_render_later_to(
+      search, :results,
+      template: "searches/update_status",
+      assigns: { message: message }
+    )
   rescue StandardError => e
     Rails.logger.error("[PromptProcessorJob] Live status broadcast failed: #{e.message}")
   end

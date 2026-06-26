@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe SearchActivator, type: :service do
+RSpec.describe SearchCampaigns::Activator, type: :service do
   let(:category) { Category.create!(name: "SaaS Platforms") }
   let!(:target_lever) { Target.create!(category: category, name: "Lever", domain: "lever.co", is_active: true) }
   let!(:target_greenhouse) { Target.create!(category: category, name: "Greenhouse", domain: "greenhouse.io", is_active: true) }
@@ -12,7 +12,7 @@ RSpec.describe SearchActivator, type: :service do
     Search.create!(
       title: "Elixir/Ruby Backend",
       query_conditions: "(ruby OR elixir) (remote)",
-      status: "processing"
+      status: "pending"
     )
   end
 
@@ -34,7 +34,7 @@ RSpec.describe SearchActivator, type: :service do
         expect(lever_prompt.status).to eq("pending")
       end
 
-      it "updates the search status to pending" do
+      it "updates the search status to processing" do
         described_class.call(search, target_ids)
         expect(search.reload.status).to eq("processing")
       end
@@ -48,12 +48,12 @@ RSpec.describe SearchActivator, type: :service do
       let(:target_ids) { [target_lever.id] }
 
       before do
-        another_search = Search.create!(title: "Old Search", query_conditions: search.query_conditions, status: "processing")
+        # Створюємо промпт саме для ЦЬОГО пошуку
         Prompt.create!(
-          search: another_search,
+          search: search,
           target: target_lever,
           full_query_text: "site:lever.co #{search.query_conditions}",
-          status: "success"
+          status: "failed"
         )
       end
 
@@ -63,11 +63,10 @@ RSpec.describe SearchActivator, type: :service do
         end.not_to change(Prompt, :count)
       end
 
-      it "updates the existing prompt with the new search_id and resets status" do
+      it "resets status to pending for retry execution without changing search_id" do
         described_class.call(search, target_ids)
 
-        existing_prompt = Prompt.find_by(target: target_lever)
-        expect(existing_prompt.search_id).to eq(search.id)
+        existing_prompt = Prompt.find_by(search: search, target: target_lever)
         expect(existing_prompt.status).to eq("pending")
       end
     end
@@ -86,7 +85,7 @@ RSpec.describe SearchActivator, type: :service do
       it "returns false if targets exist but none of them are active" do
         expect(described_class.call(search, [target_inactive.id])).to be_falsy
         expect(Prompt.count).to eq(0)
-        expect(search.reload.status).to eq("processing")
+        expect(search.reload.status).to eq("pending")
       end
     end
 
@@ -100,12 +99,12 @@ RSpec.describe SearchActivator, type: :service do
 
       it "rescues the exception, logs it and returns false gracefully" do
         expect(described_class.call(search, target_ids)).to be_falsy
-        expect(search.reload.status).to eq("processing")
+        expect(search.reload.status).to eq("pending")
       end
 
       it "logs the clean error message with context data" do
         described_class.call(search, target_ids)
-        expect(Rails.logger).to have_received(:error).with(/\[SearchActivator\] Critical failure for Search/)
+        expect(Rails.logger).to have_received(:error).with(/\[SearchCampaigns::Activator\] Critical failure for Search/)
       end
     end
   end

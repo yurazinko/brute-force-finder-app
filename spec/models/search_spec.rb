@@ -58,7 +58,7 @@ RSpec.describe Search, type: :model do
       described_class.create!(
         title: "Ruby Backend",
         query_conditions: '(ruby OR "rails") (backend)',
-        status: "processing"
+        status: "pending"
       )
     end
 
@@ -85,26 +85,21 @@ RSpec.describe Search, type: :model do
       let(:target_ids) { [target_lever.id] }
 
       before do
-        another_search = described_class.create!(
-          title: "Old Search",
-          query_conditions: search.query_conditions,
-          status: "processing"
-        )
-        another_search.prompts.create!(
+        # Створюємо промпт саме для ЦЬОГО пошуку, щоб спровокувати конфлікт
+        search.prompts.create!(
           target: target_lever,
           full_query_text: "site:lever.co #{search.query_conditions}",
-          status: "success"
+          status: "failed"
         )
       end
 
-      it "does not create a duplicate prompt and updates the existing one via upsert" do
+      it "does not create a duplicate prompt and resets status to pending via upsert" do
         expect { search.activate_search!(target_ids) }
           .not_to change(Prompt, :count)
 
         expect(search.reload.status).to eq("processing")
 
-        existing_prompt = Prompt.find_by(target: target_lever)
-        expect(existing_prompt.search_id).to eq(search.id)
+        existing_prompt = search.prompts.find_by(target: target_lever)
         expect(existing_prompt.status).to eq("pending")
       end
     end
@@ -121,13 +116,13 @@ RSpec.describe Search, type: :model do
         expect { search.activate_search!(target_ids) }
           .not_to change(Prompt, :count)
 
-        expect(search.reload.status).to eq("processing")
+        expect(search.reload.status).to eq("pending")
       end
 
       it "logs the specific critical failure error message" do
         search.activate_search!(target_ids)
         expect(Rails.logger).to have_received(:error).with(
-          /\[SearchActivator\] Critical failure for Search##{search.id}/
+          /\[SearchCampaigns::Activator\] Critical failure for Search##{search.id}/
         )
       end
 

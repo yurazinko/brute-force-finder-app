@@ -13,7 +13,7 @@ class Search < ApplicationRecord
   validates :time_frame, inclusion: { in: [nil, "day", "week", "month", "year"] }, allow_nil: true
 
   def activate_search!(target_ids)
-    SearchActivator.call(self, target_ids)
+    SearchCampaigns::Activator.call(self, target_ids)
   end
 
   def calculate_counters(time_frame = nil)

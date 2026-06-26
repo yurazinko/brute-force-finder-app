@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_095216) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_26_092937) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -29,8 +29,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_095216) do
     t.string "status", default: "pending"
     t.bigint "target_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["search_id", "target_id", "full_query_text"], name: "index_prompts_on_search_target_and_query", unique: true
     t.index ["search_id"], name: "index_prompts_on_search_id"
-    t.index ["target_id", "full_query_text"], name: "index_prompts_on_target_id_and_full_query_text", unique: true
     t.index ["target_id"], name: "index_prompts_on_target_id"
   end
 
