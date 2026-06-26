@@ -47,7 +47,7 @@ class PromptProcessorJob
   end
 
   def broadcast_live_status(search, message)
-    Turbo::StreamsChannel.broadcast_render_later_to(
+    Turbo::StreamsChannel.broadcast_render_to(
       search, :results,
       template: "searches/update_status",
       assigns: { message: message }

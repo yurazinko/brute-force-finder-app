@@ -31,7 +31,7 @@ module SearchCampaigns
       )
 
       if message
-        Turbo::StreamsChannel.broadcast_render_later_to(
+        Turbo::StreamsChannel.broadcast_render_to(
           @search, :results,
           template: "searches/update_status",
           assigns: { message: message }
