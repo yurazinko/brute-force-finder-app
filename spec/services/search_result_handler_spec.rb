@@ -298,6 +298,7 @@ RSpec.describe SearchResultHandler, type: :service do
     context "when action cable broadcasting fails" do
       before do
         allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to).and_raise(StandardError.new("Redis connection dropped"))
+        allow(Turbo::StreamsChannel).to receive(:broadcast_update_to).and_raise(StandardError.new("Redis connection dropped"))
         allow(Rails.logger).to receive(:error)
       end
 
@@ -307,18 +308,19 @@ RSpec.describe SearchResultHandler, type: :service do
         end.to change(Result, :count).by(2)
 
         expect(prompt.reload.status).to eq("success")
-        expect(Rails.logger).to have_received(:error).with(/ActionCable broadcast failed: Redis connection dropped/)
+        expect(Rails.logger).to have_received(:error).with(/Frontend broadcast failed: Redis connection dropped/)
       end
     end
 
     context "when broadcasting updates" do
-      it "calls calculate_counters on the search model to get fresh metrics" do
-        allow(search).to receive(:calculate_counters).and_call_original
-        allow(prompt).to receive(:search).and_return(search)
+      it "fetches aggregated counters via single optimized group query" do
+        allow(Turbo::StreamsChannel).to receive(:broadcast_update_to)
 
         described_class.call(prompt, raw_results)
 
-        expect(search).to have_received(:calculate_counters).once
+        expect(Turbo::StreamsChannel).to have_received(:broadcast_update_to).with(
+          search, :results, target: "counter_unread", html: anything
+        )
       end
     end
   end

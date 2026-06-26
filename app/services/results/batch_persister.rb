@@ -12,17 +12,24 @@ module Results
     def call
       return { raw_count: 0, new_count: 0 } if @result_records.blank?
 
-      exact_count_before = current_results_count
-
       records = prepare_records(@result_records)
       records = deduplicate_by_hash(records)
-      records = enrich_with_global_acknowledgement(records)
 
-      execute_upsert(records)
+      existing_db_records = fetch_existing_records(records)
+
+      existing_in_current_search = existing_db_records.select do |r|
+        r["search_id"] == @search_id
+      end.pluck("url_hash").to_set
+      new_count = records.count { |r| existing_in_current_search.exclude?(r["url_hash"]) }
+
+      global_ack_set = existing_db_records.select { |r| r["acknowledged"] == true }.to_set { |r| r["url_hash"] }
+      enriched_records = records.map { |r| build_db_payload(r, global_ack_set) }
+
+      execute_upsert(enriched_records)
 
       {
         raw_count: @result_records.size,
-        new_count: current_results_count - exact_count_before
+        new_count: new_count
       }
     end
 
@@ -36,23 +43,18 @@ module Results
       records.group_by { |r| r["url_hash"] }.values.map(&:first)
     end
 
-    def enrich_with_global_acknowledgement(records)
-      global_ack_set = fetch_global_acknowledged_hashes(records)
-
-      records.map do |record|
-        build_db_payload(record, global_ack_set)
-      end
-    end
-
-    def fetch_global_acknowledged_hashes(records)
+    def fetch_existing_records(records)
       incoming_hashes = records.pluck("url_hash")
       incoming_hashes.compact!
       incoming_hashes.uniq!
 
       Result.unscoped
-            .where(url_hash: incoming_hashes, acknowledged: true)
-            .pluck(:url_hash)
-            .to_set
+            .where(url_hash: incoming_hashes)
+            .pluck(:search_id, :url_hash, :acknowledged)
+            .map do |search_id, url_hash, ack|
+        { "search_id" => search_id, "url_hash" => url_hash,
+          "acknowledged" => ack }
+      end
     end
 
     def build_db_payload(record, global_ack_set)
@@ -73,10 +75,6 @@ module Results
       ActiveRecord::Base.transaction(requires_new: true) do
         Result.upsert_all(enriched_records, unique_by: %i[search_id url_hash])
       end
-    end
-
-    def current_results_count
-      Result.where(search_id: @search_id).count
     end
   end
 end

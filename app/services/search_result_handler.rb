@@ -13,8 +13,6 @@ class SearchResultHandler
     raise_failure("No results found or client error") if @raw_results.blank?
 
     counts = process_records
-    update_content
-
     counts
   rescue StandardError => e
     handle_error(e)
@@ -29,20 +27,34 @@ class SearchResultHandler
     update_lifecycle_status
 
     result_records = Results::DataTransformer.process(@search.id, @raw_results)
-
     metrics = Results::BatchPersister.call(@search.id, result_records)
 
     @search.results.reset
     @prompt.update!(status: "success")
 
+    begin
+      db_counts = fetch_aggregated_counters
+      @total_cached = db_counts.values.sum
+
+      broadcast_counters(db_counts)
+      update_content
+    rescue StandardError => e
+      Rails.logger.error("[Search::ResultHandler] Frontend broadcast failed: #{e.message}")
+      @total_cached ||= Result.where(search_id: @search.id).count
+    end
+
     {
       raw_count: metrics[:raw_count],
       new_count: metrics[:new_count],
-      total: current_results_count
+      total: @total_cached
     }
   end
 
-  def current_results_count = Result.where(search_id: @search.id).count
+  def fetch_aggregated_counters
+    Result.where(search_id: @search.id)
+          .group(:status)
+          .count
+  end
 
   def finalize_search_lifecycle
     return if @prompt.reload.status == "failed"
@@ -50,20 +62,20 @@ class SearchResultHandler
     check_lifecycle_status
     @search.reload
     update_lifecycle_status
-    update_counters
-  rescue StandardError => e
-    Rails.logger.error("[Search::ResultHandler] Lifecycle completion failed: #{e.message}")
   end
 
-  def update_counters
-    counts = @search.calculate_counters
-    total_db_count = current_results_count
+  def broadcast_counters(db_counts)
+    mapped_counts = {
+      all_clean: db_counts.except("garbage").values.sum,
+      unread: db_counts["unread"] || 0,
+      interesting: db_counts["interesting"] || 0,
+      watched: db_counts["watched"] || 0,
+      garbage: db_counts["garbage"] || 0
+    }
 
-    counter_targets(counts, total_db_count).each do |target_id, value|
+    counter_targets(mapped_counts, @total_cached).each do |target_id, value|
       Turbo::StreamsChannel.broadcast_update_to(@search, :results, target: target_id, html: (value || 0).to_s)
     end
-  rescue StandardError => e
-    Rails.logger.error("[Search::ResultHandler] Counters broadcast failed: #{e.message}")
   end
 
   def counter_targets(counts, total_count)
@@ -88,8 +100,6 @@ class SearchResultHandler
       partial: "searches/results_pool_content",
       locals: { results: latest_results }
     )
-  rescue StandardError => e
-    Rails.logger.error("[Search::ResultHandler] ActionCable broadcast failed: #{e.message}")
   end
 
   def check_lifecycle_status
