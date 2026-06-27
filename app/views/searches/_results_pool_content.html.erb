@@ -7,14 +7,14 @@
 
     <div id="results_pool_pagination_container" class="mt-4">
       <% if @pagy && @pagy.next %>
-        <%= turbo_frame_tag "results_pool_pagination" do %>
+        <%= turbo_frame_tag "results_pool_pagination", data: { controller: "infinite-scroll" } do %>
           <%= link_to "Load more updates...",
                       search_path(@search, status: params[:status], d: params[:d], page: @pagy.next),
                       data: { infinite_scroll_target: "link" },
                       class: "invisible block text-center py-2" %>
         <% end %>
       <% else %>
-        <%= turbo_frame_tag "results_pool_pagination" do %>
+        <%= turbo_frame_tag "results_pool_pagination", data: { controller: "infinite-scroll" } do %>
           <p class="text-center text-xs text-breeze-muted py-4">🎉 You've reached the end of the pool.</p>
         <% end %>
       <% end %>
