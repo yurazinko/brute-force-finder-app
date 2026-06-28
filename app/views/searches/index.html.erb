@@ -45,8 +45,8 @@
                   <%= link_to search.title, search_path(search), class: "text-base font-semibold text-breeze-text hover:text-breeze-accent transition-colors block truncate max-w-[75%] md:max-w-full", title: search.title %>
 
                   <div class="flex items-center gap-1 md:hidden">
-                    <%= link_to edit_search_path(search), class: "text-breeze-muted hover:text-breeze-accent p-1 rounded transition-colors", title: "Edit Campaign" do %>
-                      <span>✏️</span>
+                    <%= link_to edit_search_path(search), class: "text-breeze-muted hover:text-breeze-accent p-1 rounded transition-colors", title: "Configure Campaign" do %>
+                      <span>⚙️</span>
                     <% end %>
                     <%= button_to search_path(search),
                                   method: :delete,
@@ -131,8 +131,8 @@
 
                   <%= link_to edit_search_path(search),
                               class: "text-breeze-muted hover:text-breeze-accent p-1.5 rounded transition-colors bg-breeze-bg hover:bg-blue-50 border border-breeze-border hover:border-blue-100 shrink-0",
-                              title: "Edit Campaign Settings" do %>
-                    <span>✏️</span>
+                              title: "Configure Campaign" do %>
+                    <span>⚙️</span>
                   <% end %>
 
                   <%= button_to search_path(search),
