@@ -6,23 +6,18 @@ class SearchesController < ApplicationController
 
   def index
     @searches = Search.order(created_at: :desc)
-    @search_counts = Result.where(search_id: @searches.select(:id)).group(:search_id, :status).count
+    @raw_counts = Result.where(search_id: @searches.pluck(:id)).group(:search_id, :status, :acknowledged).count
   end
 
   def show
     @prompts = @search.prompts.includes(:target)
-    @counts = @search.calculate_counters(params[:d])
     @current_status = params[:status]
 
     base_results = @search.results.by_time_frame(params[:d])
     filtered_results = filter_results_by_status(base_results)
 
+    @counts = params[:page].blank? || params[:page].to_i == 1 ? @search.calculate_counters(base_results) : {}
     @pagy, @results = pagy(filtered_results.order(created_at: :desc))
-
-    respond_to do |format|
-      format.html
-      format.turbo_stream
-    end
   end
 
   def new = @search = Search.new
@@ -71,16 +66,20 @@ class SearchesController < ApplicationController
 
   def set_search = @search = Search.find(params.expect(:id))
 
-  def search_params = params.expect(search: [:title, :query_conditions, :time_frame, { target_ids: [] }])
+  def search_params
+    params.expect(search: [:title, :query_conditions, :time_frame, :show_acknowledged, { target_ids: [] }])
+  end
 
   def set_categories_for_form = @categories = Category.includes(:targets).all
 
   def filter_results_by_status(scope)
     case @current_status
-    when "unread", "watched", "garbage", "interesting"
+    when "garbage", "interesting", "watched"
       scope.by_status(@current_status)
     else
-      scope.without_garbage.where.not(status: "interesting")
+      acknowlegment_filter = @search.show_acknowledged? ? [true, false] : false
+
+      scope.where(status: "unread", acknowledged: acknowlegment_filter)
     end
   end
 

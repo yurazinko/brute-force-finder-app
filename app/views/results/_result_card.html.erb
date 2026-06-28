@@ -1,7 +1,7 @@
 <%
   is_watched = result.status == 'watched' || result.acknowledged?
-  is_not_on_watched_tab = params[:status] != 'watched'
-  should_dim = is_watched && is_not_on_watched_tab
+  is_on_on_inbox_tab = [nil, "unread"].include?(params[:status])
+  should_dim = is_watched && is_on_on_inbox_tab
 %>
 
 <div id="<%= dom_id(result) %>"
@@ -48,8 +48,8 @@
         <% end %>
       <% end %>
 
-      <% if %w[interesting garbage].include?(result.status) %>
-        <%= button_to result_path(result, status: :unread, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
+      <% if %w[interesting watched garbage].include?(result.status) %>
+        <%= button_to result_path(result, status: :unread, acknowledged: false, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
           <span>↩️ Move to Inbox</span>
         <% end %>
       <% end %>

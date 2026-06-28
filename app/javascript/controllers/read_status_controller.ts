@@ -18,6 +18,10 @@ export default class extends Controller {
       return
     }
 
+    this.optimisticUpdateCounters()
+
+    link.setAttribute("data-read-status", "watched")
+
     const card = link.closest(".flex.flex-col.gap-2") as HTMLElement
     if (card) {
       card.classList.add("opacity-60")
@@ -41,10 +45,23 @@ export default class extends Controller {
       document.body.appendChild(holder)
       holder.remove()
     })
-    .catch(error => {
-      console.error("Error marking as read:", error)
-      // if (card) card.classList.remove("opacity-60")
-    })
+  }
+
+  private optimisticUpdateCounters(): void {
+    const unreadEl = document.getElementById("counter_unread")
+    const watchedEl = document.getElementById("counter_watched")
+
+    const step = 1
+
+    if (unreadEl) {
+      const currentUnread = parseInt(unreadEl.textContent || "0", 10)
+      unreadEl.textContent = Math.max(0, currentUnread - step).toString()
+    }
+
+    if (watchedEl) {
+      const currentWatched = parseInt(watchedEl.textContent || "0", 10)
+      watchedEl.textContent = Math.max(0, currentWatched + step).toString()
+    }
   }
 
   private getCsrfToken(): string {
@@ -52,5 +69,3 @@ export default class extends Controller {
     return meta ? meta.getAttribute("content") || "" : ""
   }
 }
-
-

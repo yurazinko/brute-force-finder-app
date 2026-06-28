@@ -40,6 +40,16 @@
                        { class: "w-full rounded-md border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent text-sm py-2 bg-breeze-view" } %>
         </div>
       </div>
+
+      <div class="mt-4 pt-4 border-t border-breeze-border/40 flex items-start">
+        <div class="flex items-center h-5">
+          <%= f.check_box :show_acknowledged, class: "rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer h-4 w-4" %>
+        </div>
+        <div class="ml-3 text-sm">
+          <%= f.label :show_acknowledged, "Show globally processed results", class: "font-semibold text-breeze-text cursor-pointer" %>
+          <p class="text-xs text-breeze-muted">If unchecked, leads already marked as Garbage, Interesting, or Watched in other campaigns will be automatically hidden from this inbox.</p>
+        </div>
+      </div>
     </div>
 
     <div class="border-t border-breeze-border pt-6">

@@ -16,16 +16,46 @@ class Search < ApplicationRecord
     SearchCampaigns::Activator.call(self, target_ids)
   end
 
-  def calculate_counters(time_frame = nil)
-    scoped_results = results.by_time_frame(time_frame)
-    raw_counts = scoped_results.group(:status).size
+  def calculate_counters(scoped_results = results)
+    raw_counts = scoped_results.group(:status, :acknowledged).count
+    show_ack   = show_acknowledged?
+
+    counters = { unread: 0, interesting: 0, watched: 0, garbage: 0 }
+
+    raw_counts.each do |(status, acknowledged), count|
+      case status
+      when "unread"
+        counters[:unread] += count if !acknowledged || show_ack
+      when "interesting", "watched", "garbage"
+        counters[status.to_sym] += count
+      end
+    end
+
+    counters[:all_clean] = counters[:unread] + counters[:interesting] + counters[:watched]
+    counters
+  end
+
+  def counts_for_index(raw_counts)
+    show_ack  = show_acknowledged?
+    search_id = id.to_i
+
+    unread_unack    = raw_counts[[search_id, "unread", false]] || 0
+    unread_ack      = show_ack ? (raw_counts[[search_id, "unread", true]] || 0) : 0
+    unread          = unread_unack + unread_ack
+
+    interesting     = (raw_counts[[search_id, "interesting",
+                                   false]] || 0) + (raw_counts[[search_id, "interesting", true]] || 0)
+    garbage         = (raw_counts[[search_id, "garbage",
+                                   false]] || 0) + (raw_counts[[search_id, "garbage", true]] || 0)
+    watched         = (raw_counts[[search_id, "watched",
+                                   false]] || 0) + (raw_counts[[search_id, "watched", true]] || 0)
 
     {
-      all_clean: scoped_results.where.not(status: :garbage).size,
-      unread: raw_counts["unread"] || 0,
-      interesting: raw_counts["interesting"] || 0,
-      watched: raw_counts["watched"] || 0,
-      garbage: raw_counts["garbage"] || 0
+      unread: unread,
+      interesting: interesting,
+      watched: watched,
+      garbage: garbage,
+      all_clean: unread + interesting + watched
     }
   end
 end

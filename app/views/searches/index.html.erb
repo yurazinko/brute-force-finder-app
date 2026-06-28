@@ -31,11 +31,12 @@
       <tbody class="divide-y divide-gray-100 bg-breeze-view block md:table-row-group" id="searches_list">
         <% if @searches.any? %>
           <% @searches.each do |search| %>
+            <% counts = search.counts_for_index(@raw_counts) %>
             <% last_action = search.updated_at %>
-            <% unread_count      = @search_counts[[search.id, "unread"]] || 0 %>
-            <% interesting_count = @search_counts[[search.id, "interesting"]] || 0 %>
-            <% watched_count     = @search_counts[[search.id, "watched"]] || 0 %>
-            <% garbage_count     = @search_counts[[search.id, "garbage"]] || 0 %>
+            <% unread_count      = counts[ :unread] || 0 %>
+            <% interesting_count = counts[ :interesting] || 0 %>
+            <% watched_count     = counts[ :watched] || 0 %>
+            <% garbage_count     = counts[ :garbage] || 0 %>
 
             <tr id="<%= dom_id(search) %>" class="hover:bg-breeze-bg/40 transition-colors group block md:table-row p-4 md:p-0 relative border-b border-breeze-border last:border-b-0 md:border-b-0">
 
