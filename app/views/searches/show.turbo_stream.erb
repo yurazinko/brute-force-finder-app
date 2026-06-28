@@ -7,11 +7,6 @@
 </turbo-stream>
 
 <turbo-stream action="replace" target="results_count">
-  <template>
-    <span class="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-full shrink-0" id="results_count">
-      Showing: <%= (@pagy.page - 1) * @pagy.limit + @results.count %> / <%= @pagy.count %>
-    </span>
-  </template>
 </turbo-stream>
 
 <turbo-stream action="replace" target="results_pool_pagination">

@@ -88,9 +88,6 @@
       <div>
         <div class="flex justify-between items-center border-b border-breeze-border pb-4 mb-4">
           <h2 class="text-lg sm:text-xl font-bold text-breeze-text">Scraped Results Pool</h2>
-          <span class="text-[11px] sm:text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 px-2.5 sm:px-3 py-1 rounded-full shrink-0" id="results_count">
-            Showing: <%= (@pagy.page - 1) * @pagy.limit + @results.count %> / <%= @pagy.count %>
-          </span>
         </div>
 
         <div class="flex items-center gap-4 text-xs text-breeze-muted mb-6 bg-breeze-bg p-2.5 rounded-lg border border-breeze-border overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">

@@ -5,7 +5,8 @@
 
   results_count = @search.results.where(status: @result.status_before_last_save).count
 
-  results_count_after_removal = (should_remove ? results_count - 1 : results_count)
+  results_count_after_removal = (should_remove ? results_count - 1 : results_count).clamp(0, results_count)
+
 %>
 
 <% if should_remove %>
@@ -19,4 +20,4 @@
 <%= turbo_stream.update "counter_interesting", html: (@search.calculate_counters[:interesting] || 0).to_s %>
 <%= turbo_stream.update "counter_watched", html: (@search.calculate_counters[:watched] || 0).to_s %>
 <%= turbo_stream.update "counter_garbage", html: (@search.calculate_counters[:garbage] || 0).to_s %>
-<%= turbo_stream.update "results_count", html: "Showing: #{results_count_after_removal} / #{results_count}" %>
+<%= # turbo_stream.update "results_count", html: "Showing: #{results_count_after_removal} / #{results_count}" %>
