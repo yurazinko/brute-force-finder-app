@@ -39,7 +39,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
         expect(search.reload.status).to eq("processing")
       end
 
-      it "returns true upon successful execution" do
+      it "returns true upon successful execution" do # FIXME: Check the actual value
         expect(described_class.call(search, target_ids)).to be_truthy
       end
     end

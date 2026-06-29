@@ -76,7 +76,7 @@ RSpec.describe Search, type: :model do
         expect(lever_prompt.status).to eq("pending")
       end
 
-      it "returns true upon successful execution" do
+      it "returns true upon successful execution" do # FIXME: Check the actual value
         expect(search.activate_search!(target_ids)).to be_truthy
       end
     end
