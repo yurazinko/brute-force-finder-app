@@ -1,148 +1,112 @@
-<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 select-none">
 
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-4 border-b border-b-gray-100">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-4 border-b border-breeze-border/60">
     <div>
       <h1 class="text-2xl font-bold text-breeze-text tracking-tight">Scraping Campaigns</h1>
       <p class="text-sm text-breeze-muted mt-1">Configure and monitor your automated search processes and target constraints.</p>
     </div>
     <div class="flex flex-row items-center gap-2 sm:gap-3 shrink-0 w-full sm:w-auto">
-      <%= link_to categories_path, class: "flex-1 sm:flex-none text-center bg-breeze-view hover:bg-breeze-bg text-breeze-text font-medium py-2.5 sm:py-2 px-3 sm:px-4 border border-breeze-border rounded-lg shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-1.5" do %>
+      <%= link_to categories_path, class: "flex-1 sm:flex-none text-center bg-breeze-view hover:bg-breeze-bg text-breeze-text font-medium py-2 sm:py-1.5 px-4 border border-breeze-border rounded-lg shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-1.5" do %>
         <span>Categories & Targets</span>
       <% end %>
-      <%= link_to new_search_path, class: "flex-1 sm:flex-none text-center bg-breeze-accent hover:opacity-90 text-white font-medium py-2.5 sm:py-2 px-3 sm:px-4 rounded-lg shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-1.5" do %>
+      <%= link_to new_search_path, class: "flex-1 sm:flex-none text-center bg-breeze-accent hover:opacity-90 text-white font-medium py-2 sm:py-1.5 px-4 rounded-lg shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-1.5" do %>
         <span>New Search Criteria</span>
       <% end %>
     </div>
   </div>
 
   <div class="bg-breeze-view border border-breeze-border rounded-xl shadow-sm overflow-hidden">
-
-    <table class="min-w-full table-fixed divide-y divide-gray-200 block md:table">
-      <thead class="bg-breeze-bg/70 text-xs font-semibold text-breeze-muted uppercase tracking-wider text-left hidden md:table-header-group">
+    <table class="min-w-full table-fixed divide-y divide-breeze-border/60 block md:table">
+      <thead class="bg-breeze-bg/70 text-[11px] font-bold text-breeze-muted uppercase tracking-wider text-left hidden md:table-header-group">
         <tr>
-          <th class="w-1/3 px-6 py-3.5">Campaign Info & Analytics</th>
-          <th class="w-1/4 px-6 py-3.5">Query & Scope</th>
-          <th class="w-1/6 px-6 py-3.5">Pipeline Status</th>
-          <th class="w-1/6 px-6 py-3.5">Activity</th>
+          <th class="w-4/12 px-6 py-3.5">Campaign Info & Analytics</th>
+          <th class="w-4/12 px-6 py-3.5">Query & Scope</th>
+          <th class="w-2/12 px-6 py-3.5">Pipeline Status</th>
+          <th class="w-2/12 px-6 py-3.5">Activity</th>
           <th class="w-20 px-6 py-3.5 text-right">Actions</th>
         </tr>
       </thead>
 
-      <tbody class="divide-y divide-gray-100 bg-breeze-view block md:table-row-group" id="searches_list">
+      <tbody class="divide-y divide-breeze-border/40 bg-breeze-view block md:table-row-group" id="searches_list">
         <% if @searches.any? %>
           <% @searches.each do |search| %>
             <% counts = search.counts_for_index(@raw_counts) %>
             <% last_action = search.updated_at %>
-            <% unread_count      = counts[ :unread] || 0 %>
-            <% interesting_count = counts[ :interesting] || 0 %>
-            <% watched_count     = counts[ :watched] || 0 %>
-            <% garbage_count     = counts[ :garbage] || 0 %>
 
-            <tr id="<%= dom_id(search) %>" class="hover:bg-breeze-bg/40 transition-colors group block md:table-row p-4 md:p-0 relative border-b border-breeze-border last:border-b-0 md:border-b-0">
+            <tr id="<%= dom_id(search) %>" class="hover:bg-breeze-bg/30 transition-colors group block md:table-row p-4 md:p-0 relative border-b border-breeze-border last:border-b-0 md:border-b-0">
 
-              <td class="px-0 md:px-6 py-1 md:py-3 align-top block md:table-cell">
-                <div class="mb-1.5 flex justify-between items-start gap-2">
+              <td class="px-0 md:px-6 py-1 md:py-4 align-middle block md:table-cell">
+                <div class="mb-2 flex justify-between items-start gap-2">
                   <%= link_to search.title, search_path(search), class: "text-base font-semibold text-breeze-text hover:text-breeze-accent transition-colors block truncate max-w-[75%] md:max-w-full", title: search.title %>
 
                   <div class="flex items-center gap-1 md:hidden">
-                    <%= link_to edit_search_path(search), class: "text-breeze-muted hover:text-breeze-accent p-1 rounded transition-colors", title: "Configure Campaign" do %>
-                      <span>⚙️</span>
-                    <% end %>
-                    <%= button_to search_path(search),
-                                  method: :delete,
-                                  data: { confirm: 'Are you sure you want to delete this campaign?' },
-                                  class: "text-breeze-muted hover:text-red-600 p-1 rounded transition-colors cursor-pointer",
-                                  title: "Delete Campaign" do %>
-                      <span>🗑️</span>
-                    <% end %>
+                    <%= link_to edit_search_path(search), class: "text-breeze-muted hover:text-breeze-accent p-1" do %><span>⚙️</span><% end %>
+                    <%= button_to search_path(search), method: :delete, data: { confirm: 'Are you sure?' }, class: "text-breeze-muted hover:text-red-600 p-1 cursor-pointer" do %><span>🗑️</span><% end %>
                   </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-1.5 text-[11px] mb-3 md:mb-0">
-                  <div class="inline-flex items-center gap-1 bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border text-breeze-muted" title="Inbox (Unread)">
-                    <span>⬇️</span>
-                    <span class="font-mono font-bold <%= unread_count > 0 ? 'text-emerald-600' : 'text-breeze-muted' %>"><%= unread_count %></span>
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Inbox (Unread)">
+                    <span class="text-[10px]">⬇️</span>
+                    <span class="font-mono font-bold <%= counts[:unread].to_i > 0 ? 'text-emerald-500' : 'text-breeze-muted/60' %>"><%= counts[:unread].to_i %></span>
                   </div>
-                  <div class="inline-flex items-center gap-1 bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border text-breeze-muted" title="Watched">
-                    <span>👁️</span>
-                    <span class="font-mono font-semibold <%= watched_count > 0 ? 'text-breeze-accent' : 'text-breeze-muted' %>"><%= watched_count %></span>
+                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Watched">
+                    <span class="text-[10px]">👁️</span>
+                    <span class="font-mono font-bold <%= counts[:watched].to_i > 0 ? 'text-breeze-accent' : 'text-breeze-muted/60' %>"><%= counts[:watched].to_i %></span>
                   </div>
-                  <div class="inline-flex items-center gap-1 bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border text-breeze-muted" title="Starred">
-                    <span>⭐</span>
-                    <span class="font-mono font-bold <%= interesting_count > 0 ? 'text-amber-500' : 'text-breeze-muted' %>"><%= interesting_count %></span>
+                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Starred">
+                    <span class="text-[10px]">⭐</span>
+                    <span class="font-mono font-bold <%= counts[:interesting].to_i > 0 ? 'text-amber-500' : 'text-breeze-muted/60' %>"><%= counts[:interesting].to_i %></span>
                   </div>
-                  <div class="inline-flex items-center gap-1 bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border text-breeze-muted" title="Garbage">
-                    <span>🗑️</span>
-                    <span class="font-mono text-breeze-muted <%= 'text-red-400 font-medium' if garbage_count > 0 %>"><%= garbage_count %></span>
+                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Garbage">
+                    <span class="text-[10px]">🗑️</span>
+                    <span class="font-mono font-bold <%= counts[:garbage].to_i > 0 ? 'text-red-400/80' : 'text-breeze-muted/40' %>"><%= counts[:garbage].to_i %></span>
                   </div>
                 </div>
               </td>
 
-              <td class="px-0 md:px-6 py-1 md:py-3 align-top block md:table-cell">
-                <div class="mb-2">
-                  <span class="font-mono text-[11px] text-gray-300 bg-breeze-bg px-1.5 py-0.5 rounded border border-breeze-border/60 block whitespace-normal break-all" title="<%= search.query_conditions %>">
+              <td class="px-0 md:px-6 py-1 md:py-4 align-middle block md:table-cell">
+                <div class="mb-2 max-w-full md:max-w-xs lg:max-w-sm">
+                  <code class="font-mono text-[11px] text-gray-400 bg-breeze-bg/80 px-2 py-1 rounded border border-breeze-border block whitespace-normal break-words leading-relaxed">
                     <%= search.query_conditions %>
+                  </code>
+                </div>
+
+                <div class="flex items-center gap-1.5 text-xs">
+                  <span class="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-breeze-muted bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border">
+                    ⏱️ <%= search.time_frame.present? ? "Past #{search.time_frame}" : "Anytime" %>
                   </span>
                 </div>
-
-                <div class="flex flex-wrap items-center gap-2.5 text-xs mb-3 md:mb-0">
-                  <div class="shrink-0">
-                    <% case search.time_frame %>
-                    <% when 'day' %>
-                      <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Past 24h</span>
-                    <% when 'week' %>
-                      <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">Past Week</span>
-                    <% when 'month' %>
-                      <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">Past Month</span>
-                    <% when 'year' %>
-                      <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">Past Year</span>
-                    <% else %>
-                      <span class="inline-flex items-center text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded border border-slate-200/60">Anytime</span>
-                    <% end %>
-                  </div>
-
-                  <span class="text-gray-300 select-none text-[10px] hidden sm:inline">&bull;</span>
-
-                </div>
               </td>
 
-              <td class="px-0 md:px-6 py-1 md:py-3 align-top block md:table-cell whitespace-nowrap md:pt-3.5 mb-3 md:mb-0">
+              <td class="px-0 md:px-6 py-1 md:py-4 align-middle block md:table-cell whitespace-nowrap">
                 <div class="flex items-center gap-2 md:inline-block">
                   <span class="text-xs text-breeze-muted md:hidden font-medium">Status:</span>
                   <%= render "searches/status_badge", search: search %>
                 </div>
               </td>
 
-              <td class="px-0 md:px-6 py-1 md:py-3 align-top text-xs text-breeze-muted block md:table-cell space-y-1">
+              <td class="px-0 md:px-6 py-1 md:py-4 align-middle text-[11px] text-breeze-muted block md:table-cell space-y-1.5 font-medium whitespace-nowrap">
                 <div class="flex items-center gap-1">
-                  <span class="text-breeze-muted">Created:</span>
-                  <span class="font-medium text-breeze-text"><%= search.created_at.strftime("%Y-%m-%d") %></span>
+                  <span class="text-breeze-muted/60 w-20 shrink-0">📅 Created:</span>
+                  <span class="text-breeze-text font-mono"><%= search.created_at.strftime("%Y-%m-%d") %></span>
                 </div>
                 <div class="flex items-center gap-1">
-                  <span class="text-breeze-muted">Last action:</span>
-                  <span class="font-medium <%= last_action ? 'text-breeze-text' : 'text-breeze-muted italic' %>">
-                    <%= last_action ? "#{time_ago_in_words(last_action).gsub('about ', '')} ago" : "Never run" %>
+                  <span class="text-breeze-muted/60 w-20 shrink-0">🔄 Updated:</span>
+                  <span class="text-breeze-text">
+                    <%= last_action ? "#{time_ago_in_words(last_action).gsub('about ', '')} ago" : "Never" %>
                   </span>
                 </div>
               </td>
 
-              <td class="px-6 py-3 align-top hidden md:table-cell">
-                <div class="flex items-center justify-end gap-1.5 w-full">
-
-                  <%= link_to edit_search_path(search),
-                              class: "text-breeze-muted hover:text-breeze-accent p-1.5 rounded transition-colors bg-breeze-bg hover:bg-blue-50 border border-breeze-border hover:border-blue-100 shrink-0",
-                              title: "Configure Campaign" do %>
+              <td class="px-0 md:px-6 py-1 md:py-4 align-middle hidden md:table-cell text-right">
+                <div class="flex items-center justify-end gap-1 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+                  <%= link_to edit_search_path(search), class: "text-breeze-muted hover:text-breeze-accent p-1.5 rounded transition-colors bg-breeze-bg hover:bg-breeze-border/40 border border-breeze-border shrink-0" do %>
                     <span>⚙️</span>
                   <% end %>
-
-                  <%= button_to search_path(search),
-                                method: :delete,
-                                data: { confirm: 'Are you sure you want to delete this campaign?' },
-                                class: "text-breeze-muted hover:text-red-600 p-1.5 rounded transition-colors cursor-pointer bg-breeze-bg hover:bg-red-50 border border-breeze-border hover:border-red-100 shrink-0",
-                                title: "Delete Campaign" do %>
+                  <%= button_to search_path(search), method: :delete, data: { confirm: 'Are you sure you want to delete this campaign?' }, class: "text-breeze-muted hover:text-red-500 p-1.5 rounded transition-colors cursor-pointer bg-breeze-bg hover:bg-breeze-border/40 border border-breeze-border shrink-0" do %>
                     <span>🗑️</span>
                   <% end %>
-
                 </div>
               </td>
 
@@ -151,7 +115,6 @@
         <% else %>
           <tr class="block md:table-row">
             <td colspan="5" class="px-6 py-16 text-center text-breeze-muted text-sm block md:table-cell">
-              <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"></path></svg>
               No scraping campaigns configured yet.
               <%= link_to 'Create your first criteria', new_search_path, class: "text-breeze-accent font-semibold hover:underline ml-1" %>
             </td>
