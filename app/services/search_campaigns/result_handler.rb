@@ -25,8 +25,8 @@ module SearchCampaigns
       @coordinator.fail!(e.message)
       { error: e.message, raw_count: 0, new_count: 0 }
     ensure
-      SearchCampaigns::LifecycleNotifier.broadcast_status(@search)
       @coordinator.evaluate_completion!
+      SearchCampaigns::LifecycleNotifier.broadcast_status(@search)
     end
 
     private
