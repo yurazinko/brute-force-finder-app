@@ -85,7 +85,6 @@ RSpec.describe Search, type: :model do
       let(:target_ids) { [target_lever.id] }
 
       before do
-        # Створюємо промпт саме для ЦЬОГО пошуку, щоб спровокувати конфлікт
         search.prompts.create!(
           target: target_lever,
           full_query_text: "site:lever.co #{search.query_conditions}",

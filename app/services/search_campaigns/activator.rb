@@ -13,10 +13,13 @@ module SearchCampaigns
     def call
       return false if @target_ids.blank? || targets_data.blank?
 
-      inserted_ids = create_prompts
-      perform_workers(inserted_ids)
+      ApplicationRecord.transaction do
+        @search.update!(status: "processing")
 
-      @search.update!(status: "processing")
+        inserted_ids = create_prompts
+        perform_workers(inserted_ids)
+      end
+
       true
     rescue StandardError => e
       Rails.logger.error("[SearchCampaigns::Activator] Critical failure for Search##{@search.id}: #{e.message}")
@@ -29,9 +32,10 @@ module SearchCampaigns
       Prompt.upsert_all(
         query_records,
         unique_by: :index_prompts_on_search_target_and_query,
-        update_only: %i[status],
-        returning: %i[id]
-      ).pluck("id")
+        update_only: %i[status]
+      )
+
+      @search.prompts.where(target_id: @target_ids).pluck(:id)
     end
 
     def perform_workers(prompt_ids)

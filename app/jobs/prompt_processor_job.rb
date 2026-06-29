@@ -6,11 +6,12 @@ class PromptProcessorJob
   sidekiq_options queue: :scraping, retry: 3
 
   def perform(prompt_id)
-    prompt = Prompt.find_by(id: prompt_id)
-    return unless prompt&.status == "pending"
+    updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")
 
+    return if updated_count.zero?
+
+    prompt = Prompt.find(prompt_id)
     search = prompt.search
-    prompt.update!(status: "active")
     domain = extract_domain(prompt.full_query_text)
 
     broadcast_live_status(search, "[#{domain}] Requesting data from SearXNG via Tor...")
@@ -18,6 +19,9 @@ class PromptProcessorJob
 
     handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
     broadcast_handler_result(search, domain, handler_result)
+  rescue StandardError => e
+    Prompt.where(id: prompt_id).update_all(status: "pending")
+    raise e
   end
 
   private
