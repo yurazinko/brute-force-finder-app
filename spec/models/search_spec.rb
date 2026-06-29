@@ -11,20 +11,40 @@ RSpec.describe Search, type: :model do
 
     it "is invalid without a title" do
       search = described_class.new(title: nil)
-      search.valid?
+      expect(search).not_to be_valid
       expect(search.errors[:title]).to include("can't be blank")
     end
 
     it "is invalid without query_conditions" do
       search = described_class.new(query_conditions: nil)
-      search.valid?
+      expect(search).not_to be_valid
       expect(search.errors[:query_conditions]).to include("can't be blank")
     end
 
     it "is invalid with an incorrect status" do
       search = described_class.new(status: "invalid_status")
-      search.valid?
+      expect(search).not_to be_valid
       expect(search.errors[:status]).to include("is not included in the list")
+    end
+
+    it "is valid with allowed time frames" do
+      %w[day week month year].each do |frame|
+        search = described_class.new(title: "A", query_conditions: "B", status: "pending", time_frame: frame)
+        expect(search).to be_valid
+      end
+    end
+
+    it "is invalid with an incorrect time frame" do
+      search = described_class.new(title: "A", query_conditions: "B", status: "pending", time_frame: "century")
+      expect(search).not_to be_valid
+      expect(search.errors[:time_frame]).to include("is not included in the list")
+    end
+  end
+
+  describe "normalization" do
+    it "normalizes blank time_frame strings to nil" do
+      search = described_class.create!(title: "A", query_conditions: "B", status: "pending", time_frame: " ")
+      expect(search.time_frame).to be_nil
     end
   end
 
@@ -45,6 +65,73 @@ RSpec.describe Search, type: :model do
       association = described_class.reflect_on_association(:results)
       expect(association.macro).to eq(:has_many)
       expect(association.options[:dependent]).to eq(:destroy)
+    end
+  end
+
+  describe "counter calculations" do
+    let(:search) { described_class.create!(title: "Metrics", query_conditions: "ruby", status: "pending", show_acknowledged: false) }
+
+    before do
+      search.results.create!(title: "R1", url: "https://a.com/1", url_hash: "1", status: "unread", acknowledged: false)
+      search.results.create!(title: "R2", url: "https://a.com/2", url_hash: "2", status: "unread", acknowledged: true)
+      search.results.create!(title: "R3", url: "https://a.com/3", url_hash: "3", status: "interesting", acknowledged: false)
+      search.results.create!(title: "R4", url: "https://a.com/4", url_hash: "4", status: "watched", acknowledged: true)
+      search.results.create!(title: "R5", url: "https://a.com/5", url_hash: "5", status: "garbage", acknowledged: false)
+    end
+
+    describe "#calculate_counters" do
+      context "when show_acknowledged is false" do
+        it "calculates metrics excluding acknowledged unread links" do
+          counters = search.calculate_counters
+
+          expect(counters[:unread]).to eq(1)
+          expect(counters[:interesting]).to eq(1)
+          expect(counters[:watched]).to eq(1)
+          expect(counters[:garbage]).to eq(1)
+          expect(counters[:all_clean]).to eq(3) # unread(1) + interesting(1) + watched(1)
+        end
+      end
+
+      context "when show_acknowledged is true" do
+        it "includes acknowledged unread links into the unread counter" do
+          search.update!(show_acknowledged: true)
+          counters = search.calculate_counters
+
+          expect(counters[:unread]).to eq(2)
+          expect(counters[:all_clean]).to eq(4)
+        end
+      end
+    end
+
+    describe "#counts_for_index" do
+      let(:raw_counts) do
+        {
+          [search.id, "unread", false] => 2,
+          [search.id, "unread", true] => 3,
+          [search.id, "interesting", false] => 1,
+          [search.id, "interesting", true] => 1,
+          [search.id, "watched", false] => 4,
+          [search.id, "garbage", true] => 5
+        }
+      end
+
+      it "aggregates raw DB counts grouped by search_id, status and acknowledgment" do
+        counts = search.counts_for_index(raw_counts)
+
+        expect(counts[:unread]).to eq(2)
+        expect(counts[:interesting]).to eq(2)
+        expect(counts[:watched]).to eq(4)
+        expect(counts[:garbage]).to eq(5)
+        expect(counts[:all_clean]).to eq(8) # 2 + 2 + 4
+      end
+
+      it "includes acknowledged unread items if show_acknowledged is enabled" do
+        search.update!(show_acknowledged: true)
+        counts = search.counts_for_index(raw_counts)
+
+        expect(counts[:unread]).to eq(5) # unack(2) + ack(3)
+        expect(counts[:all_clean]).to eq(11)
+      end
     end
   end
 
@@ -76,7 +163,7 @@ RSpec.describe Search, type: :model do
         expect(lever_prompt.status).to eq("pending")
       end
 
-      it "returns true upon successful execution" do # FIXME: Check the actual value
+      it "returns true upon successful execution" do
         expect(search.activate_search!(target_ids)).to be_truthy
       end
     end

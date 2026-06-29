@@ -14,13 +14,32 @@ RSpec.describe "Categories", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Job Boards")
     end
+
+    it "returns categories sorted alphabetically by name" do
+      Category.create!(name: "Z Platforms")
+      Category.create!(name: "A Boards")
+
+      get categories_path
+
+      expect(response.body.index("A Boards")).to be < response.body.index("Job Boards")
+      expect(response.body.index("Job Boards")).to be < response.body.index("Z Platforms")
+    end
   end
 
   describe "GET /categories/:id (show)" do
-    it "returns a successful response" do
-      get category_path(category)
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Job Boards")
+    context "when the category exists" do
+      it "returns a successful response and includes the category name" do
+        get category_path(category)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Job Boards")
+      end
+    end
+
+    context "when the category does not exist" do
+      it "fails gracefully and returns a 404 not found status" do
+        get category_path(id: 999_999)
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 
@@ -45,6 +64,7 @@ RSpec.describe "Categories", type: :request do
           post categories_path, params: valid_attributes
         end.to change(Category, :count).by(1)
 
+        expect(response).to have_http_status(:found)
         expect(response).to redirect_to(categories_path)
 
         follow_redirect!
@@ -69,6 +89,7 @@ RSpec.describe "Categories", type: :request do
         patch category_path(category), params: valid_attributes
 
         expect(category.reload.name).to eq("Aggregators")
+        expect(response).to have_http_status(:found)
         expect(response).to redirect_to(categories_path)
 
         follow_redirect!
@@ -87,15 +108,34 @@ RSpec.describe "Categories", type: :request do
   end
 
   describe "DELETE /categories/:id (destroy)" do
-    it "destroys the requested category and redirects to index" do
-      expect do
-        delete category_path(category)
-      end.to change(Category, :count).by(-1)
+    context "when category has no linked targets" do
+      it "destroys the requested category and redirects to index" do
+        expect do
+          delete category_path(category)
+        end.to change(Category, :count).by(-1)
 
-      expect(response).to redirect_to(categories_path)
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(categories_path)
 
-      follow_redirect!
-      expect(response.body).to include("Category and all its linked targets were successfully deleted.")
+        follow_redirect!
+        expect(response.body).to include("Category and all its linked targets were successfully deleted.")
+      end
+    end
+
+    context "when category has linked targets (cascading destroy check)" do
+      before do
+        category.targets.create!(name: "Lever", domain: "lever.co", is_active: true)
+        category.targets.create!(name: "Greenhouse", domain: "greenhouse.io", is_active: true)
+      end
+
+      it "destroys the category along with all its dependent targets" do
+        expect do
+          delete category_path(category)
+        end.to change(Category, :count).by(-1)
+                                       .and change(Target, :count).by(-2)
+
+        expect(response).to redirect_to(categories_path)
+      end
     end
   end
 end

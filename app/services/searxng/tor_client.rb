@@ -9,9 +9,7 @@ module Searxng
     base_uri ENV.fetch("SEARXNG_URL", "http://localhost:8080")
     default_timeout 15
 
-    def self.search(query, options = {})
-      new(query, options).execute
-    end
+    def self.search(query, options = {}) = new(query, options).execute
 
     def initialize(query, options = {})
       @query = query
@@ -22,34 +20,30 @@ module Searxng
       return { success: true, data: [] } if @query.blank?
 
       response = self.class.get("/search", query_options)
-
-      return { success: false, error: "SearXNG returned HTTP #{response.code}" } if response.code != 200
-
-      parse_urls(response.body)
+      handle_response(response)
     rescue HTTParty::Error, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
-      error_msg = "Network unreachable (Tor/SearXNG dead?): #{e.message}"
-      Rails.logger.error("[Searxng::TorClient] #{error_msg}")
-      { success: false, error: error_msg }
+      log_and_return("Network unreachable (Tor/SearXNG dead?): #{e.message}")
     rescue Timeout::Error
-      error_msg = "SearXNG gateway timeout"
-      Rails.logger.error("[Searxng::TorClient] #{error_msg}")
-      { success: false, error: error_msg }
+      log_and_return("SearXNG gateway timeout")
     rescue StandardError => e
-      error_msg = "Unexpected internal client error: #{e.message}"
-      Rails.logger.error("[Searxng::TorClient] #{error_msg}")
-      { success: false, error: error_msg }
+      log_and_return("Unexpected internal client error: #{e.message}")
     end
 
     private
 
+    def handle_response(response)
+      if response.code == 200
+        parse_urls(response.body)
+      else
+        { success: false, error: "SearXNG returned HTTP #{response.code}" }
+      end
+    end
+
     def query_options
       base_params = {
-        q: @query,
-        format: "json",
-        engines: "google,duckduckgo,bing,brave,qwant,yahoo",
-        pageno: 1
+        q: @query, format: "json", pageno: 1,
+        engines: "google,duckduckgo,bing,brave,qwant,yahoo"
       }
-
       base_params[:time_range] = @time_range if @time_range.present?
 
       {
@@ -60,14 +54,22 @@ module Searxng
 
     def parse_urls(response_body)
       data = JSON.parse(response_body)
-
       return { success: false, error: "SearXNG Engine Error: #{data['error']}" } if data["error"]
 
-      results = data["results"]&.map { |hash| hash.slice("url", "title", "content") } || []
-      { success: true, data: results.uniq { |hash| hash["url"] }, failed_engines: data["unresponsive_engines"] || [] }
+      { success: true, data: extract_results(data), failed_engines: data["unresponsive_engines"] || [] }
     rescue JSON::ParserError => e
-      error_msg = "Malformed JSON response (Engine blocked or bad proxy config)"
-      Rails.logger.error("[Searxng::TorClient] #{error_msg}: #{e.message}")
+      log_and_return("Malformed JSON response (Engine blocked or bad proxy config)", e.message)
+    end
+
+    def extract_results(data)
+      raw_results = data["results"] || []
+      filtered = raw_results.map { |hash| hash.slice("url", "title", "content") }
+      filtered.uniq { |hash| hash["url"] }
+    end
+
+    def log_and_return(error_msg, details = nil)
+      full_msg = details ? "#{error_msg}: #{details}" : error_msg
+      Rails.logger.error("[Searxng::TorClient] #{full_msg}")
       { success: false, error: error_msg }
     end
   end

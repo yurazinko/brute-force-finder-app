@@ -17,7 +17,7 @@ RSpec.describe Prompt, type: :model do
 
   describe "validations" do
     let(:category) { Category.create!(name: "Tech Platforms") }
-    let(:target) { Target.create!(category: category, name: "Lever", domain: "lever-#{SecureRandom.hex(4)}.co") }
+    let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co") }
     let(:search) { Search.create!(title: "Ruby Job", query_conditions: "ruby", status: "pending") }
 
     it "is valid with valid attributes and a correct status" do
@@ -40,8 +40,57 @@ RSpec.describe Prompt, type: :model do
         status: "archived"
       )
 
-      prompt.valid?
+      expect(prompt).not_to be_valid
       expect(prompt.errors[:status]).to include("is not included in the list")
+    end
+
+    it "is invalid without full_query_text if search or target are missing" do
+      prompt = described_class.new(
+        search: nil,
+        target: nil,
+        full_query_text: nil,
+        status: "pending"
+      )
+
+      expect(prompt).not_to be_valid
+      expect(prompt.errors[:full_query_text]).to include("can't be blank")
+    end
+  end
+
+  describe "callbacks" do
+    describe "before_validation :generate_full_query_text" do
+      let(:category) { Category.create!(name: "Tech Platforms") }
+      let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co") }
+      let(:search) { Search.create!(title: "Ruby Job", query_conditions: "ruby", status: "pending") }
+
+      context "when full_query_text is blank" do
+        it "automatically generates the correct query text before running validations" do
+          prompt = described_class.new(
+            search: search,
+            target: target,
+            full_query_text: nil,
+            status: "pending"
+          )
+
+          expect(prompt).to be_valid
+          expect(prompt.full_query_text).to eq("site:lever.co ruby")
+        end
+      end
+
+      context "when full_query_text is already explicitly provided" do
+        it "does not overwrite the existing text" do
+          custom_query = "site:lever.co rails custom_filter"
+          prompt = described_class.new(
+            search: search,
+            target: target,
+            full_query_text: custom_query,
+            status: "pending"
+          )
+
+          expect(prompt).to be_valid
+          expect(prompt.full_query_text).to eq(custom_query)
+        end
+      end
     end
   end
 end

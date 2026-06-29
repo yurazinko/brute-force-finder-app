@@ -29,30 +29,30 @@ RSpec.describe "Results", type: :request do
       context "when the new status matches the current tab" do
         it "updates the status and REPLACES the card element on the screen" do
           expect do
-            patch result_path(result),
-                  params: { status: "watched", current_tab: "watched", d: "7", format: :turbo_stream }
+            patch result_path(result, format: :turbo_stream),
+                  params: { status: "watched", current_tab: "watched", d: "7" }
           end.to change { result.reload.status }.from("unread").to("watched")
 
           expect(response).to have_http_status(:ok)
 
-          expect(response.body).to include(%(turbo-stream action="replace" target="result_#{result.id}"))
-          expect(response.body).to include(%(turbo-stream action="update" target="counter_watched"))
-          expect(response.body).to include(%(turbo-stream action="update" target="results_count"))
+          assert_select "turbo-stream[action='replace'][target='result_#{result.id}']"
+          assert_select "turbo-stream[action='update'][target='counter_watched']"
+          assert_select "turbo-stream[action='update'][target='results_count']"
         end
       end
 
       context "when the new status differs from the current tab" do
         it "updates the status and REMOVES the card element from the screen" do
           expect do
-            patch result_path(result),
-                  params: { status: "garbage", current_tab: "unread", d: "1", format: :turbo_stream }
+            patch result_path(result, format: :turbo_stream),
+                  params: { status: "garbage", current_tab: "unread", d: "1" }
           end.to change { result.reload.status }.from("unread").to("garbage")
 
           expect(response).to have_http_status(:ok)
 
-          expect(response.body).to include(%(turbo-stream action="remove" target="result_#{result.id}"))
-          expect(response.body).to include(%(turbo-stream action="update" target="counter_garbage"))
-          expect(response.body).to include(%(turbo-stream action="update" target="results_count"))
+          assert_select "turbo-stream[action='remove'][target='result_#{result.id}']"
+          assert_select "turbo-stream[action='update'][target='counter_garbage']"
+          assert_select "turbo-stream[action='update'][target='results_count']"
         end
       end
     end
@@ -71,19 +71,20 @@ RSpec.describe "Results", type: :request do
       end
     end
 
-    context "when update fails or returns unless verified" do
+    context "when database validation fails" do
       before do
-        allow_any_instance_of(Result).to receive(:update).and_return(false)
-        allow_any_instance_of(Result).to receive(:update!).and_return(false)
+        result.errors.add(:status, "is completely invalid")
 
-        patch result_path(result), params: { status: "unread", current_tab: "unread" }
+        allow_any_instance_of(Result).to receive(:save!)
+          .and_raise(ActiveRecord::RecordInvalid.new(result))
       end
 
-      it "early returns without modifying database state and redirects back" do
-        expect(result.reload.status).to eq("unread")
+      it "does not modify database state and returns server error" do
+        patch result_path(result), params: { status: "invalid_status" }
 
-        expect(response).to have_http_status(:found)
-        expect(response).to redirect_to(search_path(search, status: "unread"))
+        expect(response).to have_http_status(:unprocessable_content)
+
+        expect(result.reload.status).to eq("unread")
       end
     end
   end

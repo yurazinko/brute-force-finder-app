@@ -62,6 +62,7 @@ RSpec.describe "Searches", type: :request do
 
   describe "GET /searches/new (new)" do
     it "returns a successful response" do
+      get new_category_path
       get new_search_path
       expect(response).to have_http_status(:ok)
     end
@@ -115,6 +116,58 @@ RSpec.describe "Searches", type: :request do
     end
   end
 
+  describe "PATCH /searches/:id (update)" do
+    context "with Turbo Stream format" do
+      context "with valid parameters" do
+        it "updates the search and responds with proper stream updates" do
+          patch search_path(search, format: :turbo_stream), params: { search: { title: "Updated Title" } }
+
+          expect(response).to have_http_status(:ok)
+          expect(search.reload.title).to eq("Updated Title")
+
+          assert_select "turbo-stream[action='replace'][target='search_lifecycle_status']"
+          assert_select "turbo-stream[action='prepend'][target='flash']"
+        end
+      end
+
+      context "with invalid parameters" do
+        it "does not update and prepends error alert to the flash container" do
+          patch search_path(search, format: :turbo_stream), params: { search: { title: "" } }
+
+          expect(response).to have_http_status(:ok)
+          assert_select "turbo-stream[action='prepend'][target='flash']"
+          expect(search.reload.title).not_to eq("")
+        end
+      end
+    end
+
+    context "with HTML format" do
+      context "when updating from the search show page" do
+        it "updates and redirects to the search show page" do
+          patch search_path(search), params: { search: { title: "HTML Update" } }
+          expect(response).to redirect_to(search_path(search))
+        end
+      end
+
+      context "when updating from the index page (using referer)" do
+        it "updates and redirects back to the index page" do
+          patch search_path(search),
+                params: { search: { title: "Index Update" } },
+                headers: { "HTTP_REFERER" => searches_url }
+
+          expect(response).to redirect_to(searches_path)
+        end
+      end
+
+      context "with invalid attributes" do
+        it "returns unprocessable content and renders edit form" do
+          patch search_path(search), params: { search: { title: "" } }
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+      end
+    end
+  end
+
   describe "POST /searches/:id/activate (activate)" do
     context "with Turbo Stream format (Asynchronous Pipeline)" do
       context "when target_ids are present" do
@@ -122,14 +175,12 @@ RSpec.describe "Searches", type: :request do
           allow_any_instance_of(Search).to receive(:activate_search!).and_return(true)
         end
 
-        it "returns a turbo stream replacing the pipeline status badge" do
-          post activate_search_path(search),
-               params: { target_ids: [target1.id] },
-               as: :turbo_stream
+        it "returns a turbo stream updating the pipeline status badge" do
+          post activate_search_path(search, format: :turbo_stream),
+               params: { target_ids: [target1.id] }
 
           expect(response).to have_http_status(:ok)
-          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
-          expect(response.body).to include(%(turbo-stream action="update" target="search_lifecycle_status"))
+          assert_select "turbo-stream[action='update'][target='search_lifecycle_status']"
         end
       end
     end

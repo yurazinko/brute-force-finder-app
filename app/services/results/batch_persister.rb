@@ -12,28 +12,22 @@ module Results
     def call
       return { raw_count: 0, new_count: 0 } if @result_records.blank?
 
-      records = prepare_records(@result_records)
-      records = deduplicate_by_hash(records)
-
+      records = process_incoming_records
       existing_db_records = fetch_existing_records(records)
 
-      existing_in_current_search = existing_db_records.select do |r|
-        r["search_id"] == @search_id
-      end.pluck("url_hash").to_set
-      new_count = records.count { |r| existing_in_current_search.exclude?(r["url_hash"]) }
+      new_count = calculate_new_records(records, existing_db_records)
 
-      global_ack_set = existing_db_records.select { |r| r["acknowledged"] == true }.to_set { |r| r["url_hash"] }
-      enriched_records = records.map { |r| build_db_payload(r, global_ack_set) }
+      persist_records!(records, existing_db_records)
 
-      execute_upsert(enriched_records)
-
-      {
-        raw_count: @result_records.size,
-        new_count: new_count
-      }
+      { raw_count: @result_records.size, new_count: new_count }
     end
 
     private
+
+    def process_incoming_records
+      records = prepare_records(@result_records)
+      deduplicate_by_hash(records)
+    end
 
     def prepare_records(records)
       records.map { |r| r.transform_keys(&:to_s) }
@@ -51,13 +45,26 @@ module Results
       Result.unscoped
             .where(url_hash: incoming_hashes)
             .pluck(:search_id, :url_hash, :acknowledged)
-            .map do |search_id, url_hash, ack|
-        { "search_id" => search_id, "url_hash" => url_hash,
-          "acknowledged" => ack }
-      end
+            .map { |id, hash, ack| { "search_id" => id, "url_hash" => hash, "acknowledged" => ack } }
+    end
+
+    def calculate_new_records(records, existing_db_records)
+      existing_in_current_search = existing_db_records.select do |r|
+        r["search_id"] == @search_id
+      end.pluck("url_hash").to_set
+
+      records.count { |r| existing_in_current_search.exclude?(r["url_hash"]) }
+    end
+
+    def persist_records!(records, existing_db_records)
+      global_ack_set = existing_db_records.select { |r| r["acknowledged"] == true }.to_set { |r| r["url_hash"] }
+      enriched_records = records.map { |r| build_db_payload(r, global_ack_set) }
+
+      execute_upsert(enriched_records)
     end
 
     def build_db_payload(record, global_ack_set)
+      current_time = Time.current
       {
         "search_id" => @search_id,
         "url" => record["url"],
@@ -66,8 +73,8 @@ module Results
         "content" => record["content"],
         "status" => record["status"] || "unread",
         "acknowledged" => global_ack_set.include?(record["url_hash"]),
-        "created_at" => record["created_at"] || Time.current,
-        "updated_at" => record["updated_at"] || Time.current
+        "created_at" => record["created_at"] || current_time,
+        "updated_at" => record["updated_at"] || current_time
       }
     end
 
