@@ -10,7 +10,7 @@ class NightlyScrapingCronJob
 
     searches = Search.where(status: %w[completed failed]) #  TODO Add flag to toggle nightly run for Search
 
-    searches.each_with_index do |search, index|
+    searches.shuffle.each_with_index do |search, index|
       campaign_delay = (index * 20) + rand(10..30)
 
       sleep campaign_delay if Rails.env.development?
