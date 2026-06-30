@@ -18,8 +18,7 @@ module SearchCampaigns
         return { error: "No results found", raw_count: 0, new_count: 0 }
       end
 
-      metrics = process_records
-      metrics
+      process_records
     rescue StandardError => e
       Rails.logger.error("[Search::ResultHandler] Failed for Prompt##{@prompt.id}: #{e.message}")
       @coordinator.fail!(e.message)

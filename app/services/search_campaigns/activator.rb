@@ -43,12 +43,10 @@ module SearchCampaigns
 
       broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
-      prompt_ids.shuffle.each_with_index do |prompt_id, index|
-        delay = (index * 10) + rand(10..50)
+      prompt_ids.shuffle.each_with_index do |prompt_id, index| # TODO: investigate if job can fail due to timeout
+        delay = index + rand(10..30)
 
-        sleep(delay) if Rails.env.development?
-
-        PromptProcessorJob.perform_in(delay.seconds, prompt_id)
+        PromptProcessorJob.perform_in(delay.minutes, prompt_id)
       end
     end
 

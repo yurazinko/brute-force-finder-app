@@ -12,8 +12,6 @@ class SearchActivationJob
     target_ids = search.targets.active.pluck(:id)
     return if target_ids.blank?
 
-    sleep(rand(10..30) * 100) if Rails.env.development?
-
     SearchCampaigns::Activator.call(search, target_ids)
   end
 end
