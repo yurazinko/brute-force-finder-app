@@ -3,7 +3,7 @@
 class SearchActivationJob
   include Sidekiq::Job
 
-  sidekiq_options queue: :default, retry: false
+  sidekiq_options queue: :search_activations, retry: false
 
   def perform(search_id)
     search = Search.find_by(id: search_id)
