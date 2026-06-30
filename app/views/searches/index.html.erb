@@ -46,22 +46,35 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
-                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Inbox (Unread)">
+
+                  <%= link_to search_path(search),
+                              class: "inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted hover:bg-breeze-border/30 hover:border-breeze-muted/40 transition-all shadow-sm",
+                              title: "Inbox" do %>
                     <span class="text-[10px]">⬇️</span>
                     <span class="font-mono font-bold <%= counts[:unread].to_i > 0 ? 'text-emerald-500' : 'text-breeze-muted/60' %>"><%= counts[:unread].to_i %></span>
-                  </div>
-                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Watched">
+                  <% end %>
+
+                  <%= link_to search_path(search, status: :watched),
+                              class: "inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted hover:bg-breeze-border/30 hover:border-breeze-muted/40 transition-all shadow-sm",
+                              title: "Watched" do %>
                     <span class="text-[10px]">👁️</span>
                     <span class="font-mono font-bold <%= counts[:watched].to_i > 0 ? 'text-breeze-accent' : 'text-breeze-muted/60' %>"><%= counts[:watched].to_i %></span>
-                  </div>
-                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Starred">
+                  <% end %>
+
+                  <%= link_to search_path(search, status: :interesting),
+                              class: "inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted hover:bg-breeze-border/30 hover:border-breeze-muted/40 transition-all shadow-sm",
+                              title: "Interesting" do %>
                     <span class="text-[10px]">⭐</span>
                     <span class="font-mono font-bold <%= counts[:interesting].to_i > 0 ? 'text-amber-500' : 'text-breeze-muted/60' %>"><%= counts[:interesting].to_i %></span>
-                  </div>
-                  <div class="inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted" title="Garbage">
+                  <% end %>
+
+                  <%= link_to search_path(search, status: :garbage),
+                              class: "inline-flex items-center justify-center gap-1 bg-breeze-bg w-[60px] py-1 rounded border border-breeze-border text-breeze-muted hover:bg-breeze-border/30 hover:border-breeze-muted/40 transition-all shadow-sm",
+                              title: "Garbage" do %>
                     <span class="text-[10px]">🗑️</span>
                     <span class="font-mono font-bold <%= counts[:garbage].to_i > 0 ? 'text-red-400/80' : 'text-breeze-muted/40' %>"><%= counts[:garbage].to_i %></span>
-                  </div>
+                  <% end %>
+
                 </div>
               </td>
 
