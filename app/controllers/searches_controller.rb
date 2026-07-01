@@ -16,8 +16,9 @@ class SearchesController < ApplicationController
     base_results = @search.results.by_time_frame(params[:d])
     filtered_results = filter_results_by_status(base_results)
 
-    @counts = params[:page].blank? || params[:page].to_i == 1 ? @search.calculate_counters(base_results) : {}
-    @pagy, @results = pagy(filtered_results.order(created_at: :desc))
+    @counts = params[:page].to_i <= 1 ? @search.calculate_counters(base_results) : {}
+
+    @pagy, @results = pagy(filtered_results.order(sorting_order))
   end
 
   def new = @search = Search.new
@@ -33,13 +34,7 @@ class SearchesController < ApplicationController
     end
   end
 
-  def update
-    if @search.update(search_params)
-      handle_successful_update
-    else
-      handle_failed_update
-    end
-  end
+  def update = @search.update(search_params) ? handle_successful_update : handle_failed_update
 
   def activate
     target_ids = params[:target_ids] || []
@@ -121,5 +116,11 @@ class SearchesController < ApplicationController
     else
       search_path(@search)
     end
+  end
+
+  def sorting_order
+    { "created_asc" => { created_at: :asc },
+      "updated_desc" => { updated_at: :desc },
+      "updated_asc" => { updated_at: :asc } }.fetch(params[:sort], { created_at: :desc })
   end
 end

@@ -86,17 +86,40 @@
           <h2 class="text-lg sm:text-xl font-bold text-breeze-text">Scraped Results Pool</h2>
         </div>
 
-        <div class="flex items-center gap-4 text-xs text-breeze-muted mb-6 bg-breeze-bg p-2.5 rounded-lg border border-breeze-border overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <span class="font-semibold text-breeze-muted uppercase tracking-wider sticky left-0 bg-breeze-bg pr-1">Discovery:</span>
+        <div class="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-breeze-muted mb-6 bg-breeze-bg p-2.5 rounded-lg border border-breeze-border overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+
           <div class="flex items-center gap-3">
-            <%= link_to "All time", search_path(@search, status: params[:status]), class: "font-medium inline-block #{params[:d].blank? ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
-            <span class="text-gray-300">|</span>
-            <%= link_to "Past 24h", search_path(@search, status: params[:status], d: :day), class: "font-medium inline-block #{params[:d] == 'day' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
-            <span class="text-gray-300">|</span>
-            <%= link_to "Past Week", search_path(@search, status: params[:status], d: :week), class: "font-medium inline-block #{params[:d] == 'week' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
-            <span class="text-gray-300">|</span>
-            <%= link_to "Past Month", search_path(@search, status: params[:status], d: :month), class: "font-medium inline-block #{params[:d] == 'month' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+            <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
+              📅 <span>Discovery:</span>
+            </span>
+            <%= link_to "All time", search_path(@search, status: params[:status], sort: params[:sort]), class: "font-medium inline-block #{params[:d].blank? ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+            <span class="text-breeze-border">|</span>
+            <%= link_to "Past 24h", search_path(@search, status: params[:status], d: :day, sort: params[:sort]), class: "font-medium inline-block #{params[:d] == 'day' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+            <span class="text-breeze-border">|</span>
+            <%= link_to "Past Week", search_path(@search, status: params[:status], d: :week, sort: params[:sort]), class: "font-medium inline-block #{params[:d] == 'week' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+            <span class="text-breeze-border">|</span>
+            <%= link_to "Past Month", search_path(@search, status: params[:status], d: :month, sort: params[:sort]), class: "font-medium inline-block #{params[:d] == 'month' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
           </div>
+
+          <div class="hidden sm:block h-4 border-l border-breeze-border/80"></div>
+
+          <div class="flex items-center gap-3">
+            <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
+              ↕️  Sort by:
+            </span>
+
+            <%= link_to "Newest", search_path(@search, status: params[:status], d: params[:d], sort: :created_desc),
+                        class: "font-medium inline-block #{params[:sort].blank? || params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+            <span class="text-breeze-border">|</span>
+            <%= link_to "Oldest", search_path(@search, status: params[:status], d: params[:d], sort: :created_asc),
+                        class: "font-medium inline-block #{params[:sort] == 'created_asc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+
+            <span class="text-gray-500/40 px-0.5">•</span>
+
+            <%= link_to "Updated", search_path(@search, status: params[:status], d: params[:d], sort: :updated_desc),
+                        class: "font-medium inline-block #{params[:sort] == 'updated_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          </div>
+
         </div>
 
         <div class="border-b border-breeze-border mb-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" id="search_tabs_navigation">
