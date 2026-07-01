@@ -22,7 +22,7 @@ module SearchCampaigns
 
     def evaluate_completion!
       @search.with_lock do
-        return if @search.prompts.where(status: %w[active pending]).any?
+        return if @search.prompts.active.where(status: %w[active pending]).any?
 
         @search.update!(status: "completed") unless @search.status == "completed"
         LifecycleNotifier.broadcast_status(@search, "Pipeline finished. All parallel streams synced.")

@@ -8,6 +8,8 @@ class Prompt < ApplicationRecord
 
   validates :full_query_text, presence: true
 
+  scope :active, -> { joins(:target).where(targets: { is_active: true }) }
+
   before_validation :generate_full_query_text, if: -> { full_query_text.blank? && search.present? && target.present? }
 
   private
