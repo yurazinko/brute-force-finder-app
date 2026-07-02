@@ -54,6 +54,8 @@ module Searxng
 
     def parse_urls(response_body)
       data = JSON.parse(response_body)
+      Rails.logger.info(data)
+
       return { success: false, error: "SearXNG Engine Error: #{data['error']}" } if data["error"]
 
       { success: true, data: extract_results(data), failed_engines: data["unresponsive_engines"] || [] }
