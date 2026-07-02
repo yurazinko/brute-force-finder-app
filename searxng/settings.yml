@@ -7,7 +7,7 @@ search:
   formats:
     - html
     - json
-  request_timeout: 8.0 # Трохи зменшили загальний таймаут, щоб воркери не висіли задовго на мертвих запитах
+  request_timeout: 8.0
 
 outgoing:
   request_timeout: 6.0
@@ -20,7 +20,11 @@ enabled_plugins:
 
 proxies:
   all://:
-    - socks5h://tor:9050
+    - socks5h://tor_1:9050
+    - socks5h://tor_2:9050
+    - socks5h://tor_3:9050
+    - socks5h://tor_4:9050
+    - socks5h://tor_5:9050
 
 engines:
   - name: radio browser

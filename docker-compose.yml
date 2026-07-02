@@ -1,3 +1,5 @@
+version: '3.8'
+
 x-app: &app
   build:
     context: .
@@ -19,13 +21,32 @@ x-app: &app
   networks:
     - finder_network
 
+x-tor-base: &tor-base
+  image: peterdavehello/tor-socks-proxy:latest
+  restart: always
+  command: >
+    tor -f /etc/tor/torrc
+    --SocksPort "0.0.0.0:9050 IsolateDestAddr IsolateDestPort"
+    --MaxCircuitDirtiness 10
+    --NewCircuitPeriod 10
+  networks:
+    - finder_network
+
 services:
-  tor:
-    image: peterdavehello/tor-socks-proxy:latest
-    container_name: finder_tor
-    restart: always
-    networks:
-      - finder_network
+  tor_1:
+    <<: *tor-base
+
+  tor_2:
+    <<: *tor-base
+
+  tor_3:
+    <<: *tor-base
+
+  tor_4:
+    <<: *tor-base
+
+  tor_5:
+    <<: *tor-base
 
   db:
     image: postgres:18.4-alpine
@@ -66,12 +87,14 @@ services:
       - ./searxng:/etc/searxng
     ports:
       - "8080:8080"
-    environment:
-      - SEARXNG_PROXIES_all=socks5h://tor:9050
     networks:
       - finder_network
     depends_on:
-      - tor
+      - tor_1
+      - tor_2
+      - tor_3
+      - tor_4
+      - tor_5
 
   app:
     <<: *app
