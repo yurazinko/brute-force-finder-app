@@ -1,0 +1,49 @@
+<div class="max-w-xl mx-auto px-4 py-8">
+  <div class="mb-6">
+    <%= link_to "⬅️ Back to Category", category_path(@target.category), class: "text-sm text-breeze-muted hover:text-breeze-text transition" %>
+    <h1 class="text-2xl font-bold text-breeze-text mt-2">Edit Target Site</h1>
+    <p class="text-xs text-breeze-muted mt-1 font-mono">ID: <%= @target.id %> • Linked to <%= @target.category.name %></p>
+  </div>
+
+  <div class="bg-breeze-view p-6 shadow-sm border border-breeze-border rounded-xl">
+    <%= form_with(model: @target, local: true, class: "space-y-5") do |f| %>
+
+      <% if @target.errors.any? %>
+        <div class="p-4 bg-red-50/10 border border-red-500/20 text-red-400 rounded-lg text-xs space-y-1">
+          <p class="font-bold">Please fix the following errors:</p>
+          <ul class="list-disc pl-4 space-y-0.5">
+            <% @target.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div>
+        <%= f.label :name, "Site Name", class: "block text-xs font-semibold text-breeze-muted uppercase tracking-wider mb-1.5" %>
+        <%= f.text_field :name, placeholder: "e.g., Workable",
+                           class: "w-full text-sm bg-breeze-bg text-breeze-text rounded-lg border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent px-3 py-2 outline-none transition" %>
+      </div>
+
+      <div>
+        <%= f.label :domain, "Domain (Triggers Prompt Sync)", class: "block text-xs font-semibold text-breeze-muted uppercase tracking-wider mb-1.5" %>
+        <%= f.text_field :domain, placeholder: "e.g., workable.com",
+                           class: "w-full text-sm font-mono bg-breeze-bg text-breeze-text rounded-lg border-breeze-border shadow-sm focus:border-breeze-accent focus:ring-breeze-accent px-3 py-2 outline-none transition" %>
+        <p class="text-[10px] text-amber-400/80 mt-1.5 leading-relaxed font-sans">
+          ⚠️ <strong>Note:</strong> Changing the domain will automatically update all search engine queries associated with this target site.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <%= f.check_box :is_active, class: "h-4 w-4 rounded border-breeze-border bg-breeze-bg text-breeze-accent focus:ring-breeze-accent cursor-pointer" %>
+        <%= f.label :is_active, "Pipeline Status Active", class: "text-xs font-medium text-breeze-text cursor-pointer select-none" %>
+      </div>
+
+      <div class="flex items-center gap-3 pt-4 border-t border-breeze-border/60">
+        <%= f.submit "Save Changes", class: "flex-1 py-2 px-4 bg-breeze-accent hover:bg-opacity-90 text-white font-medium text-sm rounded-lg shadow cursor-pointer transition-all text-center" %>
+        <%= link_to "Cancel", category_path(@target.category), class: "px-4 py-2 border border-breeze-border hover:bg-breeze-bg text-breeze-muted hover:text-breeze-text text-sm rounded-lg transition text-center" %>
+      </div>
+
+    <% end %>
+  </div>
+</div>

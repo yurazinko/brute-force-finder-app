@@ -27,7 +27,7 @@ Rails.application.routes.draw do
 
   resource :dashboard, only: [:show]
 
-  resources :targets, only: %i[create destroy update]
+  resources :targets, only: %i[create destroy edit update]
 
   resources :results, only: [:update]
 

@@ -9,6 +9,8 @@ class Target < ApplicationRecord
 
   scope :active, -> { where(is_active: true) }
 
+  after_update_commit :sync_associated_prompts, if: :saved_change_to_domain?
+
   def self.top_by_prompts_count(limit_number)
     joins(:prompts)
       .left_joins(:category)
@@ -20,5 +22,11 @@ class Target < ApplicationRecord
 
   def self.prompts_distribution_map
     joins(:prompts).group("targets.name").order(count_all: :desc).limit(5).count
+  end
+
+  private
+
+  def sync_associated_prompts
+    Prompt.update_queries_for_target(self)
   end
 end
