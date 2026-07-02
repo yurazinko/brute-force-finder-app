@@ -9,6 +9,16 @@ class Result < ApplicationRecord
 
   scope :without_garbage, -> { where.not(status: "garbage") }
   scope :by_status, ->(status) { where(status: status) }
+  scope :search_by_keyword, lambda { |query|
+    return all if query.blank? || query.strip.length < 3
+
+    sanitized_query = "%#{sanitize_sql_like(query.strip)}%"
+
+    where(
+      "results.title ILIKE :q OR results.content ILIKE :q OR results.url ILIKE :q",
+      q: sanitized_query
+    )
+  }
 
   scope :by_time_frame, lambda { |frame|
     case frame&.to_s

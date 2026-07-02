@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_28_101130) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_01_182844) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "categories", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -45,10 +46,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_28_101130) do
     t.string "url", null: false
     t.string "url_hash", null: false
     t.datetime "viewed_at"
+    t.index ["content"], name: "idx_results_content_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["search_id", "status", "acknowledged"], name: "idx_results_analytics"
     t.index ["search_id", "status"], name: "index_results_on_search_id_and_status"
     t.index ["search_id", "url_hash"], name: "index_results_on_search_id_and_url_hash", unique: true
     t.index ["search_id"], name: "index_results_on_search_id"
+    t.index ["title"], name: "idx_results_title_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["url"], name: "idx_results_url_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["url_hash"], name: "index_results_on_url_hash"
   end
 

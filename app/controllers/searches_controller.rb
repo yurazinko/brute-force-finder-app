@@ -12,6 +12,7 @@ class SearchesController < ApplicationController
   def show
     @prompts = @search.prompts.includes(:target)
     @current_status = params[:status]
+    @search_query = params[:q]
 
     base_results = @search.results.by_time_frame(params[:d])
     filtered_results = filter_results_by_status(base_results)
@@ -75,7 +76,7 @@ class SearchesController < ApplicationController
       acknowlegment_filter = @search.show_acknowledged? ? [true, false] : false
 
       scope.where(status: "unread", acknowledged: acknowlegment_filter)
-    end
+    end.search_by_keyword(@search_query)
   end
 
   def respond_with_flash(alert_msg)

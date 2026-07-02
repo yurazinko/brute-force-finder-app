@@ -29,9 +29,13 @@
   </div>
 
   <% if result.content.present? %>
-    <p class="text-xs sm:text-sm text-gray-300 mt-1 line-clamp-3 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm font-sans break-words min-h-20">
-      <%= result.content %>
-    </p>
+    <div class="mt-1 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm h-20 sm:h-24 overflow-hidden">
+
+      <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3">
+        <%= result.content %>
+      </p>
+
+    </div>
   <% end %>
 
   <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-breeze-border">
