@@ -44,7 +44,7 @@ module SearchCampaigns
       broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
       prompt_ids.shuffle.each_with_index do |prompt_id, index| # TODO: investigate if job can fail due to timeout
-        delay = index + rand(15..45)
+        delay = (index * 2) + rand(15..30)
 
         PromptProcessorJob.perform_in(delay.minutes, prompt_id)
       end
