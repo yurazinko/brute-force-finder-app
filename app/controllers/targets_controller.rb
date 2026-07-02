@@ -44,6 +44,6 @@ class TargetsController < ApplicationController
   end
 
   def target_params
-    params.expect(target: %i[name domain is_active category_id])
+    params.expect(target: %i[name domain is_active category_id allow_query_strings])
   end
 end

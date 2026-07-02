@@ -10,13 +10,21 @@ module Results
       @search_id = search_id
       @raw_results = raw_results || []
       @now = Time.current
+
+      @target_configs = Target.joins(:prompts)
+                              .where(prompts: { search_id: search_id })
+                              .pluck(:domain, :allow_query_strings)
+                              .to_h
     end
 
     def process
       @raw_results.each_with_object([]) do |result, records|
         next if result["url"].blank?
 
-        clean_url = Utils::UrlNormalizer.normalize(result["url"])
+        domain = extract_domain(result["url"])
+        keep_query = @target_configs[domain] || false
+
+        clean_url = Utils::UrlNormalizer.normalize(result["url"], keep_query: keep_query)
         next if clean_url.blank?
 
         records << {
@@ -29,6 +37,14 @@ module Results
           updated_at: @now
         }
       end
+    end
+
+    private
+
+    def extract_domain(url)
+      URI.parse(url).host&.delete_prefix("www.")
+    rescue URI::InvalidURIError
+      nil
     end
   end
 end
