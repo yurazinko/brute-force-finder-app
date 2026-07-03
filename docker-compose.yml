@@ -70,7 +70,7 @@ services:
 
   sidekiq:
     <<: *app
-    command: bundle exec sidekiq -q scraping -q default -q search_activations
+    command: bundle exec sidekiq -q scraping -q default -q search_activations -c 1
     networks:
       - finder_network
     depends_on:
