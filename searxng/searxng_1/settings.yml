@@ -41,3 +41,27 @@ engines:
   - name: yahoo
     disabled: false
     timeout: 6.0
+  - name: startpage
+    disabled: false
+    timeout: 6.0
+  - name: mojeek
+    disabled: false
+    timeout: 6.0
+  - name: presearch
+    disabled: false
+    timeout: 8.0
+  - name: yandex
+    disabled: false
+    timeout: 8.0
+  - name: baidu
+    disabled: false
+    timeout: 8.0
+  - name: sogou
+    disabled: false
+    timeout: 8.0
+  - name: petal
+    disabled: false
+    timeout: 6.0
+  - name: ask
+    disabled: false
+    timeout: 6.0

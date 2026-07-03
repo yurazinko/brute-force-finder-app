@@ -44,7 +44,7 @@ module Searxng
     def query_options
       base_params = {
         q: @query, format: "json", pageno: 1,
-        engines: "google,duckduckgo,bing,brave,qwant,yahoo"
+        engines: "google,duckduckgo,bing,brave,qwant,yahoo,startpage,mojeek,presearch,wiby,yandex,baidu,sogou,petal,ask"
       }
       base_params[:time_range] = @time_range if @time_range.present?
 
