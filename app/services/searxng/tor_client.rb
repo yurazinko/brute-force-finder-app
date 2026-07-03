@@ -6,20 +6,22 @@ module Searxng
   class TorClient
     include HTTParty
 
-    base_uri ENV.fetch("SEARXNG_URL", "http://localhost:8080")
-    default_timeout 15
+    default_timeout 20
 
     def self.search(query, options = {}) = new(query, options).execute
 
     def initialize(query, options = {})
       @query = query
       @time_range = options[:time_range]
+
+      @searxng_instance = ENV.fetch("SEARXNG_URLS", "http://searxng_1:8080").split(",").sample
     end
 
     def execute
       return { success: true, data: [] } if @query.blank?
 
-      response = self.class.get("/search", query_options)
+      sleep(rand(10..30))
+      response = self.class.get("#{@searxng_instance}/search", query_options)
       handle_response(response)
     rescue HTTParty::Error, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
       log_and_return("Network unreachable (Tor/SearXNG dead?): #{e.message}")
@@ -54,7 +56,9 @@ module Searxng
 
     def parse_urls(response_body)
       data = JSON.parse(response_body)
+      Rails.logger.info("======================== SearXNG Response (#{@searxng_instance}) ========================")
       Rails.logger.info(data)
+      Rails.logger.info("=========================================================================================")
 
       return { success: false, error: "SearXNG Engine Error: #{data['error']}" } if data["error"]
 

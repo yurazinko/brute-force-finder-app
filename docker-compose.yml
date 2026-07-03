@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 x-app: &app
   build:
@@ -11,52 +11,112 @@ x-app: &app
     - .:/app:cached
     - /app/node_modules
   environment:
-    - RAILS_ENV=development
-    - REDIS_URL=redis://redis:6379/1
-    - SEARXNG_URL=http://searxng:8080
-    - RUBY_GC_HEAP_INIT_SLOTS=10000
-    - RUBY_GC_HEAP_GROWTH_FACTOR=1.2
-    - RUBY_GC_HEAP_GROWTH_MAX_SLOTS=30000
-    - LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+    RAILS_ENV: development
+    REDIS_URL: redis://redis:6379/1
+    SEARXNG_URLS: "http://searxng_1:8080,http://searxng_2:8080,http://searxng_3:8080,http://searxng_4:8080,http://searxng_5:8080"
+    RUBY_GC_HEAP_INIT_SLOTS: 10000
+    RUBY_GC_HEAP_GROWTH_FACTOR: 1.2
+    RUBY_GC_HEAP_GROWTH_MAX_SLOTS: 30000
+    LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
   networks:
     - finder_network
 
 x-tor-base: &tor-base
   image: peterdavehello/tor-socks-proxy:latest
-  restart: always
+  restart: unless-stopped
   command: >
     tor -f /etc/tor/torrc
     --SocksPort "0.0.0.0:9050 IsolateDestAddr IsolateDestPort"
-    --MaxCircuitDirtiness 10
-    --NewCircuitPeriod 10
+    --MaxCircuitDirtiness 60
+    --NewCircuitPeriod 30
+  healthcheck:
+    test: ["CMD", "nc", "-z", "127.0.0.1", "9050"]
+    interval: 5s
+    timeout: 3s
+    retries: 5
   networks:
     - finder_network
+
+x-searxng-base: &searxng-base
+  image: searxng/searxng:latest
+  restart: unless-stopped
+  networks:
+    - finder_network
+  healthcheck:
+    test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+    interval: 5s
+    timeout: 3s
+    retries: 5
 
 services:
   tor_1:
     <<: *tor-base
-
   tor_2:
     <<: *tor-base
-
   tor_3:
     <<: *tor-base
-
   tor_4:
     <<: *tor-base
-
   tor_5:
     <<: *tor-base
+
+  searxng_1:
+    <<: *searxng-base
+    container_name: finder_searxng_1
+    volumes:
+      - ./searxng/searxng_1:/etc/searxng
+      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
+    depends_on:
+      tor_1:
+        condition: service_healthy
+
+  searxng_2:
+    <<: *searxng-base
+    container_name: finder_searxng_2
+    volumes:
+      - ./searxng/searxng_2:/etc/searxng
+      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
+    depends_on:
+      tor_2:
+        condition: service_healthy
+
+  searxng_3:
+    <<: *searxng-base
+    container_name: finder_searxng_3
+    volumes:
+      - ./searxng/searxng_3:/etc/searxng
+      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
+    depends_on:
+      tor_3:
+        condition: service_healthy
+
+  searxng_4:
+    <<: *searxng-base
+    container_name: finder_searxng_4
+    volumes:
+      - ./searxng/searxng_4:/etc/searxng
+      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
+    depends_on:
+      tor_4:
+        condition: service_healthy
+
+  searxng_5:
+    <<: *searxng-base
+    container_name: finder_searxng_5
+    volumes:
+      - ./searxng/searxng_5:/etc/searxng
+      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
+    depends_on:
+      tor_5:
+        condition: service_healthy
 
   db:
     image: postgres:18.4-alpine
     container_name: finder_db
-    stdin_open: true
-    tty: true
+    environment:
+      POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql
-    environment:
-      - POSTGRES_PASSWORD=password
     networks:
       - finder_network
 
@@ -70,36 +130,22 @@ services:
 
   sidekiq:
     <<: *app
+    container_name: finder_sidekiq
     command: bundle exec sidekiq -q scraping -q default -q search_activations -c 1
-    networks:
-      - finder_network
     depends_on:
-      - db
-      - redis
-
-  searxng:
-    build:
-      context: ./searxng
-      dockerfile: Dockerfile
-    image: searxng/searxng:latest
-    container_name: finder_searxng
-    volumes:
-      - ./searxng:/etc/searxng
-    ports:
-      - "8080:8080"
-    networks:
-      - finder_network
-    depends_on:
-      - tor_1
-      - tor_2
-      - tor_3
-      - tor_4
-      - tor_5
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      searxng_1:
+        condition: service_healthy
 
   app:
     <<: *app
     container_name: finder_rails
-    command: sh -c "rm -f tmp/pids/server.pid && bin/rails server -b 0.0.0.0"
+    command: >
+      sh -c "rm -f tmp/pids/server.pid &&
+             bin/rails server -b 0.0.0.0"
     ports:
       - "3000:3000"
     depends_on:
@@ -107,19 +153,20 @@ services:
         condition: service_started
       redis:
         condition: service_started
-      searxng:
-        condition: service_started
 
   js_watcher:
-      <<: *app
-      container_name: finder_js_watcher
-      command: yarn build --watch
-      depends_on:
-        - app
+    <<: *app
+    container_name: finder_js_watcher
+    command: yarn build --watch
+    depends_on:
+      - app
 
   tailwind:
     <<: *app
+    container_name: finder_tailwind
     command: bin/rails tailwindcss:watch
+    depends_on:
+      - app
 
 volumes:
   postgres_data:

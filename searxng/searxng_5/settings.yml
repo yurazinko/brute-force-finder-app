@@ -1,0 +1,43 @@
+use_default_settings: true
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "super_secret_key_for_brute_force_finder"
+
+search:
+  formats:
+    - html
+    - json
+  request_timeout: 15.0
+
+outgoing:
+  request_timeout: 10.0
+  max_request_timeout: 14.0
+  pool_connections: 100
+  pool_maxsize: 20
+  proxies:
+    all://:
+      - socks5h://tor_5:9050
+
+engines:
+  - name: radio browser
+    disabled: true
+  - name: google
+    disabled: false
+    timeout: 8.0
+  - name: duckduckgo
+    disabled: false
+    timeout: 6.0
+  - name: bing
+    disabled: false
+    timeout: 8.0
+  - name: brave
+    disabled: false
+    timeout: 8.0
+  - name: qwant
+    disabled: false
+    timeout: 6.0
+  - name: yahoo
+    disabled: false
+    timeout: 6.0
