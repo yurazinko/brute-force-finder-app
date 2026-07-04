@@ -4,7 +4,8 @@ require "rails_helper"
 
 RSpec.describe SearchCampaigns::ResultHandler, type: :service do
   let(:category) { Category.create!(name: "Platforms") }
-  let(:target) { Target.create!(category: category, name: "Lever", domain: "lever-#{SecureRandom.hex(4)}.co") }
+  let(:target_domain) { "lever-#{SecureRandom.hex(4)}.co" }
+  let(:target) { Target.create!(category: category, name: "Lever", domain: target_domain) }
 
   let(:search) do
     Search.create!(
@@ -18,7 +19,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
     Prompt.create!(
       search: search,
       target: target,
-      full_query_text: "site:lever.co ruby",
+      full_query_text: "site:#{target_domain} ruby",
       status: "active"
     )
   end
@@ -26,12 +27,12 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
   let(:raw_results) do
     { data: [
       {
-        "url" => "https://lever.co/job1",
+        "url" => "https://#{target_domain}/job1",
         "title" => "Job 1",
         "content" => "Ruby dev"
       },
       {
-        "url" => "https://lever.co/job2",
+        "url" => "https://#{target_domain}/job2",
         "title" => "Job 2",
         "content" => "Rails dev"
       }
@@ -39,7 +40,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
   end
 
   let(:expected_normalized_urls) do
-    ["https://lever.co/job1", "https://lever.co/job2"]
+    ["https://#{target_domain}/job1", "https://#{target_domain}/job2"]
   end
 
   describe ".call" do
@@ -58,8 +59,8 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
         expect(Result.pluck(:url_hash)).to match_array(
           [
-            Digest::SHA256.hexdigest("https://lever.co/job1"),
-            Digest::SHA256.hexdigest("https://lever.co/job2")
+            Digest::SHA256.hexdigest("https://#{target_domain}/job1"),
+            Digest::SHA256.hexdigest("https://#{target_domain}/job2")
           ]
         )
       end
@@ -79,8 +80,8 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
     context "when raw results contain duplicate URLs" do
       let(:duplicate_results) do
         { data: [
-          { "url" => "https://lever.co/job1?abc=1", "title" => "First" },
-          { "url" => "https://lever.co/job1?xyz=2", "title" => "Duplicate after normalization" }
+          { "url" => "https://#{target_domain}/job1?abc=1", "title" => "First" },
+          { "url" => "https://#{target_domain}/job1?xyz=2", "title" => "Duplicate after normalization" }
         ] }
       end
 
@@ -89,7 +90,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
           described_class.call(prompt, duplicate_results)
         end.to change(Result, :count).by(1)
 
-        expect(Result.pluck(:url)).to eq(["https://lever.co/job1"])
+        expect(Result.pluck(:url)).to eq(["https://#{target_domain}/job1"])
       end
     end
 
@@ -150,14 +151,14 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         [
           {
             "search_id" => search.id,
-            "url" => "https://lever.co/job1",
+            "url" => "https://#{target_domain}/job1",
             "url_hash" => job1_hash,
             "title" => "Job 1",
             "content" => "Ruby dev"
           },
           {
             "search_id" => search.id,
-            "url" => "https://lever.co/job2",
+            "url" => "https://#{target_domain}/job2",
             "url_hash" => job2_hash,
             "title" => "Job 2",
             "content" => "Rails dev"
@@ -167,7 +168,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
       before do
         allow(Results::DataTransformer).to receive(:process)
-          .with(search.id, raw_results[:data])
+          .with(search.id, raw_results[:data], target)
           .and_return(mocked_transformer_records)
       end
 
@@ -175,7 +176,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         before do
           res = Result.create!(
             search_id: other_search.id,
-            url: "https://lever.co/job1",
+            url: "https://#{target_domain}/job1",
             url_hash: job1_hash,
             title: "Old Role",
             content: "Already reviewed",
@@ -207,7 +208,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         before do
           res = Result.create!(
             search_id: other_search.id,
-            url: "https://lever.co/job1",
+            url: "https://#{target_domain}/job1",
             url_hash: job1_hash,
             title: "Old Role",
             content: "Not reviewed",
@@ -230,7 +231,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         before do
           res1 = Result.create!(
             search_id: other_search.id,
-            url: "https://lever.co/job1",
+            url: "https://#{target_domain}/job1",
             url_hash: job1_hash,
             title: "Old Role",
             content: "Already reviewed",
@@ -246,7 +247,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
           res2 = Result.create!(
             search_id: another_search.id,
-            url: "https://lever.co/job1",
+            url: "https://#{target_domain}/job1",
             url_hash: job1_hash,
             title: "Another Copy",
             content: "Reviewed too",

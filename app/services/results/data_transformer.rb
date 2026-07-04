@@ -2,13 +2,14 @@
 
 module Results
   class DataTransformer
-    def self.process(search_id, raw_results)
-      new(search_id, raw_results).process
+    def self.process(search_id, raw_results, target)
+      new(search_id, raw_results, target).process
     end
 
-    def initialize(search_id, raw_results)
+    def initialize(search_id, raw_results, target)
       @search_id = search_id
       @raw_results = raw_results || []
+      @target = target
       @now = Time.current
 
       @target_configs = Target.joins(:prompts)
@@ -22,6 +23,10 @@ module Results
         next if result["url"].blank?
 
         domain = extract_domain(result["url"])
+        next if domain.blank?
+
+        next unless domain_matches_target?(domain)
+
         keep_query = @target_configs[domain] || false
 
         clean_url = Utils::UrlNormalizer.normalize(result["url"], keep_query: keep_query)
@@ -45,6 +50,12 @@ module Results
       URI.parse(url).host&.delete_prefix("www.")
     rescue URI::InvalidURIError
       nil
+    end
+
+    def domain_matches_target?(result_domain)
+      target_domain = @target.domain.delete_prefix("www.")
+
+      result_domain == target_domain || result_domain.end_with?(".#{target_domain}")
     end
   end
 end

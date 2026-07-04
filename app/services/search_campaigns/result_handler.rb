@@ -7,6 +7,7 @@ module SearchCampaigns
     def initialize(prompt, raw_results)
       @prompt = prompt
       @search = prompt.search
+      @target = prompt.target
       @raw_results = raw_results
       @scraped_data = raw_results.try(:[], :data) || []
       @coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
@@ -31,7 +32,7 @@ module SearchCampaigns
     private
 
     def process_records
-      result_records = Results::DataTransformer.process(@search.id, @scraped_data)
+      result_records = Results::DataTransformer.process(@search.id, @scraped_data, @target)
       metrics = Results::BatchPersister.call(@search.id, result_records)
 
       @search.results.reset
