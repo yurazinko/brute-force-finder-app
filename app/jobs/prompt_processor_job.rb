@@ -3,7 +3,7 @@
 class PromptProcessorJob
   include Sidekiq::Job
 
-  sidekiq_options queue: :scraping, retry: 3
+  sidekiq_options queue: :scraping, retry: false
 
   def perform(prompt_id)
     updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")

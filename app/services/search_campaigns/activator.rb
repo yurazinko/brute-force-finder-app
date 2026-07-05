@@ -58,7 +58,7 @@ module SearchCampaigns
     end
 
     def calculate_delay(index)
-      ((index * 2) + rand(15..30)).minutes
+      ((index * 2) + rand(30..45)).minutes
     end
 
     def targets_data = @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)
