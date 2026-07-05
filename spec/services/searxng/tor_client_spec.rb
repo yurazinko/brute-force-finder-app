@@ -4,18 +4,29 @@ require "rails_helper"
 
 RSpec.describe Searxng::TorClient, type: :service do
   let(:query) { 'site:lever.co "ruby"' }
+  let(:urls_env) { "http://searxng_1:8080,http://searxng_2:8080" }
+  let(:instance1) { "http://searxng_1:8080" }
+  let(:instance2) { "http://searxng_2:8080" }
 
-  let(:base_url) { "http://searxng_1:8080" }
-  let(:search_endpoint) { "#{base_url}/search" }
+  let(:redis) { Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1")) }
 
   before do
-    allow_any_instance_of(described_class).to receive(:sleep)
-    stub_const("ENV", ENV.to_h.merge("SEARXNG_URLS" => base_url))
+    allow(Redis).to receive(:new).and_return(redis)
+    redis.flushdb
+
+    stub_const("ENV", ENV.to_h.merge("SEARXNG_URLS" => urls_env))
+    allow(Rails.logger).to receive(:error)
+    allow(Rails.logger).to receive(:warn)
+    allow(Rails.logger).to receive(:info)
+  end
+
+  after do
+    redis.flushdb
   end
 
   describe ".search" do
     it "instantiates the client and calls execute" do
-      client_instance = instance_double(described_class, execute: [])
+      client_instance = instance_double(described_class, execute: { success: true, data: [] })
       allow(described_class).to receive(:new).with(query, {}).and_return(client_instance)
 
       described_class.search(query)
@@ -26,7 +37,7 @@ RSpec.describe Searxng::TorClient, type: :service do
 
   describe "#execute" do
     context "when query is blank" do
-      it "returns an empty array immediately without making an HTTP request" do
+      it "returns success immediately without checking Redis or making HTTP requests" do
         client = described_class.new("   ")
 
         expect(client.execute).to eq({ data: [], success: true })
@@ -38,88 +49,132 @@ RSpec.describe Searxng::TorClient, type: :service do
       let(:mock_response_body) do
         {
           "results" => [
-            { "url" => "https://lever.co/job1", "title" => "Ruby Developer" },
-            { "url" => "https://lever.co/job2", "title" => "Senior RoR Engineer" },
-            { "url" => "https://lever.co/job1", "title" => "Ruby Developer" }
-          ]
+            { "url" => "https://lever.co/job1", "title" => "Ruby Developer", "content" => "Ctx" },
+            { "url" => "https://lever.co/job2", "title" => "Senior RoR Engineer", "content" => "Ctx" },
+            { "url" => "https://lever.co/job1", "title" => "Duplicate", "content" => "Ctx" }
+          ],
+          "unresponsive_engines" => []
         }.to_json
       end
 
       before do
-        stub_request(:get, search_endpoint)
+        stub_request(:get, %r{searxng_\d:8080/search})
           .with(query: hash_including(q: query))
-          .to_return(
-            status: 200,
-            body: mock_response_body,
-            headers: { "Content-Type" => "application/json" }
-          )
+          .to_return(status: 200, body: mock_response_body)
       end
 
-      it "returns unique urls and titles parsed directly from WebMock body" do
+      it "returns unique results slicing only url, title, and content" do
         expected_result = {
+          success: true,
           data: [
-            { "url" => "https://lever.co/job1", "title" => "Ruby Developer" },
-            { "url" => "https://lever.co/job2", "title" => "Senior RoR Engineer" }
+            { "url" => "https://lever.co/job1", "title" => "Ruby Developer", "content" => "Ctx" },
+            { "url" => "https://lever.co/job2", "title" => "Senior RoR Engineer", "content" => "Ctx" }
           ],
-          failed_engines: [],
-          success: true
+          failed_engines: []
         }
 
         expect(described_class.new(query).execute).to eq(expected_result)
       end
-    end
 
-    context "when access is forbidden (status 403)" do
-      before do
-        stub_request(:get, search_endpoint).with(query: hash_including(q: query)).to_return(status: 403)
-        allow(Rails.logger).to receive(:error)
-      end
+      it "enforces unique SOCKS credentials per request for circuit isolation" do
+        allow(SecureRandom).to receive(:hex).with(8).and_return("mockedauth123")
+        allow(described_class).to receive(:get).and_call_original
 
-      it "logs a specific error message and returns an empty array" do
-        expect(described_class.new(query).execute).to eq({ error: "SearXNG returned HTTP 403", success: false })
-      end
-    end
+        described_class.new(query).execute
 
-    context "when server returns an unexpected status code (e.g. 500)" do
-      before do
-        stub_request(:get, search_endpoint).with(query: hash_including(q: query)).to_return(status: 500)
-        allow(Rails.logger).to receive(:error)
-      end
-
-      it "logs the unexpected status code and returns an empty array" do
-        expect(described_class.new(query).execute).to eq({ error: "SearXNG returned HTTP 500", success: false })
+        expect(described_class).to have_received(:get).with(
+          anything,
+          hash_including(socks_username: "mockedauth123", socks_password: "mockedauth123")
+        )
       end
     end
 
-    context "when a network failure occurs (Timeout/Connection Refused)" do
-      before do
-        stub_request(:get, search_endpoint)
+    context "when Round-Robin and Circuit Breaker triage triggers" do
+      it "cycles through instances via Round-Robin" do
+        client = described_class.new(query)
+        allow(client).to receive(:next_available_instance).and_return(instance1, instance2)
+
+        stub_request(:get, "#{instance1}/search").with(query: hash_including(q: query)).to_raise(Timeout::Error)
+        stub_request(:get, "#{instance2}/search")
           .with(query: hash_including(q: query))
-          .to_raise(Timeout::Error.new("Execution expired"))
+          .to_return(status: 200, body: { results: [] }.to_json)
 
-        allow(Rails.logger).to receive(:error)
+        result = client.execute
+
+        expect(result[:success]).to be(true)
+        expect(redis.exists?("searxng:dead:#{instance1}")).to(satisfy { |v| v == true || v.to_i > 0 })
       end
 
-      it "rescues Timeout::Error, logs it, and returns a specific gateway timeout message" do
-        expect(described_class.new(query).execute).to eq({ error: "SearXNG gateway timeout", success: false })
-        expect(Rails.logger).to have_received(:error).with("[Searxng::TorClient] SearXNG gateway timeout")
+      it "skips dead instances in the pool" do
+        redis.setex("searxng:dead:#{instance1}", 60, "dead")
+
+        stub_request(:get, "#{instance1}/search")
+          .with(query: hash_including(q: query))
+          .to_return(status: 200, body: { results: [] }.to_json)
+        stub_request(:get, "#{instance2}/search")
+          .with(query: hash_including(q: query))
+          .to_return(status: 200, body: { results: [{ "url" => "https://ok.com" }] }.to_json)
+
+        result = described_class.new(query).execute
+        expect(result[:data]).to eq([{ "url" => "https://ok.com" }])
+        expect(WebMock).not_to have_requested(:get, "#{instance1}/search")
+      end
+
+      it "returns an error if all instances in the pool are dead" do
+        redis.setex("searxng:dead:#{instance1}", 60, "dead")
+        redis.setex("searxng:dead:#{instance2}", 60, "dead")
+
+        result = described_class.new(query).execute
+        expect(result).to eq({ success: false, error: "All SearXNG instances are currently dead" })
+      end
+    end
+
+    context "when hitting rate limits (HTTP 429)" do
+      it "marks the instance as dead, logs error, and retries with the next one" do
+        client = described_class.new(query)
+        allow(client).to receive(:next_available_instance).and_return(instance1, instance2)
+
+        stub_request(:get, "#{instance1}/search").with(query: hash_including(q: query)).to_return(status: 429)
+        stub_request(:get, "#{instance2}/search")
+          .with(query: hash_including(q: query))
+          .to_return(status: 200, body: { results: [] }.to_json)
+
+        result = client.execute
+
+        expect(result[:success]).to be(true)
+        expect(redis.exists?("searxng:dead:#{instance1}")).to(satisfy { |v| v == true || v.to_i > 0 })
+        expect(Rails.logger).to have_received(:error).with(/Rate limit \(429\) hit on #{instance1}/)
+      end
+    end
+
+    context "when a persistent network failure or max retries exhaust" do
+      before do
+        stub_request(:get, %r{searxng_\d:8080/search})
+          .with(query: hash_including(q: query))
+          .to_raise(Errno::ECONNREFUSED.new("Connection refused"))
+      end
+
+      it "exhausts all retries, marks instances dead, and returns fallback message" do
+        result = described_class.new(query).execute
+
+        expect(result).to eq({ success: false, error: "All SearXNG instances are currently dead" })
+        expect(redis.exists?("searxng:dead:#{instance1}")).to(satisfy { |v| v == true || v.to_i > 0 })
+        expect(redis.exists?("searxng:dead:#{instance2}")).to(satisfy { |v| v == true || v.to_i > 0 })
       end
     end
 
     context "when JSON parsing fails" do
       before do
-        stub_request(:get, search_endpoint)
+        stub_request(:get, %r{searxng_\d:8080/search})
           .with(query: hash_including(q: query))
-          .to_return(status: 200, body: "invalid-json{", headers: { "Content-Type" => "application/json" })
-
-        allow(Rails.logger).to receive(:error)
+          .to_return(status: 200, body: "not-json")
       end
 
-      it "rescues JSON::ParserError, logs it, and returns an empty array" do
-        expect(described_class.new(query).execute).to eq(
-          { error: "Malformed JSON response (Engine blocked or bad proxy config)", success: false }
-        )
-        expect(Rails.logger).to have_received(:error).with(/Malformed JSON response/)
+      it "exhausts retries and returns max attempts error" do
+        result = described_class.new(query).execute
+
+        expect(result).to eq({ error: "Failed after 3 attempts across multiple instances", success: false })
+        expect(Rails.logger).to have_received(:error).with(%r{Malformed JSON from http://searxng_}).at_least(:once)
       end
     end
   end
