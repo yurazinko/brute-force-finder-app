@@ -4,8 +4,9 @@ class Target < ApplicationRecord
   belongs_to :category
   has_many :prompts, dependent: :destroy
 
-  validates :name, :domain, presence: true
+  validates :name, presence: true
   validates :domain, uniqueness: true
+  normalizes :domain, with: ->(value) { value.presence }
 
   scope :active, -> { where(is_active: true) }
 

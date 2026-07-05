@@ -2,7 +2,7 @@
 
 class Prompt < ApplicationRecord
   belongs_to :search
-  belongs_to :target
+  belongs_to :target, optional: true
 
   validates :status, presence: true, inclusion: { in: %w[pending active failed success] }
 

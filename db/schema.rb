@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_02_082718) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_05_090113) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -28,9 +28,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_02_082718) do
     t.string "full_query_text", null: false
     t.bigint "search_id", null: false
     t.string "status", default: "pending"
-    t.bigint "target_id", null: false
+    t.bigint "target_id"
     t.datetime "updated_at", null: false
-    t.index ["search_id", "target_id", "full_query_text"], name: "index_prompts_on_search_target_and_query", unique: true
+    t.index ["search_id", "full_query_text"], name: "index_global_prompts_on_search_and_query", unique: true, where: "(target_id IS NULL)"
+    t.index ["search_id", "target_id", "full_query_text"], name: "index_prompts_on_search_target_and_query", unique: true, where: "(target_id IS NOT NULL)"
     t.index ["search_id"], name: "index_prompts_on_search_id"
     t.index ["target_id"], name: "index_prompts_on_target_id"
   end

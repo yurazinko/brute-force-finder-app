@@ -216,17 +216,6 @@ RSpec.describe "Searches", type: :request do
         end
       end
     end
-
-    context "when target_ids are missing or empty" do
-      it "redirects to show page with an alert warning to select targets" do
-        post activate_search_path(search), params: { target_ids: nil }
-
-        expect(response).to redirect_to(search_path(search))
-
-        follow_redirect!
-        expect(response.body).to include("Please select at least one target website to scrape.")
-      end
-    end
   end
 
   describe "DELETE /searches/:id (destroy)" do

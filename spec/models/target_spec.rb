@@ -23,12 +23,6 @@ RSpec.describe Target, type: :model do
       expect(target.errors[:name]).to include("can't be blank")
     end
 
-    it "is invalid without a domain" do
-      target = described_class.new(name: "Lever", domain: nil, category: category)
-      target.valid?
-      expect(target.errors[:domain]).to include("can't be blank")
-    end
-
     it "is invalid with a duplicate domain" do
       unique_domain = "lever-#{SecureRandom.hex(4)}.co"
       described_class.create!(category: category, name: "Lever 1", domain: unique_domain)

@@ -11,8 +11,6 @@ module SearchCampaigns
     end
 
     def call
-      return false if @target_ids.blank? || targets_data.blank?
-
       ApplicationRecord.transaction do
         @search.update!(status: "processing")
 
@@ -30,12 +28,23 @@ module SearchCampaigns
 
     def create_prompts
       Prompt.upsert_all(
-        query_records,
-        unique_by: :index_prompts_on_search_target_and_query,
+        prompt_records,
+        unique_by: unique_index_name,
         update_only: %i[status]
       )
+      fetch_inserted_prompt_ids
+    end
 
-      @search.prompts.where(target_id: @target_ids).pluck(:id)
+    def unique_index_name
+      if @target_ids.blank?
+        :index_global_prompts_on_search_and_query
+      else
+        :index_prompts_on_search_target_and_query
+      end
+    end
+
+    def fetch_inserted_prompt_ids
+      @search.prompts.where(target_id: @target_ids.presence).pluck(:id)
     end
 
     def perform_workers(prompt_ids)
@@ -43,26 +52,42 @@ module SearchCampaigns
 
       broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
-      prompt_ids.shuffle.each_with_index do |prompt_id, index| # TODO: investigate if job can fail due to timeout
-        delay = (index * 2) + rand(15..30)
-
-        PromptProcessorJob.perform_in(delay.minutes, prompt_id)
+      prompt_ids.shuffle.each_with_index do |prompt_id, index|
+        PromptProcessorJob.perform_in(calculate_delay(index), prompt_id)
       end
+    end
+
+    def calculate_delay(index)
+      ((index * 2) + rand(15..30)).minutes
     end
 
     def targets_data = @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)
 
-    def query_records
-      @query_records ||= targets_data.map do |target_id, domain|
-        {
-          search_id: @search.id,
-          target_id: target_id,
-          full_query_text: "site:#{domain} #{@search.query_conditions}",
-          status: "pending",
-          created_at: @now,
-          updated_at: @now
-        }
+    def prompt_records
+      @prompt_records ||= @target_ids.blank? ? global_prompt_record : target_prompt_records
+    end
+
+    def global_prompt_record
+      [
+        base_prompt_attributes(nil, @search.query_conditions)
+      ]
+    end
+
+    def target_prompt_records
+      targets_data.map do |target_id, domain|
+        base_prompt_attributes(target_id, "site:#{domain} #{@search.query_conditions}")
       end
+    end
+
+    def base_prompt_attributes(target_id, query_text)
+      {
+        search_id: @search.id,
+        target_id: target_id,
+        full_query_text: query_text,
+        status: "pending",
+        created_at: @now,
+        updated_at: @now
+      }
     end
 
     def broadcast_live_status(message)

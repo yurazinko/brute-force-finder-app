@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Utils
   class UrlNormalizer
     def self.normalize(url, keep_query: false)

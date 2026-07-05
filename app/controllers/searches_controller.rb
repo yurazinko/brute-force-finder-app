@@ -40,8 +40,6 @@ class SearchesController < ApplicationController
   def activate
     target_ids = params[:target_ids] || []
 
-    return respond_with_flash("Please select at least one target website to scrape.") if target_ids.blank?
-
     if @search.activate_search!(target_ids)
       @search.reload
       respond_to do |format|
