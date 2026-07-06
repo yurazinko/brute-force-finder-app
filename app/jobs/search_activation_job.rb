@@ -10,7 +10,6 @@ class SearchActivationJob
     return unless search
 
     target_ids = search.targets.active.pluck(:id)
-    return if target_ids.blank?
 
     SearchCampaigns::Activator.call(search, target_ids)
   end

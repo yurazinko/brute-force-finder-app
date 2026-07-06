@@ -7,17 +7,15 @@ class PromptProcessorJob
 
   def perform(prompt_id)
     updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")
-
     return if updated_count.zero?
 
     prompt = Prompt.find(prompt_id)
     search = prompt.search
     domain = extract_domain(prompt.full_query_text)
-
     query_text = SearchCampaigns::DorkRandomizer.perform(prompt.full_query_text)
 
-    broadcast_live_status(search, "[#{domain}] Requesting data from SearXNG via Tor...")
-    raw_results = Searxng::TorClient.search(query_text, time_range: search.time_frame)
+    broadcast_live_status(search, "[#{domain}] Requesting data from Multi-Instance SearXNG Collector...")
+    raw_results = Searxng::RawResultsCollector.call(query_text, time_range: search.time_frame)
 
     handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
     broadcast_handler_result(search, domain, handler_result)
@@ -34,7 +32,7 @@ class PromptProcessorJob
     elsif result[:raw_count].to_i.positive?
       broadcast_success_status(search, domain, result)
     else
-      broadcast_live_status(search, "[#{domain}] 0 valid URLs extracted (no matches or engine temporary blocked).")
+      broadcast_live_status(search, "[#{domain}] 0 valid URLs extracted (no matches or engines temporary blocked).")
     end
   end
 
