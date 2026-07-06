@@ -13,7 +13,7 @@ module Searxng
 
     def collect
       process_client(Api::TorClient)
-      process_client(Api::PublicInstancesClient)
+      # process_client(Api::PublicInstancesClient)
 
       @combined_data.uniq! { |result| result["url"] }
 
