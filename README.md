@@ -58,7 +58,7 @@ The application environment runs fully isolated via Docker Compose, bridging the
 1. Clone the repo:
 
   ```console
-  git clone [https://github.com/yurazinko/brute-force-finder-app.git](https://github.com/yurazinko/brute-force-finder-app.git)
+  git clone https://github.com/yurazinko/brute-force-finder-app.git
   cd brute-force-finder-app
   ```
 
