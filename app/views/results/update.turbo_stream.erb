@@ -1,12 +1,10 @@
 <%
-  should_remove = (@result.status == "garbage" && params[:current_tab] != "garbage") ||
-                    (@result.status == "interesting" && params[:current_tab] != "interesting") ||
-                    (@result.status == "unread" && params[:current_tab].present?)
+  current_tab = params[:current_tab]
 
-  results_count = @search.results.where(status: @result.status_before_last_save).count
-
-  results_count_after_removal = (should_remove ? results_count - 1 : results_count).clamp(0, results_count)
-
+  should_remove = (@result.status == "garbage" && current_tab != "garbage") ||
+                  (@result.status == "interesting" && current_tab != "interesting") ||
+                  (@result.status == "unread" && current_tab.present? && current_tab != "unread") ||
+                  (@result.status == "watched" && current_tab.present? && current_tab != "watched")
 %>
 
 <% if should_remove %>
@@ -15,9 +13,6 @@
   <%= turbo_stream.replace dom_id(@result), partial: "results/result_card", locals: { result: @result } %>
 <% end %>
 
-<%= turbo_stream.update "counter_all_clean", html: (@search.calculate_counters[:all_clean] || 0).to_s %>
-<%= turbo_stream.update "counter_unread", html: (@search.calculate_counters[:unread] || 0).to_s %>
-<%= turbo_stream.update "counter_interesting", html: (@search.calculate_counters[:interesting] || 0).to_s %>
-<%= turbo_stream.update "counter_watched", html: (@search.calculate_counters[:watched] || 0).to_s %>
-<%= turbo_stream.update "counter_garbage", html: (@search.calculate_counters[:garbage] || 0).to_s %>
-<%= turbo_stream.update "results_count", html: "Showing: #{results_count_after_removal} / #{results_count}" %>
+<%= turbo_stream.replace "search_tabs_navigation" do %>
+  <%= render "searches/tabs_counters", search: @search, counts: @counts %>
+<% end %>

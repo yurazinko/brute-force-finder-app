@@ -29,7 +29,7 @@ Rails.application.routes.draw do
 
   resources :targets, only: %i[create destroy edit update]
 
-  resources :results, only: [:update]
+  resources :results, only: %i[index update]
 
   resources :data_transfers, only: [:index] do
     collection do

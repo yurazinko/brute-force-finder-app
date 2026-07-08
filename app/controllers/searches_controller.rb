@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SearchesController < ApplicationController
+  include ResultFilterable
+
   before_action :set_search, only: %i[show edit update activate destroy]
   before_action :set_categories_for_form, only: %i[new edit create update]
 
@@ -11,13 +13,9 @@ class SearchesController < ApplicationController
 
   def show
     @prompts = @search.prompts.includes(:target)
-    @current_status = params[:status]
-    @search_query = params[:q]
 
-    base_results = @search.results.by_time_frame(params[:d])
-    filtered_results = filter_results_by_status(base_results)
-
-    @counts = params[:page].to_i <= 1 ? @search.calculate_counters(base_results) : {}
+    filtered_results = filter_results(@search.results)
+    @counts = calculate_counters_for(@search.results)
 
     @pagy, @results = pagy(filtered_results.order(sorting_order))
   end
@@ -66,17 +64,6 @@ class SearchesController < ApplicationController
 
   def set_categories_for_form = @categories = Category.includes(:targets).all
 
-  def filter_results_by_status(scope)
-    case @current_status
-    when "garbage", "interesting", "watched"
-      scope.by_status(@current_status)
-    else
-      acknowlegment_filter = @search.show_acknowledged? ? [true, false] : false
-
-      scope.where(status: "unread", acknowledged: acknowlegment_filter)
-    end.search_by_keyword(@search_query)
-  end
-
   def respond_with_flash(alert_msg)
     flash.now[:alert] = alert_msg
     respond_to do |f|
@@ -115,11 +102,5 @@ class SearchesController < ApplicationController
     else
       search_path(@search)
     end
-  end
-
-  def sorting_order
-    { "created_asc" => { created_at: :asc },
-      "updated_desc" => { updated_at: :desc },
-      "updated_asc" => { updated_at: :asc } }.fetch(params[:sort], { created_at: :desc })
   end
 end

@@ -1,0 +1,94 @@
+<% path_provider = search.present? ? search_path(search) : results_path %>
+
+<div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl min-h-[500px] flex flex-col justify-between">
+  <%= turbo_frame_tag "results_pool", class: "block w-full flex flex-col justify-between min-h-[450px]", data: { turbo_action: "advance" } do %>
+    <div>
+      <div class="flex justify-between items-center border-b border-breeze-border pb-4 mb-4">
+        <h2 class="text-lg sm:text-xl font-bold text-breeze-text">Scraped Results Pool</h2>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-breeze-muted mb-6 bg-breeze-bg p-2.5 rounded-lg border border-breeze-border overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
+            📅 <span>Discovery:</span>
+          </span>
+          <%= link_to "All time", url_for(params.to_unsafe_h.merge(page: nil, d: nil)), class: "font-medium inline-block #{params[:d].blank? ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <span class="text-breeze-border">|</span>
+          <%= link_to "Past 24h", url_for(params.to_unsafe_h.merge(page: nil, d: :day)), class: "font-medium inline-block #{params[:d] == 'day' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <span class="text-breeze-border">|</span>
+          <%= link_to "Past Week", url_for(params.to_unsafe_h.merge(page: nil, d: :week)), class: "font-medium inline-block #{params[:d] == 'week' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <span class="text-breeze-border">|</span>
+          <%= link_to "Past Month", url_for(params.to_unsafe_h.merge(page: nil, d: :month)), class: "font-medium inline-block #{params[:d] == 'month' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+        </div>
+
+        <div class="hidden sm:block h-4 border-l border-breeze-border/80"></div>
+
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
+            ↕️ Sort:
+          </span>
+          <%= link_to "Newest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_desc)), class: "font-medium inline-block #{params[:sort].blank? || params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <span class="text-breeze-border">|</span>
+          <%= link_to "Oldest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_asc)), class: "font-medium inline-block #{params[:sort] == 'created_asc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <span class="text-gray-500/40 px-0.5">•</span>
+          <%= link_to "Updated", url_for(params.to_unsafe_h.merge(page: nil, sort: :updated_desc)), class: "font-medium inline-block #{params[:sort] == 'updated_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+        </div>
+
+        <div class="hidden lg:block h-4 border-l border-breeze-border/80 ml-auto"></div>
+
+        <%= form_with(url: path_provider, method: :get, local: true, class: "flex items-center w-full lg:w-auto", data: { turbo_frame: "results_pool", turbo_action: "advance" }) do |f| %>
+          <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
+          <%= hidden_field_tag :d, params[:d] if params[:d].present? %>
+          <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+
+          <%# Зберігаємо вибрані чекбокси кампаній при текстовому пошуку %>
+          <% Array(params[:search_ids]).each do |search_id| %>
+            <%= hidden_field_tag "search_ids[]", search_id %>
+          <% end %>
+
+          <div class="relative w-full lg:w-48 flex items-center">
+            <%= text_field_tag :q, params[:q],
+                                placeholder: "Search results...",
+                                class: "w-full bg-breeze-view text-xs text-breeze-text placeholder-breeze-muted/60 px-2.5 py-1.5 pr-7 rounded border border-breeze-border focus:outline-none focus:border-breeze-accent transition-all font-mono shadow-inner",
+                                oninput: "if(this.value.length > 0 && this.value.length < 3) { this.setCustomValidity('Min 3 chars') } else { this.setCustomValidity(''); if(this.value.length === 0) { this.form.requestSubmit(); } }" %>
+            <% if params[:q].present? %>
+              <%= link_to "✕", url_for(params.to_unsafe_h.merge(page: nil, q: nil)), class: "absolute right-2.5 text-[10px] text-breeze-muted hover:text-red-400 transition" %>
+            <% end %>
+          </div>
+        <% end %>
+
+      </div>
+
+      <div class="border-b border-breeze-border mb-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" id="search_tabs_navigation">
+        <%= render "searches/tabs_counters", search: search, counts: counts %>
+      </div>
+
+      <div class="space-y-4" id="results_pool_list">
+        <% if @results.any? %>
+          <% @results.each do |result| %>
+            <%= render partial: "results/result_card", locals: { result: result }, formats: [:html] %>
+          <% end %>
+        <% else %>
+          <div class="text-center py-24 text-breeze-muted border-2 border-dashed border-breeze-border rounded-xl bg-breeze-bg/30 w-full" id="empty_state">
+            <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <p class="text-base font-medium text-gray-300">No matching data in this filter</p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="mt-6 pt-4 border-t border-breeze-border flex justify-center custom-pagy-container">
+      <%= turbo_frame_tag "results_pool_pagination", data: { controller: "infinite-scroll" } do %>
+        <% if @pagy.next %>
+          <%= link_to "Load more updates...",
+                      url_for(params.to_unsafe_h.merge(page: @pagy.next, format: :turbo_stream)),
+                      data: { infinite_scroll_target: "link" },
+                      class: "invisible block text-center py-2 w-full" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

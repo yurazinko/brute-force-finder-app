@@ -1,0 +1,50 @@
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+
+    <div class="lg:col-span-1 bg-breeze-view p-4 shadow-sm border border-breeze-border rounded-xl space-y-4">
+      <div class="flex justify-between items-center border-b border-breeze-border pb-2">
+        <h2 class="text-xs sm:text-sm font-bold text-breeze-text uppercase tracking-wider">Campaigns Filter</h2>
+        <%= link_to "Clear", results_path(status: params[:status], d: params[:d], sort: params[:sort]), class: "text-[11px] text-breeze-muted hover:text-breeze-accent font-semibold" if @selected_search_ids.any? %>
+      </div>
+
+      <%= form_with(url: results_path, method: :get, local: true, data: { turbo_frame: "results_pool", turbo_action: "advance" }, id: "campaign_filter_form") do |f| %>
+        <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
+        <%= hidden_field_tag :d, params[:d] if params[:d].present? %>
+        <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+        <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
+
+        <div class="space-y-2 max-h-[300px] lg:max-h-[500px] overflow-y-auto pr-1">
+          <% Search.order(created_at: :desc).each do |search| %>
+            <label class="flex items-start space-x-2.5 cursor-pointer text-xs group py-1 px-1.5 rounded hover:bg-breeze-bg transition">
+              <%= check_box_tag "search_ids[]", search.id, @selected_search_ids.include?(search.id.to_s),
+                                class: "rounded border-breeze-border text-breeze-accent scale-95 mt-0.5 cursor-pointer",
+                                onchange: "this.form.requestSubmit();" %>
+              <div class="flex flex-col min-w-0 flex-1">
+                <span class="text-breeze-text font-medium truncate group-hover:text-breeze-accent"><%= search.title %></span>
+              </div>
+            </label>
+          <% end %>
+        </div>
+        <hr class="border-t border-breeze-border my-4" />
+        <div class="border-b border-breeze-border pb-3 mb-3">
+          <label class="flex items-center space-x-3 cursor-pointer py-1.5 px-1 rounded hover:bg-breeze-bg transition">
+            <%= hidden_field_tag :show_acknowledged, "false", id: nil %>
+            <%= check_box_tag :show_acknowledged, "true", params[:show_acknowledged] == "true",
+                              class: "rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer",
+                              onchange: "this.form.requestSubmit();" %>
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-breeze-text">Show Acknowledged</span>
+              <span class="text-[10px] text-breeze-muted">Include archived/reviewed hits</span>
+            </div>
+          </label>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="lg:col-span-3">
+      <%= render "results/results_pool", search: nil, counts: @counts, results: @results, pagy: @pagy %>
+    </div>
+
+  </div>
+</div>

@@ -15,7 +15,7 @@
     rel="noopener"
     data-turbo="false"
     data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
-    data-read-url="<%= result_path(result, status: :watched, current_tab: (params[:status].presence || "unread"), d: params[:d]) %>"
+    data-read-url="<%= result_path(result, status: :watched, current_tab: (params[:status].presence || "unread"), d: params[:d], show_acknowledged: params[:show_acknowledged]) %>"
     data-read-status="<%= result.status %>"
     class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight break-words">
     <%= result.title.presence || "Untitled Result" %>
@@ -30,33 +30,42 @@
 
   <% if result.content.present? %>
     <div class="mt-1 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm h-20 sm:h-24 overflow-hidden">
-
       <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3">
         <%= result.content %>
       </p>
-
     </div>
   <% end %>
 
   <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-breeze-border">
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">
+
       <% unless result.status == "interesting" %>
-        <%= button_to result_path(result, status: :interesting, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
+        <%= button_to result_path(result, status: :interesting, current_tab: params[:status], d: params[:d], show_acknowledged: params[:show_acknowledged], from_global_index: (controller_name == 'results'), search_ids: params[:search_ids]),
+                      method: :patch,
+                      data: { turbo_stream: true },
+                      class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
           <span>⭐ Mark as Interesting</span>
         <% end %>
       <% end %>
 
       <% unless result.status == "garbage" %>
-        <%= button_to result_path(result, status: :garbage, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
+        <%= button_to result_path(result, status: :garbage, current_tab: params[:status], d: params[:d], show_acknowledged: params[:show_acknowledged], from_global_index: (controller_name == 'results'), search_ids: params[:search_ids]),
+                      method: :patch,
+                      data: { turbo_stream: true },
+                      class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
           <span>🗑️ Mark as Garbage</span>
         <% end %>
       <% end %>
 
       <% if %w[interesting watched garbage].include?(result.status) %>
-        <%= button_to result_path(result, status: :unread, acknowledged: false, current_tab: params[:status], d: params[:d]), method: :patch, data: { turbo_stream: true }, class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
+        <%= button_to result_path(result, status: :unread, acknowledged: false, current_tab: params[:status], show_acknowledged: params[:show_acknowledged], d: params[:d], from_global_index: (controller_name == 'results'), search_ids: params[:search_ids]),
+                      method: :patch,
+                      data: { turbo_stream: true },
+                      class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
           <span>↩️ Move to Inbox</span>
         <% end %>
       <% end %>
+
     </div>
 
     <div class="text-[10px] text-breeze-muted font-medium order-1 sm:order-2 self-start sm:self-auto">
