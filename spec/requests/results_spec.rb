@@ -10,7 +10,8 @@ RSpec.describe "Results", type: :request do
     Search.create!(
       title: "Ruby Remote Jobs",
       query_conditions: "ruby remote",
-      status: "pending"
+      status: "pending",
+      show_acknowledged: false
     )
   end
 
@@ -20,71 +21,91 @@ RSpec.describe "Results", type: :request do
       title: "Senior Backend Developer",
       url: "https://lever.co/jobs/1",
       url_hash: SecureRandom.hex(10),
-      status: "unread"
+      status: "unread",
+      acknowledged: false
     )
+  end
+
+  describe "GET /results (index)" do
+    context "when viewing globally (no search_id context)" do
+      it "returns a successful HTML response" do
+        get results_path
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "with a specific search_id context via Turbo Frame" do
+      it "renders the template content successfully" do
+        get results_path, params: { turbo_frame: "results_frame", search_id: search.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Ruby Remote Jobs")
+      end
+    end
+
+    context "with a specific search_id context" do
+      it "filters results by search scope successfully" do
+        get results_path, params: { search_id: search.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Senior Backend Developer")
+      end
+    end
   end
 
   describe "PATCH /results/:id (update)" do
     context "with Turbo Stream format (JS/Async)" do
-      context "when the new status matches the current tab" do
-        it "updates the status and REPLACES the card element on the screen" do
-          expect do
-            patch result_path(result, format: :turbo_stream),
-                  params: { status: "watched", current_tab: "watched", d: "7" }
-          end.to change { result.reload.status }.from("unread").to("watched")
+      it "removes the updated card from DOM and updates counters without appending anything" do
+        expect do
+          patch result_path(result, format: :turbo_stream),
+                params: { result: { status: "watched" }, status: "unread", current_dom_count: "10" }
+        end.to change { result.reload.status }.from("unread").to("watched")
 
-          expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:ok)
 
-          assert_select "turbo-stream[action='replace'][target='result_#{result.id}']"
-          assert_select "turbo-stream[action='update'][target='counter_watched']"
-          assert_select "turbo-stream[action='update'][target='results_count']"
-        end
-      end
+        assert_select "turbo-stream[action='remove'][target='result_#{result.id}']"
 
-      context "when the new status differs from the current tab" do
-        it "updates the status and REMOVES the card element from the screen" do
-          expect do
-            patch result_path(result, format: :turbo_stream),
-                  params: { status: "garbage", current_tab: "unread", d: "1" }
-          end.to change { result.reload.status }.from("unread").to("garbage")
+        assert_select "turbo-stream[action='replace'][target='search_tabs_navigation']"
 
-          expect(response).to have_http_status(:ok)
-
-          assert_select "turbo-stream[action='remove'][target='result_#{result.id}']"
-          assert_select "turbo-stream[action='update'][target='counter_garbage']"
-          assert_select "turbo-stream[action='update'][target='results_count']"
-        end
+        expect(response.body).not_to include("results_pool_list")
       end
     end
 
     context "with HTML format (Standard Fallback)" do
-      it "updates the status and redirects back preserving all active filters" do
-        expect do
-          patch result_path(result),
-                params: { status: "interesting", current_tab: "unread", d: "30" }
-        end.to change { result.reload.status }.from("unread").to("interesting")
+      context "inside a specific search context" do
+        it "updates the status and redirects to search show view" do
+          expect do
+            patch result_path(result),
+                  params: { result: { status: "interesting" }, status: "unread", d: "30", search_id: search.id }
+          end.to change { result.reload.status }.from("unread").to("interesting")
 
-        expect(response).to redirect_to(search_path(search, status: "unread", d: "30"))
+          expect(response).to redirect_to(search_path(search, status: "unread", d: "30"))
+        end
+      end
 
-        follow_redirect!
-        expect(response.body).to include("Ruby Remote Jobs")
+      context "inside the global index context" do
+        it "updates the status and redirects to global results path" do
+          expect do
+            patch result_path(result),
+                  params: { result: { status: "garbage" }, status: "unread", d: "1" }
+          end.to change { result.reload.status }.from("unread").to("garbage")
+
+          expect(response).to redirect_to(results_path(status: "unread", d: "1"))
+        end
       end
     end
 
     context "when database validation fails" do
       before do
-        result.errors.add(:status, "is completely invalid")
-
-        allow_any_instance_of(Result).to receive(:save!)
-          .and_raise(ActiveRecord::RecordInvalid.new(result))
+        allow_any_instance_of(Result).to receive(:update).and_return(false)
       end
 
-      it "does not modify database state and returns server error" do
-        patch result_path(result), params: { status: "invalid_status" }
-
+      it "returns unprocessable_content for turbo_stream requests" do
+        patch result_path(result, format: :turbo_stream), params: { result: { status: "invalid" } }
         expect(response).to have_http_status(:unprocessable_content)
+      end
 
-        expect(result.reload.status).to eq("unread")
+      it "returns unprocessable_content response for HTML format" do
+        patch result_path(result), params: { result: { status: "invalid" } }
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

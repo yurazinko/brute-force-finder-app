@@ -1,0 +1,33 @@
+<div id="results_pool_pagination">
+  <% if @pagy && @pagy.next %>
+    <%
+      pagination_path = if @search.present?
+                          search_path(@search,
+                                      status: params[:status],
+                                      d: params[:d],
+                                      q: params[:q],
+                                      sort: params[:sort],
+                                      page: @pagy.next)
+                        else
+                          results_path(status: params[:status],
+                                       d: params[:d],
+                                       q: params[:q],
+                                       sort: params[:sort],
+                                       search_ids: params[:search_ids],
+                                       page: @pagy.next)
+                        end
+    %>
+
+    <%= link_to "Load more updates...",
+                pagination_path,
+                data: {
+                  controller: "infinite-scroll",
+                  infinite_scroll_target: "link",
+                  turbo_stream: true,
+                  turbo_frame: "_top"
+                },
+                class: "invisible block text-center py-2 w-full" %>
+  <% else %>
+    <p class="text-center text-xs text-breeze-muted py-4">🎉 You've reached the end of the pool.</p>
+  <% end %>
+</div>

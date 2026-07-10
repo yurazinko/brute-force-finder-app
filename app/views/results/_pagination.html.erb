@@ -1,0 +1,12 @@
+<div id="results_pool_pagination" class="mt-4">
+  <% if pagy.next %>
+    <%= link_to "Load more updates...",
+                url_for(params.to_unsafe_h.merge(page: pagy.next, format: :turbo_stream)),
+                data: {
+                  controller: "infinite-scroll",
+                  infinite_scroll_target: "link",
+                  turbo_frame: "_top"
+                },
+                class: "invisible block text-center py-2 w-full" %>
+  <% end %>
+</div>

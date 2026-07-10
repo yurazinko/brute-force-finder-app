@@ -30,7 +30,7 @@
       <tbody class="divide-y divide-breeze-border/40 bg-breeze-view block md:table-row-group" id="searches_list">
         <% if @searches.any? %>
           <% @searches.each do |search| %>
-            <% counts = search.counts_for_index(@raw_counts) %>
+            <% counts = @bulk_counts[search.id] %>
             <% last_action = search.updated_at %>
 
             <tr id="<%= dom_id(search) %>" class="hover:bg-breeze-bg/30 transition-colors group block md:table-row p-4 md:p-0 relative border-b border-breeze-border last:border-b-0 md:border-b-0">

@@ -58,12 +58,26 @@ module ResultFilterable
   def show_ack_enabled?(fallback)
     return ActiveModel::Type::Boolean.new.cast(params[:show_acknowledged]) if params[:show_acknowledged].present?
 
-    return fallback if params[:from_global_index] == "true"
-
     if defined?(@search) && @search.present? && @search.respond_to?(:show_acknowledged?)
       return @search.show_acknowledged?
     end
 
     fallback
+  end
+
+  def parse_filter_options(search_instance: nil)
+    {
+      status: params[:status],
+      time_frame: params[:d],
+      keyword: params[:q],
+      sort: params[:sort],
+      show_acknowledged: params[:show_acknowledged].presence || search_instance&.show_acknowledged
+    }
+  end
+
+  def fetch_filtered_results(base_scope, filter_options)
+    @counts = Results::Counters.calculate_filtered(base_scope, filter_options)
+
+    @pagy, @results = pagy(Results::Index.new(base_scope, filter_options).call)
   end
 end

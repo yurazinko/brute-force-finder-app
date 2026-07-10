@@ -29,7 +29,6 @@
         <hr class="border-t border-breeze-border my-4" />
         <div class="border-b border-breeze-border pb-3 mb-3">
           <label class="flex items-center space-x-3 cursor-pointer py-1.5 px-1 rounded hover:bg-breeze-bg transition">
-            <%= hidden_field_tag :show_acknowledged, "false", id: nil %>
             <%= check_box_tag :show_acknowledged, "true", params[:show_acknowledged] == "true",
                               class: "rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer",
                               onchange: "this.form.requestSubmit();" %>

@@ -3,82 +3,40 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["link"]
 
-  get linkElement(): HTMLAnchorElement | null {
-    return this.hasLinkTarget ? (this.linkTarget as HTMLAnchorElement) : null
-  }
-
-  declare readonly linkTarget: HTMLElement
-  declare readonly hasLinkTarget: boolean
-
-  private observer!: IntersectionObserver
-  private resizeObserver!: ResizeObserver
-  private isLoading: boolean = false
-
-  connect(): void {
-    this.isLoading = false
-
+  connect() {
+    this.loading = false
     this.observer = new IntersectionObserver(this.handleIntersect.bind(this), {
-      rootMargin: "300px",
+      rootMargin: "200px",
     })
 
-    if (this.linkElement) {
-      this.observer.observe(this.linkElement)
+    if (this.hasLinkTarget) {
+      this.observer.observe(this.linkTarget)
     }
-    this.resizeObserver = new ResizeObserver(() => {
-      this.checkVisibility()
-    })
 
-    this.resizeObserver.observe(document.body)
+    this.turboRenderHandler = () => { this.loading = false }
+    document.addEventListener("turbo:render", this.turboRenderHandler)
   }
 
-  disconnect(): void {
-    if (this.observer) {
-      this.observer.disconnect()
-    }
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect()
-    }
+  disconnect() {
+    if (this.observer) this.observer.disconnect()
+    document.removeEventListener("turbo:render", this.turboRenderHandler)
   }
 
-  private handleIntersect(entries: IntersectionObserverEntry[]): void {
-    entries.forEach((entry: IntersectionObserverEntry) => {
-      if (entry.isIntersecting) {
-        this.triggerLoad()
+  handleIntersect(entries) {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && !this.loading) {
+        this.loadMore()
       }
     })
   }
 
-  private checkVisibility(): void {
-    if (!this.linkElement || this.isLoading) return
+  loadMore() {
+    this.loading = true
 
-    const rect = this.linkElement.getBoundingClientRect()
-
-    if (rect.top <= window.innerHeight + 300 && rect.bottom >= 0) {
-      this.triggerLoad()
-    }
-  }
-
-  private triggerLoad(): void {
-    if (this.linkElement && !this.isLoading) {
-      this.isLoading = true
-
-      const listContainer = document.getElementById("results_pool_list")
-      if (listContainer) {
-        const visibleCards = listContainer.querySelectorAll(":scope > div[id^='result_']:not(.hidden)")
-        const currentVisibleCount = visibleCards.length
-
-        const calculatedNextPage = Math.floor(currentVisibleCount / 20) + 1
-
-        try {
-          const url = new URL(this.linkElement.href)
-          url.searchParams.set("page", calculatedNextPage.toString())
-
-          this.linkElement.href = url.toString()
-        } catch (e) {
-        }
+    requestAnimationFrame(() => {
+      if (this.hasLinkTarget) {
+        this.linkTarget.click()
       }
-
-      this.linkElement.click()
-    }
+    })
   }
 }

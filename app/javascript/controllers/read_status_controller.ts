@@ -19,7 +19,6 @@ export default class extends Controller {
     }
 
     this.optimisticUpdateCounters()
-
     link.setAttribute("data-read-status", "watched")
 
     const card = link.closest(".flex.flex-col.gap-2") as HTMLElement
@@ -27,23 +26,30 @@ export default class extends Controller {
       card.classList.add("opacity-60")
     }
 
+    // Готуємо дані у правильному Rails-форматі
+    const bodyData = {
+      result: {
+        status: "watched"
+      },
+      // Якщо контролеру потрібні ці параметри для рендеру Turbo Stream відповіді,
+      // ми можемо передати їх поруч
+      current_tab: link.getAttribute("data-current-tab") || "unread",
+      status_filter: "watched"
+    }
+
     fetch(url, {
       method: "PATCH",
       headers: {
         "X-CSRF-Token": this.getCsrfToken(),
+        "Content-Type": "application/json", // Додаємо заголовок типу контенту
         "Accept": "text/html; turbo-stream",
         "X-Requested-With": "XMLHttpRequest"
-      }
+      },
+      body: JSON.stringify(bodyData) // Передаємо дані в тілі запиту
     })
     .then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       return response.text()
-    })
-    .then(html => {
-      const holder = document.createElement("div")
-      holder.innerHTML = html
-      document.body.appendChild(holder)
-      holder.remove()
     })
   }
 

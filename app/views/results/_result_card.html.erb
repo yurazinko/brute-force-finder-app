@@ -5,7 +5,8 @@
 %>
 
 <div id="<%= dom_id(result) %>"
-     data-controller="read-status"
+     data-result-card-id="<%= result.id %>"
+     data-controller="read-status result-card"
      data-read-status-url-value="<%= result_path(result) %>"
      data-read-status-current-status-value="<%= result.status %>"
      class="p-4 sm:p-5 border border-breeze-border rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition bg-breeze-bg/50 flex flex-col gap-2 <%= 'opacity-50 duration-500' if should_dim %>">
@@ -40,8 +41,18 @@
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">
 
       <% unless result.status == "interesting" %>
-        <%= button_to result_path(result, status: :interesting, current_tab: params[:status], d: params[:d], show_acknowledged: params[:show_acknowledged], from_global_index: (controller_name == 'results'), search_ids: params[:search_ids]),
+        <%= button_to result_path(result,
+                      "result[status]": :interesting,
+                      status: params[:status],
+                      d: params[:d],
+                      q: params[:q],
+                      sort: params[:sort],
+                      show_acknowledged: params[:show_acknowledged],
+                      search_ids: params[:search_ids],
+                      search_id: @search&.id,
+                      current_dom_count: 0),
                       method: :patch,
+                      form: { data: { action: "submit->result-card#appendDomCount" } },
                       data: { turbo_stream: true },
                       class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
           <span>⭐ Mark as Interesting</span>
@@ -49,8 +60,18 @@
       <% end %>
 
       <% unless result.status == "garbage" %>
-        <%= button_to result_path(result, status: :garbage, current_tab: params[:status], d: params[:d], show_acknowledged: params[:show_acknowledged], from_global_index: (controller_name == 'results'), search_ids: params[:search_ids]),
+        <%= button_to result_path(result,
+                      "result[status]": :garbage,
+                      status: params[:status],
+                      d: params[:d],
+                      q: params[:q],
+                      sort: params[:sort],
+                      show_acknowledged: params[:show_acknowledged],
+                      search_ids: params[:search_ids],
+                      search_id: @search&.id,
+                      current_dom_count: 0),
                       method: :patch,
+                      form: { data: { action: "submit->result-card#appendDomCount" } },
                       data: { turbo_stream: true },
                       class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
           <span>🗑️ Mark as Garbage</span>
@@ -58,8 +79,19 @@
       <% end %>
 
       <% if %w[interesting watched garbage].include?(result.status) %>
-        <%= button_to result_path(result, status: :unread, acknowledged: false, current_tab: params[:status], show_acknowledged: params[:show_acknowledged], d: params[:d], from_global_index: (controller_name == 'results'), search_ids: params[:search_ids]),
+        <%= button_to result_path(result,
+                      "result[status]": :unread,
+                      "result[acknowledged]": false,
+                      status: params[:status],
+                      show_acknowledged: params[:show_acknowledged],
+                      d: params[:d],
+                      q: params[:q],
+                      sort: params[:sort],
+                      search_ids: params[:search_ids],
+                      search_id: @search&.id,
+                      current_dom_count: 0),
                       method: :patch,
+                      form: { data: { action: "submit->result-card#appendDomCount" } },
                       data: { turbo_stream: true },
                       class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
           <span>↩️ Move to Inbox</span>

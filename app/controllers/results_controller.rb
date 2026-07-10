@@ -3,53 +3,97 @@
 class ResultsController < ApplicationController
   include ResultFilterable
 
-  before_action :find_result, only: [:update]
+  before_action :set_scopes_and_options
 
   def index
     @selected_search_ids = params[:search_ids] || []
-    base_scope = scope_for_selected_searches
 
-    filtered_results = filter_results(base_scope, show_acknowledged_fallback: false)
-    @counts = calculate_counters_for(base_scope, show_acknowledged_fallback: false)
+    fetch_filtered_results(@base_scope, @filter_options) # Тут сетається @results та @pagy
 
-    @pagy, @results = pagy(filtered_results.order(sorting_order))
-    @index_path_helper = :results_path
+    respond_to do |format|
+      format.html { render "searches/show" if params[:turbo_frame].present? }
+      format.html
+      format.turbo_stream
+    end
   end
 
   def update
-    @result.update!(result_params)
-    @search = @result.search
+    @result = Result.find(params.expect(:id))
 
-    @counts = calculate_counters
-
-    respond_to do |format|
-      format.turbo_stream { render :update, status: :ok }
-      format.html { redirect_to search_path(@search, status: params[:current_tab], d: params[:d]) }
+    if @result.update(result_params)
+      prepare_update_variables
+      respond_to_successful_update
+    else
+      head :unprocessable_content
     end
   end
 
   private
 
-  def find_result
-    @result = Result.find(params.expect(:id))
+  def set_scopes_and_options
+    @search = Search.find_by(id: params[:search_id])
+
+    @base_scope = if @search
+                    @search.results
+                  elsif params[:search_ids].present?
+                    Result.where(search_id: params[:search_ids])
+                  else
+                    Result.all
+                  end
+
+    @filter_options = parse_filter_options(search_instance: @search)
   end
 
-  def calculate_counters
-    if params[:from_global_index] == "true"
-      @selected_search_ids = params[:search_ids] || []
-      calculate_counters_for(scope_for_selected_searches, show_acknowledged_fallback: false)
+  def prepare_update_variables
+    dom_count = params[:current_dom_count].to_i
+    dom_count = 20 if dom_count.zero?
+
+    @next_card = Results::FeedRefill.next_card(
+      base_scope: @base_scope,
+      removed_id: @result.id,
+      current_dom_count: dom_count,
+      options: @filter_options
+    )
+
+    @counts = Results::Counters.calculate_filtered(@base_scope, @filter_options, @search)
+  end
+
+  def respond_to_successful_update
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream_update_payload }
+      format.html { redirect_after_update }
+    end
+  end
+
+  def turbo_stream_update_payload
+    [
+      turbo_stream.remove(@result),
+
+      turbo_stream.replace(
+        "search_tabs_navigation",
+        partial: "searches/tabs_counters",
+        locals: { search: @search, counts: @counts }
+      )
+    ]
+  end
+
+  def redirect_after_update
+    common_params = {
+      status: params[:status],
+      d: params[:d],
+      q: params[:q],
+      sort: params[:sort],
+      show_acknowledged: params[:show_acknowledged]
+    }
+
+    if @search.present?
+      redirect_to search_path(@search, common_params)
     else
-      calculate_counters_for(@search.results, show_acknowledged_fallback: false)
+      redirect_to results_path(common_params.merge(search_ids: params[:search_ids]))
     end
   end
 
   def result_params
-    params.permit(:status, :acknowledged)
-  end
-
-  def scope_for_selected_searches
-    scope = Result.all
-    scope = scope.where(search_id: @selected_search_ids) if @selected_search_ids.any?
-    scope
+    params.expect(result: %i[status acknowledged])
   end
 end

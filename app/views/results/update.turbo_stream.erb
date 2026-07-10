@@ -13,6 +13,18 @@
   <%= turbo_stream.replace dom_id(@result), partial: "results/result_card", locals: { result: @result } %>
 <% end %>
 
-<%= turbo_stream.replace "search_tabs_navigation" do %>
-  <%= render "searches/tabs_counters", search: @search, counts: @counts %>
+<%= turbo_stream.update "counter_unread" do %>
+  <%= @counts[:unread] || 0 %>
+<% end %>
+
+<%= turbo_stream.update "counter_watched" do %>
+  <%= @counts[:watched] || 0 %>
+<% end %>
+
+<%= turbo_stream.update "counter_interesting" do %>
+  <%= @counts[:interesting] || 0 %>
+<% end %>
+
+<%= turbo_stream.update "counter_garbage" do %>
+  <%= @counts[:garbage] || 0 %>
 <% end %>

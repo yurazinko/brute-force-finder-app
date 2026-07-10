@@ -8,16 +8,21 @@ class SearchesController < ApplicationController
 
   def index
     @searches = Search.order(created_at: :desc)
-    @raw_counts = Result.where(search_id: @searches.pluck(:id)).group(:search_id, :status, :acknowledged).count
+    filters = parse_filter_options
+    @bulk_counts = Results::Counters.bulk_calculate(@searches, filters)
   end
 
   def show
-    @prompts = @search.prompts.includes(:target)
+    @search = Search.find(params.expect(:id))
+    @base_scope = @search.results
+    @filter_options = parse_filter_options(search_instance: @search)
 
-    filtered_results = filter_results(@search.results)
-    @counts = calculate_counters_for(@search.results)
+    fetch_filtered_results(@base_scope, @filter_options)
 
-    @pagy, @results = pagy(filtered_results.order(sorting_order))
+    respond_to do |format|
+      format.html
+      format.turbo_stream { render "results/index" } # Використовуємо той самий шаблон пагінації!
+    end
   end
 
   def new = @search = Search.new

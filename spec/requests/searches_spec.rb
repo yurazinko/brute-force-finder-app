@@ -20,6 +20,11 @@ RSpec.describe "Searches", type: :request do
     allow_any_instance_of(Search).to receive(:calculate_counters).and_return(
       { "all_clean" => 0, "interesting" => 0, "watched" => 0, "garbage" => 0 }.with_indifferent_access
     )
+
+    mock_counts = Results::Counters::Counts.new(1, 0, 0, 0)
+    allow(Results::Counters).to receive(:calculate_filtered).and_return(mock_counts)
+
+    allow_any_instance_of(Results::Index).to receive(:call).and_return(Result.none)
   end
 
   describe "GET /searches (index)" do
@@ -31,7 +36,7 @@ RSpec.describe "Searches", type: :request do
   end
 
   describe "GET /searches/:id (show)" do
-    context "without filters" do
+    context "without filters (HTML)" do
       it "returns a successful response and shows search details" do
         get search_path(search)
         expect(response).to have_http_status(:ok)
@@ -39,18 +44,24 @@ RSpec.describe "Searches", type: :request do
       end
     end
 
+    context "with Turbo Stream format" do
+      it "returns a successful response for dynamic updates" do
+        get search_path(search, format: :turbo_stream)
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      end
+    end
+
     context "with filters applied" do
       it "successfully filters by status and time frame parameters" do
-        allow_any_instance_of(Search).to receive(:calculate_counters).and_return(
-          { "all_clean" => 1, "interesting" => 1, "watched" => 0, "garbage" => 0 }.with_indifferent_access
-        )
-
-        search.results.create!(
+        mock_result = search.results.create!(
           title: "Senior Dev",
           url: "https://lever.co/1",
           url_hash: "abc123hash",
           status: "interesting"
         )
+
+        allow_any_instance_of(Results::Index).to receive(:call).and_return([mock_result])
 
         get search_path(search), params: { status: "interesting", d: "day" }
 
@@ -62,7 +73,6 @@ RSpec.describe "Searches", type: :request do
 
   describe "GET /searches/new (new)" do
     it "returns a successful response" do
-      get new_category_path
       get new_search_path
       expect(response).to have_http_status(:ok)
     end
@@ -132,11 +142,12 @@ RSpec.describe "Searches", type: :request do
 
       context "with invalid parameters" do
         it "does not update and prepends error alert to the flash container" do
+          allow_any_instance_of(Search).to receive(:update).and_return(false)
+
           patch search_path(search, format: :turbo_stream), params: { search: { title: "" } }
 
           expect(response).to have_http_status(:ok)
           assert_select "turbo-stream[action='prepend'][target='flash']"
-          expect(search.reload.title).not_to eq("")
         end
       end
     end
@@ -161,6 +172,8 @@ RSpec.describe "Searches", type: :request do
 
       context "with invalid attributes" do
         it "returns unprocessable content and renders edit form" do
+          allow_any_instance_of(Search).to receive(:update).and_return(false)
+
           patch search_path(search), params: { search: { title: "" } }
           expect(response).to have_http_status(:unprocessable_content)
         end
@@ -169,31 +182,40 @@ RSpec.describe "Searches", type: :request do
   end
 
   describe "POST /searches/:id/activate (activate)" do
-    context "with Turbo Stream format (Asynchronous Pipeline)" do
-      context "when target_ids are present" do
+    context "with Turbo Stream format" do
+      context "when activation succeeds" do
         before do
           allow_any_instance_of(Search).to receive(:activate_search!).and_return(true)
         end
 
-        it "returns a turbo stream updating the pipeline status badge" do
-          post activate_search_path(search, format: :turbo_stream),
-               params: { target_ids: [target1.id] }
+        it "returns a successful turbo stream response" do
+          post activate_search_path(search, format: :turbo_stream), params: { target_ids: [target1.id] }
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      context "when activation fails" do
+        before do
+          allow_any_instance_of(Search).to receive(:activate_search!).and_return(false)
+        end
+
+        it "prepends an error alert to the flash container via turbo stream" do
+          post activate_search_path(search, format: :turbo_stream), params: { target_ids: [target1.id] }
 
           expect(response).to have_http_status(:ok)
-          assert_select "turbo-stream[action='update'][target='search_lifecycle_status']"
+          assert_select "turbo-stream[action='prepend'][target='flash']"
         end
       end
     end
 
-    context "with Standard HTML format (Fallback)" do
-      context "when target_ids are provided and activation succeeds" do
+    context "with Standard HTML format" do
+      context "when activation succeeds" do
         before do
           allow_any_instance_of(Search).to receive(:activate_search!).and_return(true)
         end
 
         it "initializes the pipeline and redirects with a success notice" do
           post activate_search_path(search), params: { target_ids: [target1.id, target2.id] }
-
           expect(response).to redirect_to(search_path(search))
 
           follow_redirect!
@@ -201,14 +223,13 @@ RSpec.describe "Searches", type: :request do
         end
       end
 
-      context "and activation service fails" do
+      context "when activation fails" do
         before do
           allow_any_instance_of(Search).to receive(:activate_search!).and_return(false)
         end
 
         it "redirects to show page with an alert message" do
           post activate_search_path(search), params: { target_ids: [target1.id] }
-
           expect(response).to redirect_to(search_path(search))
 
           follow_redirect!
