@@ -4,7 +4,6 @@ x-app: &app
   build:
     context: .
     dockerfile: Dockerfile.dev
-  image: ruby:4.0.5-slim
   stdin_open: true
   tty: true
   volumes:

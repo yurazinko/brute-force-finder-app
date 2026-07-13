@@ -19,7 +19,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
   # Sidekiq testing helpers require clearing queues
   before do
     allow(Turbo::StreamsChannel).to receive(:broadcast_render_to)
-    allow(PromptProcessorJob).to receive(:perform_in)
+    allow(PromptProcessorJob).to receive(:perform_at)
   end
 
   describe ".call" do
@@ -51,7 +51,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
 
       it "triggers Sidekiq workers with delayed execution" do
         described_class.call(search, target_ids)
-        expect(PromptProcessorJob).to have_received(:perform_in).twice
+        expect(PromptProcessorJob).to have_received(:perform_at).twice
       end
 
       it "broadcasts live status updating to Turbo Streams" do
@@ -111,7 +111,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
       context "when targets exist but none of them are active" do
         it "does not create any prompts, skips jobs and returns true" do
           expect { described_class.call(search, [target_inactive.id]) }.not_to change(Prompt, :count)
-          expect(PromptProcessorJob).not_to have_received(:perform_in)
+          expect(PromptProcessorJob).not_to have_received(:perform_at)
           expect(search.reload.status).to eq("processing")
         end
       end

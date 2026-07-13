@@ -52,13 +52,20 @@ module SearchCampaigns
 
       broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
+      step = 6.hours / prompt_ids.size
+
       prompt_ids.shuffle.each_with_index do |prompt_id, index|
-        PromptProcessorJob.perform_in(calculate_delay(index), prompt_id)
+        scheduled_time = calculate_scheduled_time(index, step)
+        PromptProcessorJob.perform_at(scheduled_time, prompt_id)
       end
     end
 
-    def calculate_delay(index)
-      ((index * 2) + rand(30..45)).minutes
+    def calculate_scheduled_time(index, step)
+      base_time = @now + (index * step)
+
+      jitter = rand((-step.to_f / 2)..(step.to_f / 2))
+
+      [base_time + jitter, @now].max
     end
 
     def targets_data = @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)
