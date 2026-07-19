@@ -14,7 +14,15 @@ class Search < ApplicationRecord
   validates :status, inclusion: { in: ALLOWED_STATUSES }
   validates :time_frame, inclusion: { in: ALLOWED_TIME_FRAMES }, allow_nil: true
 
-  after_update_commit :invalidate_old_prompts, if: :saved_change_to_query_conditions?
+  def target_ids=(ids)
+    if will_save_change_to_query_conditions?
+      prompts.delete_all
+    else
+      super
+    end
+
+    super
+  end
 
   def activate_search!(target_ids)
     SearchCampaigns::Activator.call(self, target_ids)
@@ -26,11 +34,5 @@ class Search < ApplicationRecord
 
   def counts_for_index(raw_counts)
     SearchCampaigns::CountersCalculator.new(self).for_index(raw_counts)
-  end
-
-  private
-
-  def invalidate_old_prompts
-    prompts.delete_all
   end
 end
