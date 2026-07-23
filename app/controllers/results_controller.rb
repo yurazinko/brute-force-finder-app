@@ -8,7 +8,7 @@ class ResultsController < ApplicationController
   def index
     @selected_search_ids = params[:search_ids] || []
 
-    fetch_filtered_results(@base_scope, @filter_options) # Тут сетається @results та @pagy
+    fetch_filtered_results(@base_scope, @filter_options)
 
     respond_to do |format|
       format.html { render "searches/show" if params[:turbo_frame].present? }
@@ -66,15 +66,21 @@ class ResultsController < ApplicationController
   end
 
   def turbo_stream_update_payload
-    [
+    streams = [
       turbo_stream.remove(@result),
-
       turbo_stream.replace(
         "search_tabs_navigation",
         partial: "searches/tabs_counters",
         locals: { search: @search, counts: @counts }
       )
     ]
+
+    if @next_card
+      streams << turbo_stream.append("results_pool_list", partial: "results/result_card",
+                                                          locals: { result: @next_card })
+    end
+
+    streams
   end
 
   def redirect_after_update

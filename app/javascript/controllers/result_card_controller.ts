@@ -1,21 +1,15 @@
-import { Controller } from "@hotwired/stimulus";
+import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  appendDomCount(event: SubmitEvent): void {
-    const form = event.currentTarget as HTMLFormElement | null;
-    if (!form) return;
+appendDomCount(event) {
+  const form = event.target
+  const feedContainer = document.querySelector("#results_pool_list")
+  const currentDomCount = feedContainer ? feedContainer.children.length : 0
 
-    const totalCards = document.querySelectorAll("#results_pool_list [data-result-id]").length;
-
-    let countInput = form.querySelector('input[name="current_dom_count"]') as HTMLInputElement | null;
-
-    if (!countInput) {
-      countInput = document.createElement("input");
-      countInput.type = "hidden";
-      countInput.name = "current_dom_count";
-      form.appendChild(countInput);
-    }
-
-    countInput.value = totalCards.toString();
+  if (currentDomCount > 0) {
+    const actionUrl = new URL(form.action, window.location.origin)
+    actionUrl.searchParams.set("current_dom_count", currentDomCount)
+    form.action = actionUrl.toString()
   }
+}
 }

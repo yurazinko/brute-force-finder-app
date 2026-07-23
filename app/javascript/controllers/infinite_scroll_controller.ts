@@ -5,21 +5,18 @@ export default class extends Controller {
 
   connect() {
     this.loading = false
+
     this.observer = new IntersectionObserver(this.handleIntersect.bind(this), {
-      rootMargin: "200px",
+      rootMargin: "300px",
     })
 
     if (this.hasLinkTarget) {
       this.observer.observe(this.linkTarget)
     }
-
-    this.turboRenderHandler = () => { this.loading = false }
-    document.addEventListener("turbo:render", this.turboRenderHandler)
   }
 
   disconnect() {
     if (this.observer) this.observer.disconnect()
-    document.removeEventListener("turbo:render", this.turboRenderHandler)
   }
 
   handleIntersect(entries) {
@@ -31,11 +28,21 @@ export default class extends Controller {
   }
 
   loadMore() {
+    if (!this.hasLinkTarget || this.loading) return
+
     this.loading = true
+
+    const resetLoading = () => {
+      setTimeout(() => { this.loading = false }, 200)
+      this.linkTarget.removeEventListener("turbo:click-end", resetLoading)
+    }
+    this.linkTarget.addEventListener("turbo:click-end", resetLoading)
 
     requestAnimationFrame(() => {
       if (this.hasLinkTarget) {
         this.linkTarget.click()
+      } else {
+        this.loading = false
       }
     })
   }
