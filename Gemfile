@@ -47,7 +47,7 @@ gem "image_processing", "~> 1.2", require: false
 
 gem "httparty", "~>  0.24.2", require: false
 
-gem "pagy", "~> 43.5"
+gem "pagy", "~> 43.6"
 
 gem "redis"
 
