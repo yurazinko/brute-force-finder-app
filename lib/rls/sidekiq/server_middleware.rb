@@ -22,7 +22,7 @@ module Rls
 
       def extract_from_hash(args)
         hash = args.find { |arg| arg.is_a?(Hash) } || {}
-        hash.with_indifferent_access.values_at(:user_id, :_user_id).compact.first
+        hash.with_indifferent_access.slice(:user_id, :_user_id).values.compact.first
       end
 
       def extract_by_param_name(worker, args)
