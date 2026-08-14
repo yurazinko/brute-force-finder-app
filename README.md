@@ -85,7 +85,7 @@ Once ready, navigate to: [http://localhost:3000](http://localhost:3000)
 
 ## Rails console usage
 
-Due to RLS strategy, console should be run under postgres superuser:
+Due to database RLS strategy, console should be run under postgres superuser:
 
 ```console
 docker-compose run -e DATABASE_URL="postgres://postgres:password@db:5432/brute_force_finder_app_development" app bundle exec rails c

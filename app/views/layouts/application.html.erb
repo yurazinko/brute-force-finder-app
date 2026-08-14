@@ -20,7 +20,9 @@
   </head>
 
   <body class="bg-breeze-bg text-breeze-text flex flex-col min-h-screen">
-    <%= render "layouts/flash" %>
+    <div id="flash">
+      <%= render "layouts/flash" %>
+    </div>
 
     <% if current_user.present? %>
       <nav class="bg-breeze-view border-b border-breeze-border sticky top-0 z-50 shadow-sm h-16 flex items-center">

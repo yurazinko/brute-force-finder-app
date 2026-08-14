@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Search < ApplicationRecord
-  ALLOWED_STATUSES = %w[pending processing completed failed].freeze
+  ALLOWED_STATUSES = %w[pending processing completed failed paused].freeze
   ALLOWED_TIME_FRAMES = [nil, "day", "week", "month", "year"].freeze
 
   belongs_to :user
@@ -24,6 +24,22 @@ class Search < ApplicationRecord
     end
 
     super
+  end
+
+  def paused?
+    status == "paused"
+  end
+
+  def pause!
+    update!(status: "paused")
+  end
+
+  def resume!
+    update!(status: "pending")
+  end
+
+  def force_complete!
+    update!(status: "completed")
   end
 
   def activate_search!(target_ids)
