@@ -2,7 +2,8 @@
 
 require "rails_helper"
 
-RSpec.describe DataImportService, type: :service do
+RSpec.describe Database::DataImportService, type: :service do
+  let(:user) { create(:user) }
   let(:temp_file_path) { Rails.root.join("tmp", "test_import_#{SecureRandom.hex}.json") }
 
   let(:valid_json_data) do
@@ -26,7 +27,7 @@ RSpec.describe DataImportService, type: :service do
   describe "#call" do
     context "when file does not exist" do
       it "returns false" do
-        service = described_with_file_path("non_existent_file.json")
+        service = described_class.new("non_existent_file.json", user_id: user.id)
         expect(service.call).to be false
       end
     end
@@ -38,28 +39,28 @@ RSpec.describe DataImportService, type: :service do
 
       it "imports data into the database" do
         expect do
-          described_class.new(temp_file_path).call
+          described_class.new(temp_file_path, user_id: user.id).call
         end.to change(Category, :count).by(1)
                                        .and change(Target, :count).by(1)
 
-        category = Category.find(1)
+        category = Category.find_by!(user_id: user.id, name: "Tech")
         expect(category.name).to eq("Tech")
       end
 
       it "performs an upsert if the record already exists" do
-        Category.create!(id: 1, name: "Old Name")
+        Category.create!(user_id: user.id, name: "Tech")
 
         expect do
-          described_class.new(temp_file_path).call
+          described_class.new(temp_file_path, user_id: user.id).call
         end.not_to change(Category, :count)
 
-        expect(Category.find(1).name).to eq("Tech")
+        expect(Category.find_by(user_id: user.id, name: "Tech")).to be_present
       end
 
       it "tracks progress via block execution" do
         yielded_progress = []
 
-        described_class.new(temp_file_path).call do |progress, message|
+        described_class.new(temp_file_path, user_id: user.id).call do |progress, message|
           yielded_progress << { progress: progress, message: message }
         end
 
@@ -70,13 +71,9 @@ RSpec.describe DataImportService, type: :service do
 
       it "deletes the file after processing" do
         expect(File.exist?(temp_file_path)).to be true
-        described_class.new(temp_file_path).call
+        described_class.new(temp_file_path, user_id: user.id).call
         expect(File.exist?(temp_file_path)).to be false
       end
     end
-  end
-
-  def described_with_file_path(path)
-    described_class.new(path)
   end
 end

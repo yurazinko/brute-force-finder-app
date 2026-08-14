@@ -11,7 +11,7 @@ class DataTransfersController < ApplicationController
   def import
     if params[:file].present?
       temp_path = save_uploaded_file!
-      DataImportJob.perform_async(temp_path)
+      DataImportJob.perform_async(temp_path, current_user.id)
 
       render_progress_stream("import", "File uploaded. Starting sync...")
     else

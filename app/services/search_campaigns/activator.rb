@@ -53,10 +53,11 @@ module SearchCampaigns
       broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
 
       step = 6.hours / prompt_ids.size
+      user_id = @search.user_id
 
       prompt_ids.shuffle.each_with_index do |prompt_id, index|
         scheduled_time = calculate_scheduled_time(index, step)
-        PromptProcessorJob.perform_at(scheduled_time, prompt_id)
+        PromptProcessorJob.perform_at(scheduled_time, prompt_id, user_id)
       end
     end
 

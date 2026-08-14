@@ -47,7 +47,9 @@ module Searxng
       private
 
       def initialize_pool = raise(NotImplementedError)
+
       def next_available_instance = raise(NotImplementedError)
+
       def logger_tag = raise(NotImplementedError)
 
       def perform_request(instance)

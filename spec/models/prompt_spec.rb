@@ -16,9 +16,10 @@ RSpec.describe Prompt, type: :model do
   end
 
   describe "validations" do
+    let(:user) { create(:user) }
     let(:category) { Category.create!(name: "Tech Platforms") }
     let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co") }
-    let(:search) { Search.create!(title: "Ruby Job", query_conditions: "ruby", status: "pending") }
+    let(:search) { Search.create!(user: user, title: "Ruby Job", query_conditions: "ruby", status: "pending") }
 
     it "is valid with valid attributes and a correct status" do
       %w[pending active failed success].each do |valid_status|
@@ -59,9 +60,10 @@ RSpec.describe Prompt, type: :model do
 
   describe "callbacks" do
     describe "before_validation :generate_full_query_text" do
+      let(:user) { create(:user) }
       let(:category) { Category.create!(name: "Tech Platforms") }
       let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co") }
-      let(:search) { Search.create!(title: "Ruby Job", query_conditions: "ruby", status: "pending") }
+      let(:search) { Search.create!(user: user, title: "Ruby Job", query_conditions: "ruby", status: "pending") }
 
       context "when full_query_text is blank" do
         it "automatically generates the correct query text before running validations" do

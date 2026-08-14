@@ -6,12 +6,12 @@ RSpec.describe SearchActivationJob, type: :job do
   include FactoryBot::Syntax::Methods
 
   describe "#perform" do
-    let(:search) { create(:search) }
+    let(:user) { create(:user) }
+    let(:search) { create(:search, user: user) }
     let(:active_target)   { create(:target, :active) }
     let(:inactive_target) { create(:target, :inactive) }
 
     before do
-      # Переносимо allow всередину before блоку
       allow(SearchCampaigns::Activator).to receive(:call).and_return(true)
     end
 
@@ -22,7 +22,7 @@ RSpec.describe SearchActivationJob, type: :job do
       end
 
       it "calls SearchCampaigns::Activator with active target ids" do
-        described_class.new.perform(search.id)
+        described_class.new.perform(search.id, user.id)
 
         expect(SearchCampaigns::Activator).to have_received(:call).with(
           search,
@@ -33,7 +33,7 @@ RSpec.describe SearchActivationJob, type: :job do
 
     context "when search campaign does not exist" do
       it "safely returns without calling activator" do
-        described_class.new.perform(999_999)
+        described_class.new.perform(999_999, user.id)
 
         expect(SearchCampaigns::Activator).not_to have_received(:call)
       end

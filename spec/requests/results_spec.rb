@@ -3,11 +3,15 @@
 require "rails_helper"
 
 RSpec.describe "Results", type: :request do
+  include Devise::Test::IntegrationHelpers
+
+  let(:user) { create(:user) }
   let(:category) { Category.create!(name: "HR Tech") }
   let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co") }
 
   let(:search) do
     Search.create!(
+      user: user,
       title: "Ruby Remote Jobs",
       query_conditions: "ruby remote",
       status: "pending",
@@ -24,6 +28,10 @@ RSpec.describe "Results", type: :request do
       status: "unread",
       acknowledged: false
     )
+  end
+
+  before do
+    sign_in user if respond_to?(:sign_in)
   end
 
   describe "GET /results (index)" do
@@ -62,7 +70,6 @@ RSpec.describe "Results", type: :request do
         expect(response).to have_http_status(:ok)
 
         assert_select "turbo-stream[action='remove'][target='result_#{result.id}']"
-
         assert_select "turbo-stream[action='replace'][target='search_tabs_navigation']"
 
         expect(response.body).not_to include("results_pool_list")

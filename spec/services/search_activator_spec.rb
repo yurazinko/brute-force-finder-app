@@ -3,6 +3,8 @@
 require "rails_helper"
 
 RSpec.describe SearchCampaigns::Activator, type: :service do
+  let(:user) { User.create!(email: "test@example.com", password: "password123") }
+
   let(:category) { Category.create!(name: "SaaS Platforms") }
   let!(:target_lever) { Target.create!(category: category, name: "Lever", domain: "lever.co", is_active: true) }
   let!(:target_greenhouse) { Target.create!(category: category, name: "Greenhouse", domain: "greenhouse.io", is_active: true) }
@@ -10,6 +12,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
 
   let(:search) do
     Search.create!(
+      user: user,
       title: "Elixir/Ruby Backend",
       query_conditions: "(ruby OR elixir) (remote)",
       status: "pending"

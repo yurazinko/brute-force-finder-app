@@ -1,0 +1,87 @@
+<div class="min-h-[85vh] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-8">
+  <div class="w-full max-w-lg space-y-6 bg-breeze-view p-8 rounded-2xl border border-breeze-border shadow-xl">
+
+    <div class="flex justify-between items-center pb-4 border-b border-breeze-border">
+      <h2 class="text-2xl font-bold text-breeze-text tracking-tight">
+        Edit <%= resource_name.to_s.humanize %>
+      </h2>
+      <%= link_to :back, class: "text-sm text-gray-400 hover:text-breeze-accent flex items-center gap-1 transition" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        Back
+      <% end %>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "space-y-4" }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <div>
+        <%= f.label :email, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.email_field :email,
+                          autofocus: true,
+                          autocomplete: "email",
+                          class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+        <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400 text-xs">
+          Currently waiting confirmation for: <strong><%= resource.unconfirmed_email %></strong>
+        </div>
+      <% end %>
+
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <%= f.label :password, class: "block text-sm font-medium text-gray-300" %>
+          <span class="text-xs text-gray-400">leave blank if unchanged</span>
+        </div>
+        <%= f.password_field :password,
+                             autocomplete: "new-password",
+                             placeholder: "••••••••",
+                             class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+        <% if @minimum_password_length %>
+          <p class="mt-1 text-xs text-gray-400"><%= @minimum_password_length %> characters minimum</p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.password_field :password_confirmation,
+                             autocomplete: "new-password",
+                             placeholder: "••••••••",
+                             class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <div class="pt-2 border-t border-breeze-border/50">
+        <%= f.label :current_password, class: "block text-sm font-medium text-gray-300 mb-1" %>
+        <p class="text-xs text-gray-400 mb-1.5">We need your current password to confirm your changes</p>
+        <%= f.password_field :current_password,
+                             autocomplete: "current-password",
+                             placeholder: "••••••••",
+                             required: true,
+                             class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <div class="pt-2">
+        <%= f.submit "Update Profile",
+                     class: "w-full py-2.5 px-4 bg-breeze-accent hover:opacity-90 text-white font-medium text-sm rounded-lg shadow-sm transition duration-150 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-breeze-accent" %>
+      </div>
+    <% end %>
+
+    <div class="pt-6 border-t border-red-500/20">
+      <h3 class="text-sm font-semibold text-red-400 uppercase tracking-wider mb-2">Danger Zone</h3>
+      <div class="flex items-center justify-between p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
+        <div class="text-xs text-gray-400">
+          <p class="font-medium text-gray-300">Cancel my account</p>
+          <p>Unhappy with the service?</p>
+        </div>
+        <%= button_to "Delete Account",
+                      registration_path(resource_name),
+                      data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" },
+                      method: :delete,
+                      class: "px-3 py-1.5 text-xs font-medium text-red-400 hover:text-white bg-red-500/10 hover:bg-red-600 rounded-lg border border-red-500/30 transition cursor-pointer" %>
+      </div>
+    </div>
+
+  </div>
+</div>

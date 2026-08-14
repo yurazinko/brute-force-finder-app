@@ -5,6 +5,7 @@ require "rails_helper"
 RSpec.describe PromptProcessorJob, type: :job do
   let(:job) { described_class.new }
   let(:prompt_id) { 42 }
+  let(:user_id) { 1 }
   let(:full_query) { "site:lever.co \"ruby\"" }
 
   let(:search_mock) { instance_double("Search", time_frame: "month") }
@@ -38,7 +39,7 @@ RSpec.describe PromptProcessorJob, type: :job do
       end
 
       it "returns early and does not process the prompt" do
-        job.perform(prompt_id)
+        job.perform(prompt_id, user_id)
 
         expect(Prompt).not_to have_received(:find)
         expect(Searxng::RawResultsCollector).not_to have_received(:call)
@@ -53,7 +54,7 @@ RSpec.describe PromptProcessorJob, type: :job do
       end
 
       it "fetches the prompt, randomizes the query, and triggers collector" do
-        job.perform(prompt_id)
+        job.perform(prompt_id, user_id)
 
         expect(SearchCampaigns::DorkRandomizer).to have_received(:perform).with(full_query)
         expect(Searxng::RawResultsCollector).to have_received(:call).with(
@@ -63,7 +64,7 @@ RSpec.describe PromptProcessorJob, type: :job do
       end
 
       it "broadcasts initial scraping status via Turbo Streams" do
-        job.perform(prompt_id)
+        job.perform(prompt_id, user_id)
 
         expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
           search_mock, :results,
@@ -76,7 +77,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         it "broadcasts success message when new links are imported" do
           allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 5, new_count: 2 })
 
-          job.perform(prompt_id)
+          job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
             search_mock, :results,
@@ -88,7 +89,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         it "broadcasts warning when links are extracted but all are duplicates" do
           allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 5, new_count: 0 })
 
-          job.perform(prompt_id)
+          job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
             search_mock, :results,
@@ -100,7 +101,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         it "broadcasts specific message when engine error occurs" do
           allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ error: "Timeout" })
 
-          job.perform(prompt_id)
+          job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
             search_mock, :results,
@@ -112,7 +113,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         it "broadcasts zero results message when no URLs are found" do
           allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 0, new_count: 0 })
 
-          job.perform(prompt_id)
+          job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
             search_mock, :results,
@@ -132,7 +133,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         end
 
         it "reverts the prompt status back to pending and reraises the exception" do
-          expect { job.perform(prompt_id) }.to raise_error(StandardError, "Redis down")
+          expect { job.perform(prompt_id, user_id) }.to raise_error(StandardError, "Redis down")
           expect(prompt_relation_mock).to have_received(:update_all).with(status: "pending")
         end
       end
@@ -145,8 +146,8 @@ RSpec.describe PromptProcessorJob, type: :job do
         end
 
         it "safely catches the error, logs it, and continues executing the job" do
-          expect { job.perform(prompt_id) }.not_to raise_error
-          expect(Rails.logger).to have_received(:error).with(/Live status broadcast failed/).at_least(:once)
+          expect { job.perform(prompt_id, user_id) }.not_to raise_error
+          expect(Rails.logger).to have_received(:error).with(/Turbo broadcast failed/).at_least(:once)
           expect(SearchCampaigns::ResultHandler).to have_received(:call)
         end
       end

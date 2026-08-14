@@ -3,12 +3,15 @@
 require "rails_helper"
 
 RSpec.describe SearchCampaigns::ResultHandler, type: :service do
+  let(:user) { User.create!(email: "test@example.com", password: "password123") }
+
   let(:category) { Category.create!(name: "Platforms") }
   let(:target_domain) { "lever-#{SecureRandom.hex(4)}.co" }
   let(:target) { Target.create!(category: category, name: "Lever", domain: target_domain) }
 
   let(:search) do
     Search.create!(
+      user: user,
       title: "Ruby Backend",
       query_conditions: "ruby",
       status: "pending"
@@ -138,6 +141,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
     context "when implementing the context-aware global viewed (acknowledged) logic" do
       let!(:other_search) do
         Search.create!(
+          user: user,
           title: "Previous Search",
           query_conditions: "rails",
           status: "completed"
@@ -240,6 +244,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
           Result.where(id: res1.id).update_all(acknowledged: true)
 
           another_search = Search.create!(
+            user: user,
             title: "Another Search",
             query_conditions: "ruby",
             status: "completed"

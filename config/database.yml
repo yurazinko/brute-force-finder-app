@@ -13,7 +13,9 @@ default: &default
 development:
   <<: *default
   database: brute_force_finder_app_development
-  url: <%= ENV.fetch("DATABASE_URL") { "postgres://postgres:password@db:5432/brute_force_finder_app_development" } %>
+  url: <%= ENV.fetch("DATABASE_URL") { "postgres://app_user:password@db:5432/brute_force_finder_app_development" } %>
+  username: app_user
+  password: password
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -21,7 +23,7 @@ development:
 test:
   <<: *default
   database: brute_force_finder_app_test
-  url: <%= ENV.fetch("DATABASE_URL") { "postgres://postgres:password@db:5432/brute_force_finder_app_test" } %>
+  url: <%= ENV.fetch("DATABASE_URL") { "postgres://app_user:password@db:5432/brute_force_finder_app_test" } %>
 
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.

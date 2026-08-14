@@ -4,6 +4,8 @@ class Search < ApplicationRecord
   ALLOWED_STATUSES = %w[pending processing completed failed].freeze
   ALLOWED_TIME_FRAMES = [nil, "day", "week", "month", "year"].freeze
 
+  belongs_to :user
+
   has_many :prompts, dependent: :destroy
   has_many :targets, through: :prompts
   has_many :results, dependent: :destroy
