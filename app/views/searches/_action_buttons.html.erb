@@ -22,16 +22,15 @@
     <% end %>
   <% end %>
 
-  <% if search.status == "processing" %>
-    <%= button_to complete_search_path(search),
-                  method: :patch,
-                  data: { confirm: 'Force complete this campaign?' },
-                  title: "Force Complete Campaign",
-                  class: compact ? "text-breeze-muted hover:text-purple-500 p-1.5 rounded transition-colors bg-breeze-bg hover:bg-breeze-border/40 border border-breeze-border shrink-0 cursor-pointer"
-                                 : "text-xs font-semibold text-purple-600 hover:text-white bg-purple-50 hover:bg-purple-600 border border-purple-100 hover:border-purple-600 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm" do %>
+<%= button_to complete_search_path(search),
+                method: :patch,
+                form: { data: { confirm: search.status == "processing" ? 'Force complete this campaign?' : nil } },
+                disabled: search.status != "processing",
+                title: "Force Complete Campaign",
+                class: (compact ? "text-breeze-muted enabled:hover:text-purple-500 p-1.5 rounded transition-colors bg-breeze-bg enabled:hover:bg-breeze-border/40 border border-breeze-border shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-breeze-bg"
+                                : "text-xs font-semibold text-purple-600 enabled:hover:text-white bg-purple-50 enabled:hover:bg-purple-600 border border-purple-100 enabled:hover:border-purple-600 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-purple-50 disabled:hover:text-purple-600 disabled:border-purple-100 disabled:shadow-none") do %>
       <span>✅</span>
       <% unless compact %><span class="hidden sm:inline">Complete</span><% end %>
-    <% end %>
   <% end %>
 
   <%= link_to edit_search_path(search),
