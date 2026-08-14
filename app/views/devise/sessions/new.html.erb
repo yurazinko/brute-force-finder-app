@@ -1,0 +1,53 @@
+<div class="min-h-[80vh] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-md space-y-6 bg-breeze-view p-8 rounded-2xl border border-breeze-border shadow-xl">
+
+    <div class="text-center">
+      <h2 class="text-2xl font-bold text-breeze-text tracking-tight">
+        Welcome back
+      </h2>
+      <p class="mt-1 text-sm text-gray-400">
+        Please enter your credentials to log in
+      </p>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-4" }) do |f| %>
+
+      <div>
+        <%= f.label :email, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.email_field :email,
+                          autofocus: true,
+                          autocomplete: "email",
+                          required: true,
+                          placeholder: "name@company.com",
+                          class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <div>
+        <%= f.label :password, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.password_field :password,
+                             autocomplete: "current-password",
+                             required: true,
+                             placeholder: "••••••••",
+                             class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <% if devise_mapping.rememberable? %>
+        <div class="flex items-center">
+          <%= f.check_box :remember_me,
+                          class: "h-4 w-4 rounded border-breeze-border bg-breeze-bg text-breeze-accent focus:ring-breeze-accent focus:ring-offset-breeze-view transition cursor-pointer" %>
+          <%= f.label :remember_me, class: "ml-2 block text-sm text-gray-300 cursor-pointer select-none" %>
+        </div>
+      <% end %>
+
+      <div class="pt-2">
+        <%= f.submit "Log in",
+                     class: "w-full py-2.5 px-4 bg-breeze-accent hover:opacity-90 text-white font-medium text-sm rounded-lg shadow-sm transition duration-150 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-breeze-accent" %>
+      </div>
+    <% end %>
+
+    <div class="pt-4 border-t border-breeze-border text-center text-sm text-gray-400 [&_a]:text-breeze-accent [&_a]:hover:underline [&_a]:transition">
+      <%= render "devise/shared/links" %>
+    </div>
+
+  </div>
+</div>

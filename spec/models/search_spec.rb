@@ -3,39 +3,41 @@
 require "rails_helper"
 
 RSpec.describe Search, type: :model do
+  let(:user) { create(:user) }
+
   describe "validations" do
     it "is valid with valid attributes" do
-      search = described_class.new(title: "Ruby Jobs", query_conditions: "(ruby)", status: "pending")
+      search = described_class.new(user: user, title: "Ruby Jobs", query_conditions: "(ruby)", status: "pending")
       expect(search).to be_valid
     end
 
     it "is invalid without a title" do
-      search = described_class.new(title: nil)
+      search = described_class.new(user: user, title: nil)
       expect(search).not_to be_valid
       expect(search.errors[:title]).to include("can't be blank")
     end
 
     it "is invalid without query_conditions" do
-      search = described_class.new(query_conditions: nil)
+      search = described_class.new(user: user, query_conditions: nil)
       expect(search).not_to be_valid
       expect(search.errors[:query_conditions]).to include("can't be blank")
     end
 
     it "is invalid with an incorrect status" do
-      search = described_class.new(status: "invalid_status")
+      search = described_class.new(user: user, status: "invalid_status")
       expect(search).not_to be_valid
       expect(search.errors[:status]).to include("is not included in the list")
     end
 
     it "is valid with allowed time frames" do
       %w[day week month year].each do |frame|
-        search = described_class.new(title: "A", query_conditions: "B", status: "pending", time_frame: frame)
+        search = described_class.new(user: user, title: "A", query_conditions: "B", status: "pending", time_frame: frame)
         expect(search).to be_valid
       end
     end
 
     it "is invalid with an incorrect time frame" do
-      search = described_class.new(title: "A", query_conditions: "B", status: "pending", time_frame: "century")
+      search = described_class.new(user: user, title: "A", query_conditions: "B", status: "pending", time_frame: "century")
       expect(search).not_to be_valid
       expect(search.errors[:time_frame]).to include("is not included in the list")
     end
@@ -43,12 +45,17 @@ RSpec.describe Search, type: :model do
 
   describe "normalization" do
     it "normalizes blank time_frame strings to nil" do
-      search = described_class.create!(title: "A", query_conditions: "B", status: "pending", time_frame: " ")
+      search = described_class.create!(user: user, title: "A", query_conditions: "B", status: "pending", time_frame: " ")
       expect(search.time_frame).to be_nil
     end
   end
 
   describe "associations" do
+    it "belongs to user" do
+      association = described_class.reflect_on_association(:user)
+      expect(association.macro).to eq(:belongs_to)
+    end
+
     it "has many prompts with dependent destroy" do
       association = described_class.reflect_on_association(:prompts)
       expect(association.macro).to eq(:has_many)
@@ -69,7 +76,7 @@ RSpec.describe Search, type: :model do
   end
 
   describe "counter calculations" do
-    let(:search) { described_class.create!(title: "Metrics", query_conditions: "ruby", status: "pending", show_acknowledged: false) }
+    let(:search) { described_class.create!(user: user, title: "Metrics", query_conditions: "ruby", status: "pending", show_acknowledged: false) }
 
     before do
       search.results.create!(title: "R1", url: "https://a.com/1", url_hash: "1", status: "unread", acknowledged: false)
@@ -143,6 +150,7 @@ RSpec.describe Search, type: :model do
 
     let(:search) do
       described_class.create!(
+        user: user,
         title: "Ruby Backend",
         query_conditions: '(ruby OR "rails") (backend)',
         status: "pending"

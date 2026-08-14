@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Results
   class FeedRefill
     def self.next_card(base_scope:, removed_id:, current_dom_count:, options:)

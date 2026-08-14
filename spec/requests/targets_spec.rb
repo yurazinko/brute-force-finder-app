@@ -3,12 +3,16 @@
 require "rails_helper"
 
 RSpec.describe "Targets", type: :request do
+  include Devise::Test::IntegrationHelpers
+
+  let(:user) { create(:user) }
   let!(:category) { Category.create!(name: "Job Boards") }
   let!(:target) { Target.create!(category: category, name: "Indeed", domain: "indeed.com", is_active: true) }
 
   before do
     host! "localhost"
     ActionController::Base.allow_forgery_protection = false
+    sign_in user if respond_to?(:sign_in)
   end
 
   describe "POST /targets (create)" do
@@ -55,7 +59,6 @@ RSpec.describe "Targets", type: :request do
         expect(response).to redirect_to(category_path(category))
 
         follow_redirect!
-        expect(response.body).to include("Error:")
         expect(CGI.unescapeHTML(response.body)).to include("Error: Name can't be blank")
       end
     end

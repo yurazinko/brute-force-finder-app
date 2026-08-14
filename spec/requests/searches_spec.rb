@@ -3,12 +3,16 @@
 require "rails_helper"
 
 RSpec.describe "Searches", type: :request do
+  include Devise::Test::IntegrationHelpers
+
+  let(:user) { create(:user) }
   let(:category) { Category.create!(name: "Platforms") }
   let!(:target1) { Target.create!(category: category, name: "Lever", domain: "lever.co") }
   let!(:target2) { Target.create!(category: category, name: "Greenhouse", domain: "greenhouse.io") }
 
   let!(:search) do
     Search.create!(
+      user: user,
       title: "Ruby Backend",
       query_conditions: "ruby",
       time_frame: "week",
@@ -17,6 +21,8 @@ RSpec.describe "Searches", type: :request do
   end
 
   before do
+    sign_in user if respond_to?(:sign_in)
+
     allow_any_instance_of(Search).to receive(:calculate_counters).and_return(
       { "all_clean" => 0, "interesting" => 0, "watched" => 0, "garbage" => 0 }.with_indifferent_access
     )
@@ -86,6 +92,7 @@ RSpec.describe "Searches", type: :request do
             title: "Elixir Developer",
             query_conditions: "elixir OR phoenix",
             time_frame: "month",
+            status: "pending",
             target_ids: [target1.id, target2.id]
           }
         }

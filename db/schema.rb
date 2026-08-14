@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_05_090113) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_112403) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -19,7 +19,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_05_090113) do
     t.datetime "created_at", null: false
     t.string "name"
     t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_categories_on_name", unique: true
+    t.bigint "user_id"
+    t.index ["user_id", "name"], name: "index_categories_on_user_id_and_name", unique: true
+    t.index ["user_id"], name: "index_categories_on_user_id"
   end
 
   create_table "prompts", force: :cascade do |t|
@@ -65,6 +67,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_05_090113) do
     t.string "time_frame"
     t.string "title"
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_searches_on_user_id"
   end
 
   create_table "targets", force: :cascade do |t|
@@ -79,8 +83,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_05_090113) do
     t.index ["domain"], name: "index_targets_on_domain", unique: true
   end
 
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.datetime "remember_created_at"
+    t.datetime "reset_password_sent_at"
+    t.string "reset_password_token"
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+  end
+
+  add_foreign_key "categories", "users"
   add_foreign_key "prompts", "searches"
   add_foreign_key "prompts", "targets"
   add_foreign_key "results", "searches"
+  add_foreign_key "searches", "users"
   add_foreign_key "targets", "categories"
 end

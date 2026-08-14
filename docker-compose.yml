@@ -113,9 +113,11 @@ services:
     image: postgres:18.4-alpine
     container_name: finder_db
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./db/init/01-init-app-user.sql:/docker-entrypoint-initdb.d/01-init-app-user.sql:ro
     networks:
       - finder_network
 

@@ -1,0 +1,60 @@
+<div class="min-h-[80vh] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-md space-y-6 bg-breeze-view p-8 rounded-2xl border border-breeze-border shadow-xl">
+
+    <div class="text-center">
+      <h2 class="text-2xl font-bold text-breeze-text tracking-tight">
+        Create an account
+      </h2>
+      <p class="mt-1 text-sm text-gray-400">
+        Get started with Brute Force Finder
+      </p>
+    </div>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-4" }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <div>
+        <%= f.label :email, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.email_field :email,
+                          autofocus: true,
+                          autocomplete: "email",
+                          required: true,
+                          placeholder: "name@company.com",
+                          class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <%= f.label :password, class: "block text-sm font-medium text-gray-300" %>
+          <% if @minimum_password_length %>
+            <span class="text-xs text-gray-400">(<%= @minimum_password_length %> chars min)</span>
+          <% end %>
+        </div>
+        <%= f.password_field :password,
+                             autocomplete: "new-password",
+                             required: true,
+                             placeholder: "••••••••",
+                             class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <div>
+        <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-300 mb-1.5" %>
+        <%= f.password_field :password_confirmation,
+                             autocomplete: "new-password",
+                             required: true,
+                             placeholder: "••••••••",
+                             class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
+      </div>
+
+      <div class="pt-2">
+        <%= f.submit "Sign up",
+                     class: "w-full py-2.5 px-4 bg-breeze-accent hover:opacity-90 text-white font-medium text-sm rounded-lg shadow-sm transition duration-150 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-breeze-accent" %>
+      </div>
+    <% end %>
+
+    <div class="pt-4 border-t border-breeze-border text-center text-sm text-gray-400 [&_a]:text-breeze-accent [&_a]:hover:underline [&_a]:transition">
+      <%= render "devise/shared/links" %>
+    </div>
+
+  </div>
+</div>

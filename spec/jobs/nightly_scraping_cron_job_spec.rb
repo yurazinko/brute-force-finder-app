@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "sidekiq/testing"
 
 RSpec.describe NightlyScrapingCronJob, type: :job do
   describe "#perform" do
-    let!(:completed_search) { create(:search, status: "completed") }
-    let!(:failed_search)    { create(:search, status: "failed") }
-    let!(:processing_search) { create(:search, status: "processing") }
+    let(:user) { User.create!(email: "cron_test@example.com", password: "password123") }
+
+    let!(:completed_search)  { create(:search, user: user, status: "completed") }
+    let!(:failed_search)     { create(:search, user: user, status: "failed") }
+    let!(:processing_search) { create(:search, user: user, status: "processing") }
 
     before do
+      Sidekiq::Testing.fake!
       SearchActivationJob.jobs.clear
       allow(Rails.env).to receive(:development?).and_return(false)
     end

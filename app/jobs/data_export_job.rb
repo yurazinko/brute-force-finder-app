@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-class DataExportJob
-  include Sidekiq::Job
-
-  def perform
-    DataExportService.new.call do |progress, message|
+class DataExportJob < ApplicationJob
+  def perform(_user_id)
+    Database::DataExportService.new.call do |progress, message|
       broadcast_progress("export", progress, message)
     end
   end
@@ -12,7 +10,7 @@ class DataExportJob
   private
 
   def broadcast_progress(dom_id, progress, message)
-    Turbo::StreamsChannel.broadcast_replace_to(
+    broadcast_turbo_replace(
       "data_transfer_channel",
       target: dom_id,
       partial: "data_transfers/progress",

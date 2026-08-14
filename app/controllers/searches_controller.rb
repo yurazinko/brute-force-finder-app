@@ -21,7 +21,7 @@ class SearchesController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.turbo_stream { render "results/index" } # Використовуємо той самий шаблон пагінації!
+      format.turbo_stream { render "results/index" }
     end
   end
 
@@ -30,7 +30,8 @@ class SearchesController < ApplicationController
   def edit; end
 
   def create
-    @search = Search.new(search_params)
+    @search = current_user.searches.build(search_params)
+
     if @search.save
       redirect_to search_path(@search), notice: "Search criteria was successfully created."
     else

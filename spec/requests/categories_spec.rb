@@ -3,10 +3,17 @@
 require "rails_helper"
 
 RSpec.describe "Categories", type: :request do
+  include Devise::Test::IntegrationHelpers
+
+  let(:user) { create(:user) }
   let!(:category) { Category.create!(name: "Job Boards") }
 
   let(:valid_attributes) { { category: { name: "Aggregators" } } }
   let(:invalid_attributes) { { category: { name: "" } } }
+
+  before do
+    sign_in user if respond_to?(:sign_in)
+  end
 
   describe "GET /categories (index)" do
     it "returns a successful response and renders the index template" do
