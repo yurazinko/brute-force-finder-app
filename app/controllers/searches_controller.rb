@@ -3,7 +3,7 @@
 class SearchesController < ApplicationController
   include ResultFilterable
 
-  before_action :set_search, only: %i[show edit update activate destroy]
+  before_action :set_search, only: %i[show edit update activate destroy toggle_pause complete]
   before_action :set_categories_for_form, only: %i[new edit create update]
 
   def index
@@ -13,7 +13,6 @@ class SearchesController < ApplicationController
   end
 
   def show
-    @search = Search.find(params.expect(:id))
     @base_scope = @search.results
     @filter_options = parse_filter_options(search_instance: @search)
 
@@ -46,12 +45,38 @@ class SearchesController < ApplicationController
 
     if @search.activate_search!(target_ids)
       @search.reload
+
       respond_to do |format|
-        format.turbo_stream
         format.html { redirect_to search_path(@search), notice: "Scraping pipeline successfully initialized!" }
+        format.turbo_stream { render "searches/update", status: :ok }
       end
     else
-      respond_with_flash("Failed to activate search. Check system logs.")
+      respond_to do |format|
+        format.html { redirect_to search_path(@search), alert: "Failed to activate search. Check system logs." }
+        format.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "layouts/flash") }
+      end
+    end
+  end
+
+  def toggle_pause
+    paused = @search.paused?
+
+    paused ? @search.resume! : @search.pause!
+
+    notice = paused ? "Campaign resumed." : "Campaign paused."
+
+    respond_to do |format|
+      format.html { redirect_back_or_to search_path(@search), notice: notice }
+      format.turbo_stream { render "searches/update", status: :ok }
+    end
+  end
+
+  def complete
+    @search.force_complete!
+
+    respond_to do |format|
+      format.html { redirect_back_or_to search_path(@search), notice: "Campaign completed." }
+      format.turbo_stream { render "searches/update", status: :ok }
     end
   end
 
@@ -70,25 +95,10 @@ class SearchesController < ApplicationController
 
   def set_categories_for_form = @categories = Category.includes(:targets).all
 
-  def respond_with_flash(alert_msg)
-    flash.now[:alert] = alert_msg
-    respond_to do |f|
-      f.html { redirect_to search_path(@search), alert: alert_msg }
-      f.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "layouts/flash") }
-    end
-  end
-
   def handle_successful_update
     respond_to do |format|
-      format.turbo_stream do
-        flash.now[:notice] = "Search criteria was successfully updated."
-        render turbo_stream: [
-          turbo_stream.replace("search_lifecycle_status", partial: "searches/status_badge",
-                                                          locals: { search: @search }),
-          turbo_stream.prepend("flash", partial: "layouts/flash")
-        ]
-      end
       format.html { redirect_to determine_update_redirect_path, notice: "Search criteria was successfully updated." }
+      format.turbo_stream { render "searches/update", status: :ok }
     end
   end
 

@@ -1,0 +1,9 @@
+<%= turbo_stream.update "search_lifecycle_status", partial: "searches/status_content", locals: { search: @search } %>
+
+<%= turbo_stream.replace "#{dom_id(@search)}_badge", partial: "searches/status_badge", locals: { search: @search } %>
+
+<%= turbo_stream.replace "#{dom_id(@search)}_action_buttons", partial: "searches/action_buttons", locals: { search: @search } %>
+
+<%= turbo_stream.replace "#{dom_id(@search)}_action_buttons_compact", partial: "searches/action_buttons", locals: { search: @search, compact: true } %>
+
+<%= turbo_stream.prepend "flash", partial: "layouts/flash" %>

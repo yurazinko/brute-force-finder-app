@@ -21,6 +21,8 @@ Rails.application.routes.draw do
   resources :searches, only: %i[index show new edit update create destroy] do
     member do
       post :activate
+      patch :toggle_pause
+      patch :complete
     end
   end
 

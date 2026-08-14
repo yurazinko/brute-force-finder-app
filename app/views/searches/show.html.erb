@@ -7,21 +7,7 @@
       <div class="flex items-center justify-between gap-4 mb-0">
         <%= link_to '⬅️ Back to Campaigns', searches_path, class: "text-sm font-medium text-breeze-muted hover:text-breeze-text transition shrink-0" %>
 
-        <div class="flex items-center gap-2">
-          <%= link_to edit_search_path(@search),
-                      class: "text-xs font-semibold text-breeze-accent hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-100 hover:border-blue-600 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm" do %>
-            <span>⚙️</span>
-            <span class="hidden sm:inline">Configure Campaign</span>
-          <% end %>
-
-          <%= button_to search_path(@search),
-                        method: :delete,
-                        data: { confirm: 'Are you sure you want to completely delete this campaign and all its results?' },
-                        class: "text-xs font-semibold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 border border-red-100 hover:border-red-600 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm" do %>
-            <span>🗑️</span>
-            <span class="hidden sm:inline">Delete Campaign</span>
-          <% end %>
-        </div>
+        <%= render "searches/action_buttons", search: @search %>
       </div>
 
       <div>

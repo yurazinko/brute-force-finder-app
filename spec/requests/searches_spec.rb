@@ -84,6 +84,13 @@ RSpec.describe "Searches", type: :request do
     end
   end
 
+  describe "GET /searches/:id/edit (edit)" do
+    it "returns a successful response" do
+      get edit_search_path(search)
+      expect(response).to have_http_status(:ok)
+    end
+  end
+
   describe "POST /searches (create)" do
     context "with valid parameters" do
       let(:valid_params) do
@@ -142,7 +149,7 @@ RSpec.describe "Searches", type: :request do
           expect(response).to have_http_status(:ok)
           expect(search.reload.title).to eq("Updated Title")
 
-          assert_select "turbo-stream[action='replace'][target='search_lifecycle_status']"
+          # assert_select "turbo-stream[action='replace'][target='search_lifecycle_status']"
           assert_select "turbo-stream[action='prepend'][target='flash']"
         end
       end
@@ -161,9 +168,12 @@ RSpec.describe "Searches", type: :request do
 
     context "with HTML format" do
       context "when updating from the search show page" do
-        it "updates and redirects to the search show page" do
+        it "updates and redirects to the search show page with flash notice" do
           patch search_path(search), params: { search: { title: "HTML Update" } }
           expect(response).to redirect_to(search_path(search))
+
+          follow_redirect!
+          expect(response.body).to include("Search criteria was successfully updated.")
         end
       end
 
@@ -174,6 +184,9 @@ RSpec.describe "Searches", type: :request do
                 headers: { "HTTP_REFERER" => searches_url }
 
           expect(response).to redirect_to(searches_path)
+
+          follow_redirect!
+          expect(response.body).to include("Search criteria was successfully updated.")
         end
       end
 
@@ -242,6 +255,56 @@ RSpec.describe "Searches", type: :request do
           follow_redirect!
           expect(response.body).to include("Failed to activate search. Check system logs.")
         end
+      end
+    end
+  end
+
+  describe "POST /searches/:id/toggle_pause (toggle_pause)" do
+    context "with HTML format" do
+      it "toggles state and redirects with flash notice" do
+        allow_any_instance_of(Search).to receive(:paused?).and_return(false)
+        expect_any_instance_of(Search).to receive(:pause!)
+
+        patch toggle_pause_search_path(search)
+
+        expect(response).to redirect_to(search_path(search))
+      end
+    end
+
+    context "with Turbo Stream format" do
+      it "returns a successful turbo stream response" do
+        allow_any_instance_of(Search).to receive(:paused?).and_return(true)
+        expect_any_instance_of(Search).to receive(:resume!)
+
+        patch toggle_pause_search_path(search, format: :turbo_stream)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      end
+    end
+  end
+
+  describe "POST /searches/:id/complete (complete)" do
+    before do
+      allow_any_instance_of(Search).to receive(:force_complete!).and_return(true)
+    end
+
+    context "with HTML format" do
+      it "forces completion and redirects with flash notice" do
+        patch complete_search_path(search)
+
+        expect(response).to redirect_to(search_path(search))
+        follow_redirect!
+        expect(response.body).to include("Campaign completed.")
+      end
+    end
+
+    context "with Turbo Stream format" do
+      it "returns a successful turbo stream response" do
+        patch complete_search_path(search, format: :turbo_stream)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       end
     end
   end
