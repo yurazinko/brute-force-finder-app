@@ -35,7 +35,7 @@ x-tor-base: &tor-base
     - finder_network
 
 x-searxng-base: &searxng-base
-  image: searxng/searxng:latest
+  image: searxng/searxng:2026.8.14-094c33d40
   restart: unless-stopped
   networks:
     - finder_network
