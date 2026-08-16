@@ -16,5 +16,7 @@
     </div>
 
   </div>
-  <p class="text-xs text-breeze-muted">The crawler automatically appends target domains like <code>(site:domain.com)</code> based on your selection below.</p>
+  <% if @categories.present? %>
+    <p class="text-xs text-breeze-muted">The crawler automatically appends target domains like <code>(site:domain.com)</code> based on your selection below.</p>
+  <% end %>
 </div>

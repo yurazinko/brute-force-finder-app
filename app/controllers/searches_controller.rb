@@ -4,7 +4,7 @@ class SearchesController < ApplicationController
   include ResultFilterable
 
   before_action :set_search, only: %i[show edit update activate destroy toggle_pause complete]
-  before_action :set_categories_for_form, only: %i[new edit create update]
+  before_action :set_categories_for_form, only: %i[new show edit create update]
 
   def index
     @searches = Search.order(created_at: :desc)
@@ -93,7 +93,7 @@ class SearchesController < ApplicationController
     params.expect(search: [:title, :query_conditions, :time_frame, :show_acknowledged, { target_ids: [] }])
   end
 
-  def set_categories_for_form = @categories = Category.includes(:targets).all
+  def set_categories_for_form = @categories = current_user.categories.includes(:targets).all
 
   def handle_successful_update
     respond_to do |format|

@@ -4,7 +4,7 @@ class CategoriesController < ApplicationController
   before_action :set_category, only: %i[show edit update destroy]
 
   def index
-    @categories = Category.includes(:targets).order(:name)
+    @categories = current_user.categories.includes(:targets).order(:name)
   end
 
   def show; end

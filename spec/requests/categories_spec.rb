@@ -6,7 +6,7 @@ RSpec.describe "Categories", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user) }
-  let!(:category) { Category.create!(name: "Job Boards") }
+  let!(:category) { Category.create!(name: "Job Boards", user_id: user.id) }
 
   let(:valid_attributes) { { category: { name: "Aggregators" } } }
   let(:invalid_attributes) { { category: { name: "" } } }
@@ -23,8 +23,8 @@ RSpec.describe "Categories", type: :request do
     end
 
     it "returns categories sorted alphabetically by name" do
-      Category.create!(name: "Z Platforms")
-      Category.create!(name: "A Boards")
+      Category.create!(name: "Z Platforms", user_id: user.id)
+      Category.create!(name: "A Boards", user_id: user.id)
 
       get categories_path
 

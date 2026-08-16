@@ -19,26 +19,25 @@
           <%= @search.query_conditions %>
         </code>
       </div>
-    <div id="search_lifecycle_status" class="grid grid-cols-1 sm:grid-cols-12 items-center gap-3 bg-breeze-bg p-2.5 rounded-xl border border-breeze-border w-full mt-2 select-none">
-      <%= render "searches/status_content", search: @search %>
-    </div>
+      <div id="search_lifecycle_status" class="grid grid-cols-1 sm:grid-cols-12 items-center gap-3 bg-breeze-bg p-2.5 rounded-xl border border-breeze-border w-full mt-2 select-none">
+        <%= render "searches/status_content", search: @search %>
+      </div>
     </div>
 
     <div class="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-breeze-border pt-4 lg:pt-0 lg:pl-6" data-controller="pipeline-selector">
       <%= form_with(url: activate_search_path(@search), method: :post) do |f| %>
-        <% selected_target_ids = @search.target_ids %>
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="text-xs sm:text-sm font-bold text-breeze-text uppercase tracking-wider">Target Pipeline</h2>
-          <div class="flex items-center space-x-2 text-[11px]">
-            <button type="button" data-action="click->pipeline-selector#toggleGlobal" data-pipeline-selector-status-param="true" class="text-breeze-accent font-semibold hover:underline cursor-pointer">Select All</button>
-            <span class="text-gray-300">|</span>
-            <button type="button" data-action="click->pipeline-selector#toggleGlobal" data-pipeline-selector-status-param="false" class="text-breeze-muted font-semibold hover:underline cursor-pointer">Clear All</button>
+        <% if @categories.present? %>
+          <% selected_target_ids = @search.target_ids %>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-xs sm:text-sm font-bold text-breeze-text uppercase tracking-wider">Target Pipeline</h2>
+            <div class="flex items-center space-x-2 text-[11px]">
+              <button type="button" data-action="click->pipeline-selector#toggleGlobal" data-pipeline-selector-status-param="true" class="text-breeze-accent font-semibold hover:underline cursor-pointer">Select All</button>
+              <span class="text-gray-300">|</span>
+              <button type="button" data-action="click->pipeline-selector#toggleGlobal" data-pipeline-selector-status-param="false" class="text-breeze-muted font-semibold hover:underline cursor-pointer">Clear All</button>
+            </div>
           </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] lg:max-h-[120px] overflow-y-auto pr-1 mb-3 border border-breeze-border p-2 rounded-lg bg-breeze-bg/50" id="targets_selector_zone">
-          <% if Category.exists? %>
-            <% Category.includes(:targets).order(:name).each do |category| %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] lg:max-h-[120px] overflow-y-auto pr-1 mb-3 border border-breeze-border p-2 rounded-lg bg-breeze-bg/50" id="targets_selector_zone">
+            <% @categories.each do |category| %>
               <% active_targets = category.targets.active %>
               <% next if active_targets.empty? %>
               <div data-pipeline-selector-target="group" class="category-group border border-breeze-border/60 rounded-md p-2 bg-breeze-view flex flex-col justify-between">
@@ -56,13 +55,14 @@
                 </div>
               </div>
             <% end %>
-          <% else %>
-            <div class="text-center py-2 text-breeze-muted text-xs">No categories found.</div>
-          <% end %>
-        </div>
+          </div>
+        <% else %>
+          <div class="text-center py-2 mb-3 text-breeze-muted text-xs">No categories found.</div>
+        <% end %>
+
         <%= f.submit "Trigger Scraper Engine", class: "w-full py-2.5 sm:py-2 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm hover:shadow transition text-center cursor-pointer transform active:scale-[0.99]" %>
       <% end %>
     </div>
   </div>
-  <%= render "results/results_pool", search: @search,  counts: @counts, results: @results, pagy: @pagy %>
+  <%= render "results/results_pool", search: @search, counts: @counts, results: @results, pagy: @pagy %>
 </div>
