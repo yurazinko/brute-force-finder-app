@@ -35,7 +35,7 @@ x-tor-base: &tor-base
     - finder_network
 
 x-searxng-base: &searxng-base
-  image: searxng/searxng:2026.8.14-094c33d40
+  image: searxng/searxng:latest
   restart: unless-stopped
   networks:
     - finder_network
@@ -114,7 +114,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
       - ./db/init/01-init-app-user.sql:/docker-entrypoint-initdb.d/01-init-app-user.sql:ro
     networks:
       - finder_network
