@@ -20,8 +20,16 @@ module Database
         attrs[:allow_query_strings] = record["allow_query_strings"] if record.key?("allow_query_strings")
         attrs[:is_active] = record["is_active"] if record.key?("is_active")
 
-        new_cat_id = id_maps["categories"][record["category_id"]]
-        attrs[:category_id] = new_cat_id if new_cat_id.present?
+        old_cat_id = record["category_id"]
+        new_cat_id = id_maps["categories"][old_cat_id]
+
+        if new_cat_id.present?
+          category = Category.find_by(id: new_cat_id, user_id: target_user_id)
+          raise "Category #{new_cat_id} does not belong to user #{target_user_id}" unless category
+
+          attrs[:category_id] = category.id
+        end
+
         attrs
       end
     end
