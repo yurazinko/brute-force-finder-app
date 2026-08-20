@@ -4,3 +4,8 @@ nightly_scraping_job:
   class: "NightlyScrapingCronJob"
   queue: "default"
   description: "Nightly scraping job"
+
+searxng_updater_job:
+  cron: "0 13 * * *"
+  class: "SearxngUpdaterJob"
+  queue: default

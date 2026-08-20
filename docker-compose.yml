@@ -7,6 +7,7 @@ x-app: &app
   volumes:
     - .:/app:cached
     - /app/node_modules
+    - /var/run/docker.sock:/var/run/docker.sock
   environment:
     RAILS_ENV: development
     REDIS_URL: redis://redis:6379/1
@@ -15,6 +16,7 @@ x-app: &app
     RUBY_GC_HEAP_GROWTH_FACTOR: 1.2
     RUBY_GC_HEAP_GROWTH_MAX_SLOTS: 30000
     LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+    COMPOSE_PROJECT_NAME: "brute-force-finder-app"
   networks:
     - finder_network
 
@@ -44,6 +46,7 @@ x-searxng-base: &searxng-base
     interval: 5s
     timeout: 3s
     retries: 5
+    start_period: 60s
 
 services:
   tor_1:
@@ -62,7 +65,6 @@ services:
     container_name: finder_searxng_1
     volumes:
       - ./searxng/searxng_1:/etc/searxng
-      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
     depends_on:
       tor_1:
         condition: service_healthy
@@ -72,7 +74,6 @@ services:
     container_name: finder_searxng_2
     volumes:
       - ./searxng/searxng_2:/etc/searxng
-      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
     depends_on:
       tor_2:
         condition: service_healthy
@@ -82,7 +83,6 @@ services:
     container_name: finder_searxng_3
     volumes:
       - ./searxng/searxng_3:/etc/searxng
-      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
     depends_on:
       tor_3:
         condition: service_healthy
@@ -92,7 +92,6 @@ services:
     container_name: finder_searxng_4
     volumes:
       - ./searxng/searxng_4:/etc/searxng
-      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
     depends_on:
       tor_4:
         condition: service_healthy
@@ -102,7 +101,6 @@ services:
     container_name: finder_searxng_5
     volumes:
       - ./searxng/searxng_5:/etc/searxng
-      - ./searxng/limiter.toml:/etc/searxng/limiter.toml:ro
     depends_on:
       tor_5:
         condition: service_healthy
@@ -175,6 +173,11 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  searxng_1_data:
+  searxng_2_data:
+  searxng_3_data:
+  searxng_4_data:
+  searxng_5_data:
 
 networks:
   finder_network:
