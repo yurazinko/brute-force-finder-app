@@ -47,12 +47,6 @@ x-searxng-base: &searxng-base
     timeout: 3s
     retries: 5
     start_period: 60s
-  entrypoint: >
-    sh -c "
-    if [ -d /etc/searxng/limiter.toml ]; then
-      rm -rf /etc/searxng/limiter.toml;
-    fi;
-    "
 
 services:
   tor_1:
@@ -92,6 +86,7 @@ services:
     depends_on:
       tor_3:
         condition: service_healthy
+
   searxng_4:
     <<: *searxng-base
     container_name: finder_searxng_4
@@ -178,6 +173,11 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  searxng_1_data:
+  searxng_2_data:
+  searxng_3_data:
+  searxng_4_data:
+  searxng_5_data:
 
 networks:
   finder_network:
