@@ -113,10 +113,9 @@ services:
       - "8090:8090"
     volumes:
       - yacy_data:/opt/yacy_search_server/DATA
-      - ./yacy/yacy.conf:/opt/yacy_search_server/DATA/SETTINGS/yacy.conf:ro
+      - ./yacy:/opt/yacy_search_server/DATA/SETTINGS
     networks:
       - finder_network
-
   db:
     image: postgres:17.11-alpine
     container_name: finder_db
