@@ -4,14 +4,15 @@ module Results
   class DataTransformer
     WWW_PREFIX = "www."
 
-    def self.process(search_id, raw_results, target)
-      new(search_id, raw_results, target).process
+    def self.process(search_id, raw_results, prompt)
+      new(search_id, raw_results, prompt).process
     end
 
-    def initialize(search_id, raw_results, target)
+    def initialize(search_id, raw_results, prompt)
       @search_id = search_id
       @raw_results = raw_results || []
-      @target = target
+      @prompt = prompt
+      @target = prompt&.target
       @now = Time.current
       @target_configs = fetch_target_configs
     end
@@ -35,9 +36,10 @@ module Results
     def transform_result(result)
       url = result["url"]
       return if url.blank?
+      return unless url_matches_target?(url)
 
       domain = extract_domain(url)
-      return if domain.blank? || !domain_matches_target?(domain)
+      return if domain.blank?
 
       clean_url = normalize_url(url, domain)
       return if clean_url.blank?
@@ -52,12 +54,35 @@ module Results
       nil
     end
 
-    def domain_matches_target?(result_domain)
-      return true if @target.blank?
+    def url_matches_target?(url)
+      return true if @target.blank? || @target.domain.blank?
 
-      target_domain = @target.domain.to_s.start_with?(WWW_PREFIX) ? @target.domain.sub(WWW_PREFIX, "") : @target.domain
+      target_host, target_path = parse_target_domain
+      uri = URI.parse(url)
+      result_host = uri.host&.sub(WWW_PREFIX, "")
 
-      result_domain == target_domain || result_domain.end_with?(".#{target_domain}")
+      return false unless host_matches?(result_host, target_host)
+
+      path_matches?(uri.path, target_path)
+    rescue URI::InvalidURIError
+      false
+    end
+
+    def parse_target_domain
+      target_str = @target.domain.to_s.sub(%r{\Ahttps?://}, "").sub(WWW_PREFIX, "")
+      target_str.split("/", 2)
+    end
+
+    def host_matches?(result_host, target_host)
+      return false if result_host.blank?
+
+      result_host == target_host || result_host.end_with?(".#{target_host}")
+    end
+
+    def path_matches?(result_path, target_path)
+      return true if target_path.blank?
+
+      result_path.to_s.delete_prefix("/").start_with?(target_path)
     end
 
     def normalize_url(url, domain)

@@ -12,6 +12,7 @@ x-app: &app
     RAILS_ENV: development
     REDIS_URL: redis://redis:6379/1
     SEARXNG_URLS: "http://searxng_1:8080,http://searxng_2:8080,http://searxng_3:8080,http://searxng_4:8080,http://searxng_5:8080"
+    YACY_PEER_URLS: "http://yacy:8090"
     RUBY_GC_HEAP_INIT_SLOTS: 10000
     RUBY_GC_HEAP_GROWTH_FACTOR: 1.2
     RUBY_GC_HEAP_GROWTH_MAX_SLOTS: 30000
@@ -105,6 +106,17 @@ services:
       tor_5:
         condition: service_healthy
 
+  yacy:
+    image: yacy/yacy_search_server:latest-alpine
+    container_name: finder_yacy
+    ports:
+      - "8090:8090"
+    volumes:
+      - yacy_data:/opt/yacy_search_server/DATA
+      - ./yacy/yacy.conf:/opt/yacy_search_server/DATA/SETTINGS/yacy.conf:ro
+    networks:
+      - finder_network
+
   db:
     image: postgres:17.11-alpine
     container_name: finder_db
@@ -141,6 +153,8 @@ services:
         condition: service_started
       searxng_1:
         condition: service_healthy
+      yacy:
+        condition: service_started
 
   app:
     <<: *app
@@ -154,6 +168,8 @@ services:
       db:
         condition: service_healthy
       redis:
+        condition: service_started
+      yacy:
         condition: service_started
 
   js_watcher:
@@ -178,6 +194,7 @@ volumes:
   searxng_3_data:
   searxng_4_data:
   searxng_5_data:
+  yacy_data:
 
 networks:
   finder_network:

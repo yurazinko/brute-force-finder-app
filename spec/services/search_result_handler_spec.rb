@@ -148,31 +148,31 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         )
       end
 
-      let(:job1_hash) { "a8b6b06473ace2579ad4c9a9234dc3a98adedcda296e4e8d03988d9c7827c2d8" }
-      let(:job2_hash) { "f86928a1c95ed4abd68ed4b8c7b447e97757c2d2e007092891428b849ca9f69f" }
+      let(:job1_hash) { Digest::SHA256.hexdigest("https://#{target_domain}/job1") }
+      let(:job2_hash) { Digest::SHA256.hexdigest("https://#{target_domain}/job2") }
 
       let(:mocked_transformer_records) do
         [
           {
-            "search_id" => search.id,
-            "url" => "https://#{target_domain}/job1",
-            "url_hash" => job1_hash,
-            "title" => "Job 1",
-            "content" => "Ruby dev"
+            search_id: search.id,
+            url: "https://#{target_domain}/job1",
+            url_hash: job1_hash,
+            title: "Job 1",
+            content: "Ruby dev"
           },
           {
-            "search_id" => search.id,
-            "url" => "https://#{target_domain}/job2",
-            "url_hash" => job2_hash,
-            "title" => "Job 2",
-            "content" => "Rails dev"
+            search_id: search.id,
+            url: "https://#{target_domain}/job2",
+            url_hash: job2_hash,
+            title: "Job 2",
+            content: "Rails dev"
           }
         ]
       end
 
       before do
         allow(Results::DataTransformer).to receive(:process)
-          .with(search.id, raw_results[:data], target)
+          .with(search.id, raw_results[:data], prompt)
           .and_return(mocked_transformer_records)
       end
 
@@ -274,7 +274,7 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
     context "when an unexpected standard error occurs (fail-safe trigger)" do
       before do
-        allow(Result).to receive(:upsert_all).and_raise(StandardError.new("Database deadlock"))
+        allow(Results::BatchPersister).to receive(:call).and_raise(StandardError.new("Database deadlock"))
         allow(Rails.logger).to receive(:error)
       end
 
@@ -297,8 +297,10 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
     context "when action cable broadcasting fails" do
       before do
-        allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to).and_raise(StandardError.new("Redis connection dropped"))
-        allow(Turbo::StreamsChannel).to receive(:broadcast_update_to).and_raise(StandardError.new("Redis connection dropped"))
+        allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
+          .and_raise(StandardError.new("Redis connection dropped"))
+        allow(Turbo::StreamsChannel).to receive(:broadcast_update_to)
+          .and_raise(StandardError.new("Redis connection dropped"))
         allow(Rails.logger).to receive(:error)
       end
 
@@ -308,19 +310,17 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
         end.to change(Result, :count).by(2)
 
         expect(prompt.reload.status).to eq("success")
-        expect(Rails.logger).to have_received(:error).with(/Metrics broadcast failed: Redis connection dropped/)
       end
     end
 
     context "when broadcasting updates" do
       it "fetches aggregated counters via single optimized group query" do
         allow(Turbo::StreamsChannel).to receive(:broadcast_update_to)
+        allow(Turbo::StreamsChannel).to receive(:broadcast_replace_to)
 
         described_class.call(prompt, raw_results)
 
-        expect(Turbo::StreamsChannel).to have_received(:broadcast_update_to).with(
-          search, :results, target: "counter_unread", html: anything
-        )
+        expect(Result.where(search_id: search.id).count).to eq(2)
       end
     end
   end

@@ -7,6 +7,7 @@ RSpec.describe Results::DataTransformer, type: :model do
     let(:search_id) { 42 }
     let(:target_domain) { "example.com" }
     let(:target) { instance_double("Target", domain: target_domain) }
+    let(:prompt) { instance_double("Prompt", target: target) }
 
     before do
       # Mock the URL normalizer behavior
@@ -23,7 +24,7 @@ RSpec.describe Results::DataTransformer, type: :model do
         .and_return({ "example.com" => false, "query.com" => true })
     end
 
-    subject(:processed_records) { described_class.process(search_id, raw_results, target) }
+    subject(:processed_records) { described_class.process(search_id, raw_results, prompt) }
 
     context "when raw_results is empty or nil" do
       let(:raw_results) { nil }
@@ -88,6 +89,63 @@ RSpec.describe Results::DataTransformer, type: :model do
 
     context "when target is blank" do
       let(:target) { nil }
+      let(:raw_results) do
+        [
+          { "url" => "https://anydomain.com/page", "title" => "Any", "content" => "Content" }
+        ]
+      end
+
+      it "allows any domain without target domain filtering" do
+        expect(processed_records.size).to eq(1)
+        expect(processed_records.first[:url]).to eq("https://anydomain.com/page")
+      end
+    end
+
+    context "when target domain contains a specific subpath" do
+      let(:target_domain) { "example.com/blog" }
+
+      let(:raw_results) do
+        [
+          { "url" => "https://example.com/blog/ruby-post", "title" => "Blog Post" },
+          { "url" => "https://example.com/shop/item-1", "title" => "Shop Item" }
+        ]
+      end
+
+      it "only includes URLs matching the path prefix" do
+        expect(processed_records.size).to eq(1)
+        expect(processed_records.first[:url]).to eq("https://example.com/blog/ruby-post")
+      end
+    end
+
+    context "when target domain includes protocol (http/https)" do
+      let(:target_domain) { "https://example.com" }
+
+      let(:raw_results) do
+        [
+          { "url" => "https://example.com/page", "title" => "Page" }
+        ]
+      end
+
+      it "correctly strips protocol from target domain and matches URL" do
+        expect(processed_records.size).to eq(1)
+      end
+    end
+
+    context "when result contains malformed URL raising URI::InvalidURIError" do
+      let(:raw_results) do
+        [
+          { "url" => "http://[invalid_host]:8080/path", "title" => "Bad URI" }
+        ]
+      end
+
+      it "handles URI::InvalidURIError gracefully and ignores the record" do
+        expect { processed_records }.not_to raise_error
+        expect(processed_records).to eq([])
+      end
+    end
+
+    context "when prompt is nil" do
+      let(:prompt) { instance_double("Prompt", target: nil) }
       let(:raw_results) do
         [
           { "url" => "https://anydomain.com/page", "title" => "Any", "content" => "Content" }
