@@ -11,7 +11,7 @@ class SearxngUpdaterJob
 
   sidekiq_options queue: :default, retry: 0
 
-  CONTAINER_COUNT = 5
+  CONTAINER_COUNT = ENV.fetch("SEARXNG_URLS", "http://searxng_1:8080").split(",").size
   PROJECT_NAME = ENV.fetch("COMPOSE_PROJECT_NAME", "brute-force-finder-app")
   SEARXNG_IMAGE = ENV.fetch("SEARXNG_IMAGE", "searxng/searxng:latest")
 

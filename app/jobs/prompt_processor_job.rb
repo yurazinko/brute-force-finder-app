@@ -11,9 +11,9 @@ class PromptProcessorJob < ApplicationJob
     search = prompt.search
     domain = extract_domain(prompt.full_query_text)
     query_text = SearchCampaigns::DorkRandomizer.perform(prompt.full_query_text)
+    broadcast_live_status(search, "[#{domain}] Requesting data from Search Pipeline...")
 
-    broadcast_live_status(search, "[#{domain}] Requesting data from Multi-Instance SearXNG Collector...")
-    raw_results = Searxng::RawResultsCollector.call(query_text, time_range: search.time_frame)
+    raw_results = SearchEngines::ResultsCollector.call(query_text, time_range: search.time_frame)
 
     handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
     broadcast_handler_result(search, domain, handler_result)

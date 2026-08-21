@@ -25,14 +25,13 @@ module SearchCampaigns
       @coordinator.fail!(e.message)
       { error: e.message, raw_count: 0, new_count: 0 }
     ensure
-      @coordinator.evaluate_completion!
-      SearchCampaigns::LifecycleNotifier.broadcast_status(@search)
+      safely_evaluate_completion
     end
 
     private
 
     def process_records
-      result_records = Results::DataTransformer.process(@search.id, @scraped_data, @target)
+      result_records = Results::DataTransformer.process(@search.id, @scraped_data, @prompt)
       metrics = Results::BatchPersister.call(@search.id, result_records)
 
       @search.results.reset
@@ -48,6 +47,13 @@ module SearchCampaigns
         new_count: metrics[:new_count],
         total: total_cached
       }
+    end
+
+    def safely_evaluate_completion
+      @coordinator.evaluate_completion!
+      SearchCampaigns::LifecycleNotifier.broadcast_status(@search)
+    rescue StandardError => e
+      Rails.logger.error("[Search::ResultHandler] Ensure broadcast failed: #{e.message}")
     end
   end
 end

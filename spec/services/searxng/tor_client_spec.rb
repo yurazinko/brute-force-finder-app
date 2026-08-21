@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Searxng::Api::TorClient, type: :service do
+RSpec.describe SearchEngines::Searxng::Api::TorClient, type: :service do
   let(:query) { 'site:lever.co "ruby"' }
   let(:urls_env) { "http://searxng_1:8080,http://searxng_2:8080" }
   let(:instance1) { "http://searxng_1:8080" }

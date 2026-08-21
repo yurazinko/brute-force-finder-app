@@ -24,7 +24,9 @@ RSpec.describe PromptProcessorJob, type: :job do
   before do
     allow(Turbo::StreamsChannel).to receive(:broadcast_render_to)
     allow(SearchCampaigns::DorkRandomizer).to receive(:perform).with(full_query).and_return(randomized_query)
-    allow(Searxng::RawResultsCollector).to receive(:call).and_return(collector_result)
+
+    allow(SearchEngines::ResultsCollector).to receive(:call).and_return(collector_result)
+
     allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 1, new_count: 1 })
     allow(Prompt).to receive(:find).with(prompt_id).and_return(prompt_mock)
     allow(Rails.logger).to receive(:error)
@@ -42,7 +44,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         job.perform(prompt_id, user_id)
 
         expect(Prompt).not_to have_received(:find)
-        expect(Searxng::RawResultsCollector).not_to have_received(:call)
+        expect(SearchEngines::ResultsCollector).not_to have_received(:call)
       end
     end
 
@@ -57,7 +59,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         job.perform(prompt_id, user_id)
 
         expect(SearchCampaigns::DorkRandomizer).to have_received(:perform).with(full_query)
-        expect(Searxng::RawResultsCollector).to have_received(:call).with(
+        expect(SearchEngines::ResultsCollector).to have_received(:call).with(
           randomized_query,
           time_range: "month"
         )
@@ -69,7 +71,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
           search_mock, :results,
           template: "searches/update_status",
-          assigns: { message: "[lever.co] Requesting data from Multi-Instance SearXNG Collector..." }
+          assigns: { message: "[lever.co] Requesting data from Search Pipeline..." }
         )
       end
 
@@ -129,7 +131,8 @@ RSpec.describe PromptProcessorJob, type: :job do
         before do
           allow(Prompt).to receive(:where).with(id: prompt_id).and_return(prompt_relation_mock)
           allow(prompt_relation_mock).to receive(:update_all)
-          allow(Searxng::RawResultsCollector).to receive(:call).and_raise(StandardError.new("Redis down"))
+
+          allow(SearchEngines::ResultsCollector).to receive(:call).and_raise(StandardError.new("Redis down"))
         end
 
         it "reverts the prompt status back to pending and reraises the exception" do
