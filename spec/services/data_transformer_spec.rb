@@ -7,10 +7,10 @@ RSpec.describe Results::DataTransformer, type: :model do
     let(:search_id) { 42 }
     let(:target_domain) { "example.com" }
     let(:target) { instance_double("Target", domain: target_domain) }
-    let(:prompt) { instance_double("Prompt", target: target) }
+    let(:prompt) { instance_double("Prompt", target: target, full_query_text: "ruby") }
 
     before do
-      # Mock the URL normalizer behavior
+      # Mock URL normalizer
       allow(Utils::UrlNormalizer).to receive(:normalize) do |url, keep_query:|
         keep_query ? url : url.split("?").first
       end
@@ -19,9 +19,10 @@ RSpec.describe Results::DataTransformer, type: :model do
         "hash_of_#{url}"
       end
 
-      # Stub the database query to avoid database dependence
       allow(Target).to receive_message_chain(:joins, :where, :pluck, :to_h)
         .and_return({ "example.com" => false, "query.com" => true })
+
+      stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby</body></html>", headers: {})
     end
 
     subject(:processed_records) { described_class.process(search_id, raw_results, prompt) }
@@ -77,7 +78,7 @@ RSpec.describe Results::DataTransformer, type: :model do
 
         expect(first_record).to include(
           search_id: search_id,
-          url: "https://example.com/path", # Query strings are stripped because example.com is false
+          url: "https://example.com/path",
           url_hash: "hash_of_https://example.com/path",
           title: "Exact Match",
           content: "Text 1"
@@ -145,7 +146,7 @@ RSpec.describe Results::DataTransformer, type: :model do
     end
 
     context "when prompt is nil" do
-      let(:prompt) { instance_double("Prompt", target: nil) }
+      let(:prompt) { instance_double("Prompt", target: nil, full_query_text: "ruby") }
       let(:raw_results) do
         [
           { "url" => "https://anydomain.com/page", "title" => "Any", "content" => "Content" }
@@ -159,7 +160,7 @@ RSpec.describe Results::DataTransformer, type: :model do
     end
 
     context "checking keep_query (allow_query_strings) logic" do
-      let(:target) { nil } # Disable domain filtering for this specific test
+      let(:target) { nil }
       let(:raw_results) do
         [
           { "url" => "https://example.com/p?q=1", "title" => "No Query" },
@@ -176,8 +177,8 @@ RSpec.describe Results::DataTransformer, type: :model do
 
       it "preserves query parameters only for allowed domains" do
         urls = processed_records.pluck(:url)
-        expect(urls).to include("https://example.com/p") # Query removed
-        expect(urls).to include("https://query.com/p?q=2") # Query preserved
+        expect(urls).to include("https://example.com/p")
+        expect(urls).to include("https://query.com/p?q=2")
       end
     end
 

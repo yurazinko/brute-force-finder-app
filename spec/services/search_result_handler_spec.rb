@@ -46,6 +46,10 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
     ["https://#{target_domain}/job1", "https://#{target_domain}/job2"]
   end
 
+  before do
+    stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby dev</body></html>", headers: {})
+  end
+
   describe ".call" do
     context "when raw results are present and valid" do
       it "bulk inserts results for the search without N+1 queries" do
