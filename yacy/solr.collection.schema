@@ -1,3 +1,5 @@
+
+
 ## this is a list of all solr keys for the default index 'collection1', the fulltext search index
 ## this complete list of keys can be changed; the actual schema is stored in:
 ## DATA/SETTINGS/solr.collection.schema
@@ -12,8 +14,8 @@
 ## primary key of document, the URL hash, string (mandatory field)
 id  # primary key of document, the URL hash, string (mandatory field)
 
-##url of document, string (mandatory field)
-sku  #url of document, string (mandatory field)
+# #url of document, string (mandatory field)
+sku  # url of document, string (mandatory field)
 
 ## last-modified from http header, date (mandatory field)
 last_modified  # last-modified from http header, date (mandatory field)
@@ -41,7 +43,7 @@ failreason_s  # fail reason if a page was not loaded. if the page was loaded the
 
 ## fail type if a page was not loaded. This field is either empty, 'excl' or 'fail'
 failtype_s  # fail type if a page was not loaded. This field is either empty, 'excl' or 'fail'
-    
+
 ## html status return code (i.e. "200" for ok), -1 if not loaded (see content of failreason_t for this case), int (mandatory field)
 httpstatus_i  # html status return code (i.e. "200" for ok), -1 if not loaded (see content of failreason_t for this case), int (mandatory field)
 
@@ -69,7 +71,6 @@ images_urlstub_sxt  # all image links without the protocol and '://'. For correc
 ## all image link protocols
 images_protocol_sxt  # all image link protocols
 
-
 ### optional but highly recommended values, part of the index distribution process
 
 ## date until resource shall be considered as fresh
@@ -92,7 +93,6 @@ videolinkscount_i  # number of links to video resources
 
 ## number of links to application resources
 applinkscount_i  # number of links to application resources
-
 
 ### optional but highly recommended values, not part of the index distribution process
 
@@ -158,7 +158,7 @@ exact_signature_unique_b  # flag shows if exact_signature_l is unique at the tim
 
 ## 64 bit of the Lookup3Signature from EnhancedTextProfileSignature of text_t
 fuzzy_signature_l  # 64 bit of the Lookup3Signature from EnhancedTextProfileSignature of text_t
-    
+
 ## flag shows if fuzzy_signature_l is unique at the time of document creation, used for double-check during search
 fuzzy_signature_unique_b  # flag shows if fuzzy_signature_l is unique at the time of document creation, used for double-check during search
 
@@ -303,8 +303,8 @@ icons_protocol_sxt  # all icon links protocols : split from icons_urlstub to pro
 ## all icon links relationships space separated (e.g. 'icon apple-touch-icon')
 icons_rel_sxt  # all icon links relationships space separated (e.g. 'icon apple-touch-icon')
 
-## all icon sizes space separated (e.g. '16x16 32x32')
-icons_sizes_sxt  # all icon sizes space separated (e.g. '16x16 32x32')
+# # all icon sizes space separated (e.g. '16x16 32x32')
+icons_sizes_sxt  #  all icon sizes space separated (e.g. '16x16 32x32')
 
 ## all text/words appearing in image alt texts or the tokenized url
 images_text_t  # all text/words appearing in image alt texts or the tokenized url
@@ -428,7 +428,7 @@ url_file_name_s  # the file name (which is the string after the last '/' and bef
 
 ## number of all path elements in the url hpath (see: http://www.ietf.org/rfc/rfc1738.txt) without the file name
 url_paths_count_i  # number of all path elements in the url hpath (see: http://www.ietf.org/rfc/rfc1738.txt) without the file name
-    
+
 ## all path elements in the url hpath (see: http://www.ietf.org/rfc/rfc1738.txt) without the file name
 url_paths_sxt  # all path elements in the url hpath (see: http://www.ietf.org/rfc/rfc1738.txt) without the file name
 
@@ -446,10 +446,10 @@ url_chars_i  # number of all characters in the url == length of sku field
 
 ## the Domain Class Name, either the TLD or a combination of ccSLD+TLD if a ccSLD is used.
 #host_dnc_s  # the Domain Class Name, either the TLD or a combination of ccSLD+TLD if a ccSLD is used.
-    
+
 ## the organization and dnc concatenated with '.'
 #host_organizationdnc_s  # the organization and dnc concatenated with '.'
-    
+
 ## the remaining part of the host without organizationdnc
 #host_subdomain_s  # the remaining part of the host without organizationdnc
 
@@ -490,7 +490,6 @@ host_extent_i  # number of documents from the same host; can be used to measure 
 #opengraph_type_s
 #opengraph_url_s
 #opengraph_image_s
-
 
 ## citation ranking
 
@@ -544,4 +543,3 @@ host_extent_i  # number of documents from the same host; can be used to measure 
 
 ## collection of all vocabulary names that have a matcher in the document - use this to boost with vocabularies
 vocabularies_sxt  # collection of all vocabulary names that have a matcher in the document - use this to boost with vocabularies
-    
