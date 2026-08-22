@@ -5,6 +5,8 @@ require "httparty"
 class BaseApiClient
   include HTTParty
 
+  # TODO: Add proxy: https://www.rubydoc.info/gems/httparty/0.12.0/HTTParty/ClassMethods
+
   TIMEOUT = 12
   MAX_RETRIES = 3
   CIRCUIT_BREAKER_TTL = 900
