@@ -29,13 +29,13 @@
     <span class="truncate block w-full" title="<%= result.url %>"><%= result.url %></span>
   </div>
 
-  <% if result.content.present? %>
-    <div class="mt-1 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm h-20 sm:h-24 overflow-hidden">
-      <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3">
-        <%= result.content %>
-      </p>
-    </div>
-  <% end %>
+
+  <div class="mt-1 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm h-20 sm:h-24 overflow-hidden">
+    <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3">
+      <%= result.content.presence || "* No preview available *" %>
+    </p>
+  </div>
+
 
   <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-breeze-border">
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">
