@@ -3,8 +3,8 @@
 require "rails_helper"
 
 RSpec.describe Results::ResultFilter, type: :service do
-  let(:target) { double("Target", domain: "example.com") }
-  let(:prompt) { double("Prompt", target: target, full_query_text: 'site:example.com (ruby OR "ruby on rails")') }
+  let(:target) { instance_double("Target", domain: "example.com") }
+  let(:prompt) { instance_double("Prompt", target: target, full_query_text: 'site:example.com (ruby OR "ruby on rails")') }
   let(:target_configs) { { "example.com" => false } }
 
   let(:valid_result) do
@@ -38,7 +38,7 @@ RSpec.describe Results::ResultFilter, type: :service do
       end
     end
 
-    context "when keyword is present in snippet" do
+    context "when keywords are present in snippet" do
       let(:valid_result) do
         {
           "url" => "https://example.com/jobs/ruby-developer",
@@ -81,6 +81,52 @@ RSpec.describe Results::ResultFilter, type: :service do
       end
     end
 
+    context "when enforcing strict multi-group matching (AND between groups, OR inside group)" do
+      let(:prompt) do
+        instance_double(
+          "Prompt",
+          target: target,
+          full_query_text: 'site:example.com (ruby OR "ruby on rails") (krakow OR cracow) developer'
+        )
+      end
+
+      context "when snippet/page matches ALL groups" do
+        let(:valid_result) do
+          {
+            "url" => "https://example.com/jobs/dev",
+            "title" => "Ruby Developer",
+            "content" => "Based in Krakow."
+          }
+        end
+
+        it "returns true" do
+          expect(subject.valid?).to be true
+        end
+      end
+
+      context "when one of the groups is missing" do
+        let(:valid_result) do
+          {
+            "url" => "https://example.com/jobs/dev",
+            "title" => "Ruby Developer",
+            "content" => "Based in Warsaw."
+          }
+        end
+
+        let(:html_body) { "<html><body><p>Ruby developer position in Warsaw, Poland.</p></body></html>" }
+
+        before do
+          stub_request(:get, valid_result["url"])
+            .with(headers: { "Cache-Control" => "no-cache" })
+            .to_return(status: 200, body: html_body, headers: {})
+        end
+
+        it "returns false because not all groups are satisfied" do
+          expect(subject.valid?).to be false
+        end
+      end
+    end
+
     context "when challenge protection is triggered (Captcha / Cloudflare)" do
       context "when status code is 403, 429, or 503" do
         before do
@@ -119,27 +165,39 @@ RSpec.describe Results::ResultFilter, type: :service do
     end
   end
 
-  describe "private methods" do
-    describe "#extract_keywords_from_prompt" do
-      it "extracts phrases and standalone words" do
-        query = 'site:apply.workable.com tld:io (ruby OR "ruby on rails") /date (worldwide OR anywhere)'
-        keywords = subject.send(:extract_keywords_from_prompt, query)
+  describe "extracted component dependencies" do
+    describe "Results::DorkParser" do
+      it "correctly parses boolean groups and standalone words" do
+        query = 'site:apply.workable.com tld:io (ruby OR "ruby on rails") /date (krakow OR cracow) developer'
+        groups = Results::DorkParser.parse_groups(query)
 
-        expect(keywords).to match_array(["ruby on rails", "ruby", "worldwide", "anywhere"])
+        expect(groups).to contain_exactly(
+          ["ruby on rails", "ruby"],
+          %w[krakow cracow],
+          ["developer"]
+        )
+      end
+
+      it "handles lowercased operators like or/and/not without treating them as keywords" do
+        query = "(react or vue) and senior"
+        groups = Results::DorkParser.parse_groups(query)
+
+        expect(groups).to contain_exactly(
+          %w[react vue],
+          ["senior"]
+        )
       end
     end
 
-    describe "#url_matches_target?" do
-      let(:target) { double("Target", domain: "example.com/careers") }
+    describe "Results::UrlMatcher" do
+      let(:target) { instance_double("Target", domain: "example.com/careers") }
 
       it "returns true for matched subpaths" do
-        filter = described_class.new({ "url" => "https://example.com/careers/ruby-dev" }, prompt, target_configs)
-        expect(filter.send(:url_matches_target?)).to be true
+        expect(Results::UrlMatcher.matches?("https://example.com/careers/ruby-dev", target)).to be true
       end
 
       it "returns false for unmatched paths" do
-        filter = described_class.new({ "url" => "https://example.com/about" }, prompt, target_configs)
-        expect(filter.send(:url_matches_target?)).to be false
+        expect(Results::UrlMatcher.matches?("https://example.com/about", target)).to be false
       end
     end
   end
