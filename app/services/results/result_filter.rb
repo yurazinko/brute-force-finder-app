@@ -2,6 +2,9 @@
 
 module Results
   class ResultFilter
+
+    # TODO: Implement better memory consuming approach for large pages, e.g., streaming and searching in chunks
+
     def initialize(result, prompt, target_configs)
       @result = result
       @prompt = prompt

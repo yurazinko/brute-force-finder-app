@@ -18,7 +18,7 @@
     data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
     data-read-url="<%= result_path(result, status: :watched, current_tab: (params[:status].presence || "unread"), d: params[:d], show_acknowledged: params[:show_acknowledged]) %>"
     data-read-status="<%= result.status %>"
-    class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight break-words">
+    class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight block truncate">
     <%= result.title.presence || "Untitled Result" %>
   </a>
 
