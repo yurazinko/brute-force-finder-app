@@ -27,7 +27,7 @@ gem "devise"
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[windows jruby]
 
-gem "sidekiq", "~> 8.1", ">= 8.1.2"
+gem "sidekiq", "~> 8.1"
 gem "sidekiq-cron", "~> 2.4.0"
 
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
