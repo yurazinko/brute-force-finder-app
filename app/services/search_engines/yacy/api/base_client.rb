@@ -40,10 +40,15 @@ module SearchEngines
             "site:#{clean_host}"
           end
 
-          return formatted_query if time_frame_start_date.nil?
+          formatted_query.gsub!(/\b(OR|AND|NOT)\b/i, " ")
+          formatted_query.tr!("()", " ")
 
-          formatted_date = time_frame_start_date.strftime("%Y/%m/%d")
-          "#{formatted_query} from:#{formatted_date} /date"
+          if time_frame_start_date.present?
+            formatted_date = time_frame_start_date.strftime("%Y/%m/%d")
+            formatted_query = "#{formatted_query} from:#{formatted_date}"
+          end
+
+          formatted_query.squish
         end
 
         def time_frame_start_date

@@ -90,7 +90,7 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
       it "appends date filter /date based on time frame" do
         travel_to Time.zone.local(2026, 8, 21) do
           formatted = client.send(:build_formatted_query)
-          expect(formatted).to eq('site:example.com "ruby developer" from:2026/08/14 /date')
+          expect(formatted).to eq('site:example.com "ruby developer" from:2026/08/14')
         end
       end
     end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# app/services/results/dork_parser.rb
 module Results
   class DorkParser
     STOP_WORDS = %w[or and not in on at to for of with by is are be].freeze

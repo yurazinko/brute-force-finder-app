@@ -58,6 +58,7 @@ module SearchCampaigns
     end
 
     def broadcast_content
+      # TODO: Do not show acknowledged results if not explicitly enabled
       latest_results = Result.where(search_id: @search.id).without_garbage.order(created_at: :desc).limit(20)
 
       Turbo::StreamsChannel.broadcast_replace_to(
