@@ -4,7 +4,7 @@ class SearxngUpdaterJob < BaseContainerUpdaterJob
   CONTAINER_COUNT = ENV.fetch("SEARXNG_URLS", "http://searxng_1:8080").split(",").size
   SEARXNG_IMAGE = ENV.fetch("SEARXNG_IMAGE", "searxng/searxng:latest")
 
-  protected
+  private
 
   def image_name
     SEARXNG_IMAGE

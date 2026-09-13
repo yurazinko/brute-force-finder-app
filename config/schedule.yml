@@ -12,5 +12,5 @@ searxng_updater_job:
 
 yacy_updater_job:
   cron: "15 13 * * *"
-  class: "SearxngUpdaterJob"
+  class: "YacyUpdaterJob"
   queue: default

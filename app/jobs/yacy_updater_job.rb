@@ -3,7 +3,7 @@
 class YacyUpdaterJob < BaseContainerUpdaterJob
   YACY_IMAGE = ENV.fetch("YACY_IMAGE", "yacy/yacy_search_server:latest-alpine")
 
-  protected
+  private
 
   def image_name
     YACY_IMAGE
@@ -18,16 +18,31 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
     ]
   end
 
-  def run_smoke_test(info)
+  def run_smoke_test(info) # rubocop:disable Metrics/MethodLength
     service_host = info[:service]
     url = URI("http://#{service_host}:8090/yacysearch.json?query=test")
 
-    response = Net::HTTP.get_response(url)
-    raise "Smoke test failed with status code #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+    max_retries = 10
 
-    json = JSON.parse(response.body)
-    raise "Smoke test payload missing 'channels' key" unless json.key?("channels")
-  rescue StandardError => e
-    raise "Smoke test failed for #{service_host}: #{e.message}"
+    found = false
+    max_retries.times do |attempt|
+      begin
+        response = Net::HTTP.get_response(url)
+        if response.is_a?(Net::HTTPSuccess)
+          json = JSON.parse(response.body)
+          if json.key?("channels")
+            found = true
+            break
+          end
+        end
+      end
+
+      logger.info "[YacyUpdaterJob] Waiting for HTTP server on #{service_host} (#{attempt + 1}/#{max_retries})..."
+      sleep 5
+    end
+
+    return if found
+
+    raise "Smoke test failed for #{service_host}: HTTP server was not ready after #{max_retries * 5} seconds"
   end
 end
