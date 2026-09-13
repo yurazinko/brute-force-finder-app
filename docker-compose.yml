@@ -116,6 +116,13 @@ services:
       - ./yacy:/opt/yacy_search_server/DATA/SETTINGS
     networks:
       - finder_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8090/yacysearch.json?query=test"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
   db:
     image: postgres:17.11-alpine
     container_name: finder_db
