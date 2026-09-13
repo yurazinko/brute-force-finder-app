@@ -9,3 +9,8 @@ searxng_updater_job:
   cron: "0 13 * * *"
   class: "SearxngUpdaterJob"
   queue: default
+
+yacy_updater_job:
+  cron: "15 13 * * *"
+  class: "SearxngUpdaterJob"
+  queue: default
