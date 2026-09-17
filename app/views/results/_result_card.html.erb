@@ -2,6 +2,7 @@
   is_watched = result.status == 'watched' || result.acknowledged?
   is_on_on_inbox_tab = [nil, "unread"].include?(params[:status])
   should_dim = is_watched && is_on_on_inbox_tab
+  engine = result.engine.presence || "N/A"
 %>
 
 <div id="<%= dom_id(result) %>"
@@ -97,8 +98,10 @@
 
     </div>
 
-    <div class="text-[10px] text-breeze-muted font-medium order-1 sm:order-2 self-start sm:self-auto">
-      Discovered <%= time_ago_in_words(result.created_at) %> ago
+    <div class="flex items-center gap-2 order-1 sm:order-2 self-start sm:self-auto text-[10px] text-breeze-muted font-medium">
+      <span><%= engine %></span>
+      <span>•</span>
+      <span>Discovered <%= time_ago_in_words(result.created_at) %> ago</span>
     </div>
   </div>
 </div>

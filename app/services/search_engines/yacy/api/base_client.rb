@@ -81,7 +81,8 @@ module SearchEngines
             {
               "url" => item["link"],
               "title" => item["title"],
-              "content" => item["description"]
+              "content" => item["description"],
+              "engine" => provider_name
             }
           end
 

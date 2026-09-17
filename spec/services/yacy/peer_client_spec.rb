@@ -108,7 +108,8 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
                 {
                   "link" => "https://example.com/job/1",
                   "title" => "Ruby Lead",
-                  "description" => "Looking for Ruby developer"
+                  "description" => "Looking for Ruby developer",
+                  "engine" => "YaCy"
                 }
               ]
             }
@@ -133,7 +134,8 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
             {
               "url" => "https://example.com/job/1",
               "title" => "Ruby Lead",
-              "content" => "Looking for Ruby developer"
+              "content" => "Looking for Ruby developer",
+              "engine" => "YaCy"
             }
           ],
           failed_engines: []

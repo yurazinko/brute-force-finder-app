@@ -20,6 +20,7 @@ module Database
           url: record["url"],
           url_hash: record["url_hash"],
           content: record["content"],
+          engine: record["engine"],
           status: record["status"] || "unread",
           acknowledged: record["acknowledged"] || false,
           viewed_at: record["viewed_at"],
