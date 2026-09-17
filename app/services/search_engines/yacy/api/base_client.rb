@@ -20,7 +20,7 @@ module SearchEngines
             query: {
               query: build_formatted_query,
               maximumRecords: 60,
-              resource: "global",
+              resource: "local",
               meanCount: 0,
               maximumTime: 10,
               verify: "ifexist",

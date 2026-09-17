@@ -111,6 +111,13 @@ services:
     container_name: finder_yacy
     ports:
       - "8090:8090"
+    environment:
+      - YACY_INIT_MEM=512m
+      - YACY_MAX_MEM=1024m
+    deploy:
+      resources:
+        limits:
+          memory: 3000M
     volumes:
       - yacy_data:/opt/yacy_search_server/DATA
       - ./yacy:/opt/yacy_search_server/DATA/SETTINGS
