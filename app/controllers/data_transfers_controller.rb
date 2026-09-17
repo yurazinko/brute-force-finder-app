@@ -4,7 +4,8 @@ class DataTransfersController < ApplicationController
   def index; end
 
   def export
-    DataExportJob.perform_async(current_user.id)
+    DataExportJob.perform_async(current_user.id, params[:tables]&.reject(&:blank?))
+
     render_progress_stream("export", "Starting export job...")
   end
 

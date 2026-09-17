@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class DataExportJob < ApplicationJob
-  def perform(user_id)
+  def perform(user_id, tables = nil)
     user = User.find(user_id)
 
-    Database::DataExportService.new(user, nil).call do |progress, message|
+    Database::DataExportService.new(user, tables: tables).call do |progress, message|
       broadcast_progress("export", progress, message)
     end
   end

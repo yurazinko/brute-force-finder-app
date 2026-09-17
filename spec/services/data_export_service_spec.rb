@@ -3,10 +3,11 @@
 require "rails_helper"
 
 RSpec.describe Database::DataExportService do
-  subject(:service) { described_class.new(user, custom_path) }
+  subject(:service) { described_class.new(user, output_path: custom_path, tables: selected_tables) }
 
   let(:user) { create(:user) }
   let(:other_user) { create(:user) }
+  let(:selected_tables) { nil }
 
   let(:custom_path) { Rails.root.join("tmp", "test-export-#{user.id}.json") }
 
@@ -28,7 +29,7 @@ RSpec.describe Database::DataExportService do
   end
 
   describe "#call" do
-    it "creates a valid JSON file with exported data" do
+    it "creates a valid JSON file with all exported data by default" do
       expect(service.call).to be true
       expect(File.exist?(custom_path)).to be true
 
@@ -55,6 +56,41 @@ RSpec.describe Database::DataExportService do
 
       expect(category_ids).not_to include(other_category.id)
       expect(target_ids).not_to include(other_target.id)
+    end
+
+    context "when specific tables are requested" do
+      let(:selected_tables) { %w[categories searches] }
+
+      it "exports only the selected tables" do
+        service.call
+        exported_data = JSON.parse(File.read(custom_path))
+
+        expect(exported_data.keys).to match_array(%w[categories searches])
+        expect(exported_data).not_to have_key("targets")
+        expect(exported_data).not_to have_key("prompts")
+        expect(exported_data).not_to have_key("results")
+      end
+
+      it "yields progress tracking corresponding to the number of selected tables" do
+        yielded_steps = []
+
+        service.call do |progress, message|
+          yielded_steps << [progress, message]
+        end
+
+        expect(yielded_steps.size).to eq(3) # 2 tables + 1 final completion message
+      end
+    end
+
+    context "when invalid or unpermitted tables are passed" do
+      let(:selected_tables) { %w[categories users non_existent_table] }
+
+      it "filters out unpermitted tables and exports only valid ones" do
+        service.call
+        exported_data = JSON.parse(File.read(custom_path))
+
+        expect(exported_data.keys).to eq(%w[categories])
+      end
     end
 
     context "when a block is given for progress tracking" do

@@ -2,11 +2,14 @@
 
 module Database
   class DataExportService
-    attr_reader :user, :output_path
+    attr_reader :user, :output_path, :requested_tables
 
-    def initialize(user, output_path = nil)
+    ALL_TABLES = %w[categories targets searches prompts results].freeze
+
+    def initialize(user, output_path: nil, tables: nil)
       @user = user
       @output_path = output_path || default_output_path
+      @requested_tables = tables.present? ? (tables & ALL_TABLES) : ALL_TABLES
     end
 
     def call(&)
@@ -40,13 +43,15 @@ module Database
       user_categories = user.categories
       user_searches   = user.searches
 
-      [
-        ["categories", user_categories],
-        ["targets", Target.where(category_id: user_categories.select(:id))],
-        ["searches", user_searches],
-        ["prompts", Prompt.where(search_id: user_searches.select(:id))],
-        ["results", Result.where(search_id: user_searches.select(:id))]
-      ]
+      all_datasets = {
+        "categories" => user_categories,
+        "targets" => Target.where(category_id: user_categories.select(:id)),
+        "searches" => user_searches,
+        "prompts" => Prompt.where(search_id: user_searches.select(:id)),
+        "results" => Result.where(search_id: user_searches.select(:id))
+      }
+
+      all_datasets.slice(*requested_tables).to_a
     end
 
     def notify_progress(index, total_steps, table_name)
