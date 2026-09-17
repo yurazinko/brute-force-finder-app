@@ -6,8 +6,10 @@ module Results
     include HTTParty
 
     CAPTCHA_INDICATORS = [
-      "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha",
-      "ray id:", "just a moment...", "attention required!", "enable cookies"
+      "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha", "enable javascript", "cloudflare", "captcha",
+      "ray id:", "just a moment...", "attention required!", "enable cookies", "performing security verification",
+      "are you a human?", "verify you are a human", "please complete the security check",
+      "security check required", "access denied", "you are being redirected"
     ].freeze
 
     USER_AGENTS = [

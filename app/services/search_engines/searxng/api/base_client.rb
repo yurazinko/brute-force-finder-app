@@ -58,9 +58,9 @@ module SearchEngines
         def build_formatted_query
           formatted_query = @query.to_s.dup
 
-          formatted_query.gsub!("&quot;", '"')
+          formatted_query = formatted_query.gsub("&quot;", '"')
 
-          formatted_query.gsub!(/\bsite:(\S+)/i) do
+          formatted_query.gsub(/\bsite:(\S+)/i) do
             raw_site = ::Regexp.last_match(1).sub(%r{^https?://}, "")
             clean_host = raw_site.split("/").first
             "site:#{clean_host}"
@@ -70,6 +70,7 @@ module SearchEngines
         def parse_urls(response_body, instance)
           data = JSON.parse(response_body)
           Rails.logger.info("==================== SearXNG Response from #{instance}: #{data} =========================")
+
           return { success: false, error: "Engine Error: #{data['error']}" } if data["error"]
 
           { success: true, data: extract_results(data), failed_engines: data["unresponsive_engines"] || [] }
@@ -79,10 +80,21 @@ module SearchEngines
         end
 
         def extract_results(data)
-          raw_results = data["results"] || []
-          mapped = raw_results.map { |hash| hash.slice("url", "title", "content") }
-          mapped.uniq! { |hash| hash["url"] }
-          mapped
+          raw_results = (data["results"].presence || []).filter_map do |hash|
+            next if hash["url"].blank?
+
+            sub_engine = hash["engine"].presence
+            engine_label = sub_engine.present? ? "#{provider_name}/#{sub_engine.capitalize}" : provider_name
+
+            {
+              "url" => hash["url"],
+              "title" => hash["title"],
+              "content" => hash["content"],
+              "engine" => engine_label
+            }
+          end
+
+          raw_results.uniq { |hash| hash["url"] }
         end
       end
     end

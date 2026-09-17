@@ -58,6 +58,7 @@ module Results
         url_hash: Utils::UrlNormalizer.hash(clean_url),
         title: result["title"],
         content: result["content"],
+        engine: result["engine"],
         created_at: @now,
         updated_at: @now
       }

@@ -135,7 +135,8 @@ CREATE TABLE public.results (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     status character varying DEFAULT 'unread'::character varying NOT NULL,
-    acknowledged boolean DEFAULT false NOT NULL
+    acknowledged boolean DEFAULT false NOT NULL,
+    engine character varying
 );
 
 ALTER TABLE ONLY public.results FORCE ROW LEVEL SECURITY;
@@ -614,6 +615,7 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260917113344'),
 ('20260813112403'),
 ('20260731104737'),
 ('20260731091405'),

@@ -71,6 +71,7 @@ module Results
         "url_hash" => record["url_hash"],
         "title" => record["title"],
         "content" => record["content"],
+        "engine" => record["engine"],
         "status" => record["status"] || "unread",
         "acknowledged" => global_ack_set.include?(record["url_hash"]),
         "created_at" => record["created_at"] || current_time,
