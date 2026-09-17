@@ -7,7 +7,25 @@
     <div class="bg-breeze-view p-6 rounded-lg shadow">
       <h2 class="text-xl font-semibold mb-4">Export Database to JSON</h2>
       <div id="export" class="mb-4">
-        <%= button_to "Launch Full Export", export_data_transfers_path, method: :post, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+        <%= form_with url: export_data_transfers_path, method: :post, local: false do |f| %>
+
+          <details class="mb-4 text-sm text-breeze-muted cursor-pointer">
+            <summary class="font-medium hover:text-breeze-accent select-none mb-2">
+              ⚙️ Advanced Options
+            </summary>
+
+            <div class="mt-3 pl-2 flex flex-col gap-2 bg-breeze-bg/50 p-3 rounded-md border border-breeze-border">
+              <% %w[categories targets searches prompts results].each do |table| %>
+                <label class="inline-flex items-center gap-2 cursor-pointer text-gray-200">
+                  <%= check_box_tag "tables[]", table, true, class: "rounded border-breeze-border text-blue-600 focus:ring-blue-500" %>
+                  <span class="capitalize"><%= table %></span>
+                </label>
+              <% end %>
+            </div>
+          </details>
+
+          <%= f.submit "Launch Export", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer w-full sm:w-auto" %>
+        <% end %>
       </div>
     </div>
 
