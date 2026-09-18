@@ -35,11 +35,9 @@ module SearchEngines
         def perform_request(instance)
           url = "#{instance}#{CRAWLER_ENDPOINT}"
 
-          query_params = build_crawler_params
-
           response = self.class.post(
             url,
-            body: query_params,
+            body: build_crawler_params,
             digest_auth: auth_credentials,
             headers: { "Content-Type" => "application/x-www-form-urlencoded" },
             timeout: TIMEOUT
@@ -52,17 +50,19 @@ module SearchEngines
           { success: false, error: e.message }
         end
 
-        def build_crawler_params # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity,Metrics/MethodLength,Metrics/PerceivedComplexity
-          {
+        def build_crawler_params # rubocop:disable Metrics/AbcSize,Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+          range_option = @options[:range] || "domain"
+
+          params = {
             "crawlingstart" => "Neuen Crawl starten",
             "crawlingMode" => @options[:mode] || "url",
             "crawlingURL" => @query,
             "crawlingDepth" => (@options[:depth] || 3).to_s,
-            "range" => @options[:range] || "domain",
+            "range" => range_option,
             "mustmatch" => @options[:mustmatch] || ".*",
             "mustnotmatch" => @options[:mustnotmatch] || "",
             "crawlingQ" => @options[:crawl_query_urls] ? "on" : "off",
-            "crawlingDomMaxPages" => (@options[:max_pages] || 1000).to_s,
+            "crawlingDomMaxPages" => (@options[:max_pages] || 100).to_s,
             "recrawl" => @options[:recrawl] || "nodoubles",
             "reloadIfOlderNumber" => (@options[:reload_older_num] || 1).to_s,
             "reloadIfOlderUnit" => @options[:reload_older_unit] || "day",
@@ -72,15 +72,24 @@ module SearchEngines
             "collection" => @options[:collection] || "default",
             "crawlOrder" => "off",
             "agentName" => @options[:agent_name] || "YaCy Internet (cautious)"
-          }.tap do |params|
-            params["sitemapURL"] = @options[:sitemap_url] if @options[:mode] == "sitemap"
+          }
+
+          if %w[domain subpath].include?(range_option)
+            params.merge!(
+              "deleteold" => "age",
+              "deleteIfOlderNumber" => (@options[:delete_older_num] || 14).to_s,
+              "deleteIfOlderUnit" => @options[:delete_older_unit] || "day"
+            )
           end
+
+          params["sitemapURL"] = @options[:sitemap_url] if @options[:mode] == "sitemap"
+          params
         end
 
         def auth_credentials
           {
-            username: ENV.fetch("YACY_ADMIN_USER"),
-            password: ENV.fetch("YACY_ADMIN_PASSWORD")
+            username: ENV.fetch("YACY_ADMIN_USER", "admin"),
+            password: ENV.fetch("YACY_ADMIN_PASSWORD", "yacy")
           }
         end
 
