@@ -23,7 +23,7 @@ module SearchEngines
               resource: "local",
               meanCount: 0,
               maximumTime: 10,
-              verify: "ifexist",
+              verify: "iffresh",
               strictContentDom: false
             }
           }
@@ -37,6 +37,7 @@ module SearchEngines
           formatted_query.gsub!(/\bsite:(\S+)/i) do
             raw_site = ::Regexp.last_match(1).sub(%r{^https?://}, "")
             clean_host = raw_site.split("/").first
+            @extracted_site = clean_host.downcase
             "site:#{clean_host}"
           end
 
@@ -85,6 +86,8 @@ module SearchEngines
               "engine" => provider_name
             }
           end
+
+          YacyTriggerCrawlJob.perform_in(10.seconds, @extracted_site) if results.empty? && @extracted_site.present?
 
           { success: true, data: results, failed_engines: [] }
         end

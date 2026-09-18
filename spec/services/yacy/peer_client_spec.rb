@@ -152,10 +152,10 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
             query: {
               query: 'site:example.com "ruby developer"',
               maximumRecords: 60,
-              resource: "global",
+              resource: "local",
               meanCount: 0,
               maximumTime: 10,
-              verify: "ifexist",
+              verify: "iffresh",
               strictContentDom: false
             }
           }
