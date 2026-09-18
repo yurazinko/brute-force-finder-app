@@ -16,7 +16,7 @@ class YacyTriggerCrawlJob < ApplicationJob
     SearchEngines::Yacy::Api::Crawler.search(
       url,
       depth: 2,
-      max_pages: 500,
+      max_pages: 50,
       range: "domain",
       collection: collection
     )
