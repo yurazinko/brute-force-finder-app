@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class YacyTriggerCrawlJob < ApplicationJob
-  CRAWL_LOCK_TTL = 6.hours.to_i
+  CRAWL_LOCK_TTL = 3.hours.to_i
 
   def perform(target_site, collection = "default")
     redis = Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1"))
