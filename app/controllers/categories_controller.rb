@@ -10,13 +10,13 @@ class CategoriesController < ApplicationController
   def show; end
 
   def new
-    @category = Category.new
+    @category = current_user.categories.new
   end
 
   def edit; end
 
   def create
-    @category = Category.new(category_params)
+    @category = current_user.categories.new(category_params)
 
     if @category.save
       redirect_to categories_path, notice: "Category successfully created."
@@ -41,7 +41,7 @@ class CategoriesController < ApplicationController
   private
 
   def set_category
-    @category = Category.find(params.expect(:id))
+    @category = current_user.categories.find(params.expect(:id))
   end
 
   def category_params

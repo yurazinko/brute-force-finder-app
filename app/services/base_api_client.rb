@@ -16,7 +16,7 @@ class BaseApiClient
   def self.search(query, options = {}) = new(query, options).execute
 
   def initialize(query, options = {})
-    @query = query
+    @query = query # TODO: query does not belong here, move it to the subclasses
     @options = options
     @time_range = options[:time_range]
     @redis = Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1"))

@@ -13,6 +13,8 @@ x-app: &app
     REDIS_URL: redis://redis:6379/1
     SEARXNG_URLS: "http://searxng_1:8080,http://searxng_2:8080,http://searxng_3:8080,http://searxng_4:8080,http://searxng_5:8080"
     YACY_PEER_URLS: "http://yacy:8090"
+    YACY_ADMIN_USER: "admin"
+    YACY_ADMIN_PASSWORD: "yacy"
     RUBY_GC_HEAP_INIT_SLOTS: 10000
     RUBY_GC_HEAP_GROWTH_FACTOR: 1.2
     RUBY_GC_HEAP_GROWTH_MAX_SLOTS: 30000
@@ -111,6 +113,14 @@ services:
     container_name: finder_yacy
     ports:
       - "8090:8090"
+    environment:
+      - YACY_INIT_MEM=512m
+      - YACY_MAX_MEM=1024m
+      - YACY_ADMIN_ACCOUNT=admin:yacy
+    deploy:
+      resources:
+        limits:
+          memory: 3000M
     volumes:
       - yacy_data:/opt/yacy_search_server/DATA
       - ./yacy:/opt/yacy_search_server/DATA/SETTINGS
