@@ -1,0 +1,4 @@
+network.unit.name=myprivate
+network.unit.description=My Private Isolated Network
+network.unit.domain=local
+network.unit.bootstrap.seedlist0=
