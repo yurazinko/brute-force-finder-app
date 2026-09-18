@@ -500,7 +500,7 @@ CREATE INDEX index_targets_on_category_id ON public.targets USING btree (categor
 -- Name: index_targets_on_domain; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_targets_on_domain ON public.targets USING btree (domain);
+CREATE INDEX index_targets_on_domain ON public.targets USING btree (domain);
 
 
 --
@@ -615,6 +615,7 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260918180156'),
 ('20260917113344'),
 ('20260813112403'),
 ('20260731104737'),
