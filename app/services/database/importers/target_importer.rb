@@ -5,7 +5,7 @@ module Database
     class TargetImporter < BaseImporter
       def call
         records.each do |record|
-          target = Target.find_or_initialize_by(domain: record["domain"])
+          target = find_or_initialize_target(record["domain"])
           target.assign_attributes(target_attributes(record))
           target.save!
 
@@ -15,22 +15,33 @@ module Database
 
       private
 
-      def target_attributes(record)
-        attrs = { name: record["name"] }
-        attrs[:allow_query_strings] = record["allow_query_strings"] if record.key?("allow_query_strings")
-        attrs[:is_active] = record["is_active"] if record.key?("is_active")
+      def find_or_initialize_target(domain)
+        Target.joins(:category)
+              .where(categories: { user_id: target_user_id })
+              .find_by(domain: domain) || Target.new(domain: domain)
+      end
 
-        old_cat_id = record["category_id"]
+      def resolve_category_id(old_cat_id)
+        return nil if old_cat_id.blank?
+
         new_cat_id = id_maps["categories"][old_cat_id]
+        category = Category.find_by(id: new_cat_id, user_id: target_user_id) if new_cat_id.present?
 
-        if new_cat_id.present?
-          category = Category.find_by(id: new_cat_id, user_id: target_user_id)
-          raise "Category #{new_cat_id} does not belong to user #{target_user_id}" unless category
+        return category.id if category
 
-          attrs[:category_id] = category.id
-        end
+        raise StandardError,
+              "Category #{old_cat_id} (mapped to #{new_cat_id}) does not belong to user #{target_user_id}"
+      end
 
-        attrs
+      def target_attributes(record)
+        category_id = resolve_category_id(record["category_id"])
+
+        {
+          name: record["name"],
+          category_id: category_id.presence,
+          allow_query_strings: record["allow_query_strings"],
+          is_active: record["is_active"]
+        }.compact
       end
     end
   end
