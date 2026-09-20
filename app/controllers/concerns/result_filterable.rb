@@ -13,21 +13,7 @@ module ResultFilterable
     @current_status = params[:status]
     @search_query = params[:q]
     @time_frame = params[:d]
-    @sort_param = params[:sort]
-  end
-
-  def filter_results(base_scope, show_acknowledged_fallback: false)
-    scope = base_scope.by_time_frame(@time_frame)
-    scope = apply_status_and_acknowledgement(scope, show_acknowledged_fallback)
-    scope.search_by_keyword(@search_query)
-  end
-
-  def sorting_order
-    {
-      "created_asc" => { created_at: :asc },
-      "updated_desc" => { updated_at: :desc },
-      "updated_asc" => { updated_at: :asc }
-    }.fetch(@sort_param, { created_at: :desc })
+    @sort_param = params[:sort].presence || "relevance_desc"
   end
 
   def calculate_counters_for(scope, show_acknowledged_fallback: false)
@@ -41,14 +27,6 @@ module ResultFilterable
       "interesting" => scope.where(status: "interesting").count,
       "garbage" => scope.where(status: "garbage").count
     }.with_indifferent_access
-  end
-
-  def apply_status_and_acknowledgement(scope, fallback)
-    if %w[garbage interesting watched].include?(@current_status)
-      scope.by_status(@current_status)
-    else
-      scope.where(status: "unread", acknowledged: acknowledgement_filter(fallback))
-    end
   end
 
   def acknowledgement_filter(fallback)
@@ -70,7 +48,7 @@ module ResultFilterable
       status: params[:status],
       time_frame: params[:d],
       keyword: params[:q],
-      sort: params[:sort],
+      sort: params[:sort].presence || "relevance_desc",
       show_acknowledged: params[:show_acknowledged].presence || search_instance&.show_acknowledged
     }
   end
@@ -78,6 +56,6 @@ module ResultFilterable
   def fetch_filtered_results(base_scope, filter_options)
     @counts = Results::Counters.calculate_filtered(base_scope, filter_options)
 
-    @pagy, @results = pagy(Results::Index.new(base_scope, filter_options).call)
+    @pagy, @results = pagy(Results::Index.new(base_scope, filter_options, @search).call)
   end
 end

@@ -17,12 +17,7 @@ class Search < ApplicationRecord
   validates :time_frame, inclusion: { in: ALLOWED_TIME_FRAMES }, allow_nil: true
 
   def target_ids=(ids)
-    if will_save_change_to_query_conditions?
-      prompts.delete_all
-    else
-      super
-    end
-
+    prompts.delete_all if will_save_change_to_query_conditions?
     super
   end
 
@@ -46,8 +41,11 @@ class Search < ApplicationRecord
     SearchCampaigns::Activator.call(self, target_ids)
   end
 
-  def calculate_counters(scoped_results = results)
-    SearchCampaigns::CountersCalculator.new(self).calculate(scoped_results)
+  def calculate_counters(scoped_results = results, min_relevance: nil)
+    scoped = scoped_results
+    scoped = scoped.where(results: { relevance_score: min_relevance.to_i.. }) if min_relevance.present?
+
+    SearchCampaigns::CountersCalculator.new(self).calculate(scoped)
   end
 
   def counts_for_index(raw_counts)

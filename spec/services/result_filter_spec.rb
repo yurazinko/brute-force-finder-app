@@ -15,17 +15,16 @@ RSpec.describe Results::ResultFilter, type: :service do
     }
   end
 
-  subject { described_class.new(valid_result, prompt, target_configs) }
+  let(:rank_result) { instance_double("RelevanceRanker::Result", valid?: true) }
 
-  before do
-    WebMock.disable_net_connect!(allow_localhost: true)
-  end
+  subject { described_class.new(valid_result, prompt, target_configs) }
 
   describe "#valid?" do
     context "when URL is blank" do
       let(:valid_result) { { "url" => "", "title" => "Test", "content" => "Test" } }
 
-      it "returns false" do
+      it "returns false without delegating to RelevanceRanker" do
+        expect(Results::RelevanceRanker).not_to receive(:call)
         expect(subject.valid?).to be false
       end
     end
@@ -33,134 +32,38 @@ RSpec.describe Results::ResultFilter, type: :service do
     context "when URL does not match the target domain" do
       let(:valid_result) { { "url" => "https://other-domain.com/job", "title" => "Ruby", "content" => "Ruby" } }
 
-      it "returns false" do
+      before do
+        allow(Results::UrlMatcher).to receive(:matches?).with(valid_result["url"], target).and_return(false)
+      end
+
+      it "returns false without delegating to RelevanceRanker" do
+        expect(Results::RelevanceRanker).not_to receive(:call)
         expect(subject.valid?).to be false
       end
     end
 
-    context "when keywords are present in snippet" do
-      let(:valid_result) do
-        {
-          "url" => "https://example.com/jobs/ruby-developer",
-          "title" => "Ruby Engineer",
-          "content" => "Some description"
-        }
-      end
-
-      it "returns true without making an HTTP request" do
-        expect(subject.valid?).to be true
-        expect(WebMock).not_to have_requested(:get, /.*/)
-      end
-    end
-
-    context "when keywords are present on the page" do
-      let(:html_body) { "<html><body><h1>Welcome</h1><p>We work with Ruby on Rails here!</p></body></html>" }
-
+    context "when URL and domain match target" do
       before do
-        stub_request(:get, valid_result["url"])
-          .with(headers: { "Cache-Control" => "no-cache" })
-          .to_return(status: 200, body: html_body, headers: {})
+        allow(Results::UrlMatcher).to receive(:matches?).with(valid_result["url"], target).and_return(true)
+        allow(Results::DorkParser).to receive(:parse_groups).with(prompt.full_query_text).and_return([%w[ruby]])
       end
 
-      it "fetches page via WebMock stub and returns true" do
+      it "delegates to RelevanceRanker and returns its validity status" do
+        expect(Results::RelevanceRanker).to receive(:call)
+          .with(valid_result, "https://example.com/jobs/dev Senior Developer We are looking for an experienced software engineer.", [%w[ruby]], valid_result["url"])
+          .and_return(rank_result)
+
         expect(subject.valid?).to be true
-      end
-    end
-
-    context "when keywords are missing both in snippet and page" do
-      let(:html_body) { "<html><body><h1>Welcome</h1><p>We work only with Python and Go.</p></body></html>" }
-
-      before do
-        stub_request(:get, valid_result["url"])
-          .with(headers: { "Cache-Control" => "no-cache" })
-          .to_return(status: 200, body: html_body, headers: {})
+        expect(subject.rank_result).to eq(rank_result)
       end
 
-      it "returns false" do
-        expect(subject.valid?).to be false
-      end
-    end
+      context "when RelevanceRanker considers result invalid" do
+        let(:rank_result) { instance_double("RelevanceRanker::Result", valid?: false) }
 
-    context "when enforcing strict multi-group matching (AND between groups, OR inside group)" do
-      let(:prompt) do
-        instance_double(
-          "Prompt",
-          target: target,
-          full_query_text: 'site:example.com (ruby OR "ruby on rails") (krakow OR cracow) developer'
-        )
-      end
-
-      context "when snippet/page matches ALL groups" do
-        let(:valid_result) do
-          {
-            "url" => "https://example.com/jobs/dev",
-            "title" => "Ruby Developer",
-            "content" => "Based in Krakow."
-          }
-        end
-
-        it "returns true" do
-          expect(subject.valid?).to be true
-        end
-      end
-
-      context "when one of the groups is missing" do
-        let(:valid_result) do
-          {
-            "url" => "https://example.com/jobs/dev",
-            "title" => "Ruby Developer",
-            "content" => "Based in Warsaw."
-          }
-        end
-
-        let(:html_body) { "<html><body><p>Ruby developer position in Warsaw, Poland.</p></body></html>" }
-
-        before do
-          stub_request(:get, valid_result["url"])
-            .with(headers: { "Cache-Control" => "no-cache" })
-            .to_return(status: 200, body: html_body, headers: {})
-        end
-
-        it "returns false because not all groups are satisfied" do
+        it "returns false" do
+          allow(Results::RelevanceRanker).to receive(:call).and_return(rank_result)
           expect(subject.valid?).to be false
         end
-      end
-    end
-
-    context "when challenge protection is triggered (Captcha / Cloudflare)" do
-      context "when status code is 403, 429, or 503" do
-        before do
-          stub_request(:get, valid_result["url"])
-            .to_return(status: 403, body: "Forbidden")
-        end
-
-        it "returns true to allow manual verification" do
-          expect(subject.valid?).to be true
-        end
-      end
-
-      context "when body contains captcha indicators" do
-        let(:html_body) { "<html><body>Just a moment... Enable cookies to continue</body></html>" }
-
-        before do
-          stub_request(:get, valid_result["url"])
-            .to_return(status: 200, body: html_body, headers: { "Server" => "cloudflare" })
-        end
-
-        it "detects captcha and returns true" do
-          expect(subject.valid?).to be true
-        end
-      end
-    end
-
-    context "when request raises a network error" do
-      before do
-        stub_request(:get, valid_result["url"]).to_timeout
-      end
-
-      it "logs warning and returns true" do
-        expect(Rails.logger).to receive(:warn).with(/Failed to fetch/)
-        expect(subject.valid?).to be true
       end
     end
   end

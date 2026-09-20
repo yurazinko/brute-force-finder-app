@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# app/services/results/page_fetcher.rb
 module Results
   class PageFetcher
     include HTTParty
@@ -19,7 +18,19 @@ module Results
       "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0"
     ].freeze
 
-    FetchResult = Struct.new(:text, :captcha_detected?, :error?, keyword_init: true)
+    FetchResult = Struct.new(:text, :status, keyword_init: true) do
+      def captcha_detected?
+        status == :captcha
+      end
+
+      def error?
+        status == :error
+      end
+
+      def verified?
+        status == :verified
+      end
+    end
 
     def self.fetch(url)
       new(url).fetch
@@ -34,14 +45,14 @@ module Results
       body_text = response.body.to_s
 
       if captcha_detected?(response, body_text)
-        FetchResult.new(text: "", captcha_detected?: true, error?: false)
+        FetchResult.new(text: "", status: :captcha)
       else
         clean_text = extract_plain_text(body_text)
-        FetchResult.new(text: clean_text, captcha_detected?: false, error?: false)
+        FetchResult.new(text: clean_text, status: :verified)
       end
     rescue StandardError => e
       Rails.logger.warn("[PageFetcher] Failed to fetch #{@url}: #{e.message}")
-      FetchResult.new(text: "", captcha_detected?: false, error?: true)
+      FetchResult.new(text: "", status: :error)
     end
 
     private

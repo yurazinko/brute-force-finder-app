@@ -15,6 +15,7 @@ class ResultsFilterScope
     scoped = filter_by_status(scoped)
     scoped = filter_by_time_frame(scoped)
     scoped = filter_by_keyword(scoped)
+    scoped = filter_by_relevance_threshold(scoped)
     scoped.order(sorting_order)
   end
 
@@ -47,12 +48,21 @@ class ResultsFilterScope
     scoped.where("results.title ILIKE :q OR results.content ILIKE :q", q: "%#{sanitized}%")
   end
 
+  def filter_by_relevance_threshold(scoped)
+    return scoped if @options[:show_less_relevant].to_s == "true"
+    return scoped if @options[:min_relevance].blank?
+
+    scoped.where(results: { relevance_score: @options[:min_relevance].to_i.. })
+  end
+
   def sorting_order
     {
+      "relevance_desc" => { relevance_score: :desc, created_at: :desc },
+      "relevance_asc" => { relevance_score: :asc, created_at: :desc },
       "created_asc" => { created_at: :asc },
       "updated_desc" => { updated_at: :desc },
       "updated_asc" => { updated_at: :asc }
-    }.fetch(@options[:sort], { created_at: :desc })
+    }.fetch(@options[:sort], { relevance_score: :desc, created_at: :desc })
   end
 
   def acknowledgement_filter

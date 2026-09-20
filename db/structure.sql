@@ -136,7 +136,10 @@ CREATE TABLE public.results (
     updated_at timestamp(6) without time zone NOT NULL,
     status character varying DEFAULT 'unread'::character varying NOT NULL,
     acknowledged boolean DEFAULT false NOT NULL,
-    engine character varying
+    engine character varying,
+    relevance_score integer DEFAULT 0 NOT NULL,
+    matched_keywords jsonb DEFAULT '[]'::jsonb NOT NULL,
+    verification_status character varying DEFAULT 'pending'::character varying NOT NULL
 );
 
 ALTER TABLE ONLY public.results FORCE ROW LEVEL SECURITY;
@@ -455,10 +458,24 @@ CREATE INDEX index_prompts_on_target_id ON public.prompts USING btree (target_id
 
 
 --
+-- Name: index_results_on_relevance_score; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_relevance_score ON public.results USING btree (relevance_score);
+
+
+--
 -- Name: index_results_on_search_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_results_on_search_id ON public.results USING btree (search_id);
+
+
+--
+-- Name: index_results_on_search_id_and_relevance_score; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_search_id_and_relevance_score ON public.results USING btree (search_id, relevance_score);
 
 
 --
@@ -480,6 +497,13 @@ CREATE UNIQUE INDEX index_results_on_search_id_and_url_hash ON public.results US
 --
 
 CREATE INDEX index_results_on_url_hash ON public.results USING btree (url_hash);
+
+
+--
+-- Name: index_results_on_verification_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_verification_status ON public.results USING btree (verification_status);
 
 
 --
@@ -615,6 +639,7 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260920090827'),
 ('20260918180156'),
 ('20260917113344'),
 ('20260813112403'),

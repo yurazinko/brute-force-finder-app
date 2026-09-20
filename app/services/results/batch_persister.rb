@@ -63,7 +63,7 @@ module Results
       execute_upsert(enriched_records)
     end
 
-    def build_db_payload(record, global_ack_set)
+    def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength
       current_time = Time.current
       {
         "search_id" => @search_id,
@@ -74,6 +74,9 @@ module Results
         "engine" => record["engine"],
         "status" => record["status"] || "unread",
         "acknowledged" => global_ack_set.include?(record["url_hash"]),
+        "relevance_score" => record["relevance_score"] || 0,
+        "matched_keywords" => record["matched_keywords"] || [],
+        "verification_status" => record["verification_status"] || "pending",
         "created_at" => record["created_at"] || current_time,
         "updated_at" => record["updated_at"] || current_time
       }
@@ -81,7 +84,11 @@ module Results
 
     def execute_upsert(enriched_records)
       ActiveRecord::Base.transaction(requires_new: true) do
-        Result.upsert_all(enriched_records, unique_by: %i[search_id url_hash])
+        Result.upsert_all(
+          enriched_records,
+          unique_by: %i[search_id url_hash],
+          update_only: %i[title content engine relevance_score matched_keywords verification_status]
+        )
       end
     end
   end

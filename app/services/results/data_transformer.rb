@@ -18,7 +18,8 @@ module Results
 
     def process
       @raw_results.each_with_object([]) do |result, records|
-        next unless ResultFilter.new(result, @prompt, @target_configs).valid?
+        filter = ResultFilter.new(result, @prompt, @target_configs)
+        next unless filter.valid?
 
         domain = extract_domain(result["url"])
         next if domain.blank?
@@ -26,7 +27,7 @@ module Results
         clean_url = normalize_url(result["url"], domain)
         next if clean_url.blank?
 
-        records << build_record(clean_url, result)
+        records << build_record(clean_url, result, filter.rank_result)
       end
     end
 
@@ -51,7 +52,7 @@ module Results
       Utils::UrlNormalizer.normalize(url, keep_query: keep_query)
     end
 
-    def build_record(clean_url, result)
+    def build_record(clean_url, result, rank_result)
       {
         search_id: @search_id,
         url: clean_url,
@@ -59,6 +60,9 @@ module Results
         title: result["title"],
         content: result["content"],
         engine: result["engine"],
+        relevance_score: rank_result.relevance_score,
+        matched_keywords: rank_result.matched_keywords,
+        verification_status: rank_result.verification_status,
         created_at: @now,
         updated_at: @now
       }
