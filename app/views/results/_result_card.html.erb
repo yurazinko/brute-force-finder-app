@@ -32,7 +32,7 @@
       data-turbo="false"
       data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
       data-current-tab="<%= current_tab %>"
-      data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged]) %>"
+      data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
       data-read-status="<%= result.status %>"
       class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight block truncate flex-1">
       <%= result.title.presence || "Untitled Result" %>
@@ -89,6 +89,7 @@
                       q: params[:q],
                       sort: params[:sort],
                       show_acknowledged: params[:show_acknowledged],
+                      show_less_relevant: params[:show_less_relevant],
                       search_ids: params[:search_ids],
                       search_id: @search&.id),
                       method: :patch,
@@ -107,6 +108,7 @@
                       q: params[:q],
                       sort: params[:sort],
                       show_acknowledged: params[:show_acknowledged],
+                      show_less_relevant: params[:show_less_relevant],
                       search_ids: params[:search_ids],
                       search_id: @search&.id),
                       method: :patch,

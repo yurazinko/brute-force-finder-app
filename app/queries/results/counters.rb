@@ -45,7 +45,11 @@ module Results
 
       def apply_base_filters(scope, options)
         scope = scope.by_time_frame(options[:time_frame])
-        options[:keyword].present? ? scope.search_by_keyword(options[:keyword]) : scope
+        scope = scope.search_by_keyword(options[:keyword]) if options[:keyword].present?
+
+        scope = scope.where("results.relevance_score > 0") if options[:show_less_relevant].to_s != "true"
+
+        scope
       end
 
       def search_show_acknowledged_status(search)

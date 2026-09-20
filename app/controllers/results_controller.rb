@@ -84,14 +84,6 @@ class ResultsController < ApplicationController
   end
 
   def redirect_after_update
-    common_params = {
-      status: params[:status],
-      d: params[:d],
-      q: params[:q],
-      sort: params[:sort],
-      show_acknowledged: params[:show_acknowledged]
-    }
-
     if @search.present?
       redirect_to search_path(@search, common_params)
     else
@@ -101,5 +93,16 @@ class ResultsController < ApplicationController
 
   def result_params
     params.expect(result: %i[status acknowledged])
+  end
+
+  def common_params
+    @common_params ||= {
+      status: params[:status],
+      d: params[:d],
+      q: params[:q],
+      sort: params[:sort],
+      show_acknowledged: params[:show_acknowledged],
+      show_less_relevant: params[:show_less_relevant]
+    }
   end
 end

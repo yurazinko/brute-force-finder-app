@@ -33,7 +33,7 @@
           <%= link_to "Newest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_desc)), class: "font-medium inline-block #{params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
           <%= link_to "Oldest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_asc)), class: "font-medium inline-block #{params[:sort] == 'created_asc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
-          <span class="text-gray-500/40 px-0.5">•</span>
+          <span class="text-gray-500/40 px-0.5">|</span>
           <%= link_to "Updated", url_for(params.to_unsafe_h.merge(page: nil, sort: :updated_desc)), class: "font-medium inline-block #{params[:sort] == 'updated_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
         </div>
 
@@ -43,6 +43,7 @@
           <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
           <%= hidden_field_tag :d, params[:d] if params[:d].present? %>
           <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+          <%= hidden_field_tag :show_less_relevant, params[:show_less_relevant] if params[:show_less_relevant].present? %>
 
           <% Array(params[:search_ids]).each do |search_id| %>
             <%= hidden_field_tag "search_ids[]", search_id %>

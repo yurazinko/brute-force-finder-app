@@ -1,20 +1,21 @@
 <div id="results_pool_pagination">
   <% if @pagy && @pagy.next %>
     <%
+      pagination_params = {
+        status: params[:status],
+        d: params[:d],
+        q: params[:q],
+        sort: params[:sort],
+        show_acknowledged: params[:show_acknowledged],
+        show_less_relevant: params[:show_less_relevant],
+        search_ids: params[:search_ids],
+        page: @pagy.next
+      }
+
       pagination_path = if @search.present?
-                          search_path(@search,
-                                      status: params[:status],
-                                      d: params[:d],
-                                      q: params[:q],
-                                      sort: params[:sort],
-                                      page: @pagy.next)
+                          search_path(@search, pagination_params)
                         else
-                          results_path(status: params[:status],
-                                       d: params[:d],
-                                       q: params[:q],
-                                       sort: params[:sort],
-                                       search_ids: params[:search_ids],
-                                       page: @pagy.next)
+                          results_path(pagination_params)
                         end
     %>
 
@@ -23,11 +24,48 @@
                 data: {
                   controller: "infinite-scroll",
                   infinite_scroll_target: "link",
-                  turbo_stream: true,
-                  turbo_frame: "_top"
+                  turbo_stream: true
                 },
                 class: "invisible block text-center py-2 w-full" %>
+
   <% else %>
-    <p class="text-center text-xs text-breeze-muted py-4">🎉 You've reached the end of the pool.</p>
+    <% if params[:show_less_relevant] != "true" %>
+      <%
+        explore_params = {
+          status: params[:status],
+          d: params[:d],
+          q: params[:q],
+          sort: params[:sort],
+          show_acknowledged: params[:show_acknowledged],
+          show_less_relevant: "true",
+          search_ids: params[:search_ids],
+          page: 1
+        }
+
+        explore_path = if @search.present?
+                         search_path(@search, explore_params)
+                       else
+                         results_path(explore_params)
+                       end
+      %>
+      <div class="my-6 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-center space-y-2">
+        <p class="text-sm font-medium text-amber-300">
+          🎯 You've reached the end of highly relevant results.
+        </p>
+        <div>
+          <%= link_to explore_path,
+                      data: {
+                        turbo_stream: true,
+                        turbo_frame: "results_pool"
+                      },
+                      class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 transition cursor-pointer" do %>
+            <span>Want to explore less relevant results?</span>
+            <span>⬇️</span>
+          <% end %>
+        </div>
+      </div>
+    <% else %>
+      <p class="text-center text-xs text-breeze-muted py-4">🎉 You've reached the end of the pool.</p>
+    <% end %>
   <% end %>
 </div>
