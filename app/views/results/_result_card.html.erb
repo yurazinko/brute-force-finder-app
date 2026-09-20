@@ -3,6 +3,16 @@
   is_on_on_inbox_tab = [nil, "unread"].include?(params[:status])
   should_dim = is_watched && is_on_on_inbox_tab
   engine = result.engine.presence || "N/A"
+
+  score = result.relevance_score.to_i
+  score_badge_class = case
+                      when score >= 300 then "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      when score >= 100 then "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                      when score > 0   then "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                      else                  "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                      end
+
+  keywords = Array(result.matched_keywords)
 %>
 
 <div id="<%= dom_id(result) %>"
@@ -10,18 +20,26 @@
      data-controller="read-status result-card"
      data-read-status-url-value="<%= result_path(result) %>"
      data-read-status-current-status-value="<%= result.status %>"
-     class="p-4 sm:p-5 border border-breeze-border rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition bg-breeze-bg/50 flex flex-col gap-2 <%= 'opacity-50 duration-500' if should_dim %>">
+     class="p-4 sm:p-5 border border-breeze-border rounded-xl hover:border-blue-500/40 hover:bg-blue-500/[0.02] transition bg-breeze-bg/50 flex flex-col gap-2.5 <%= 'opacity-50 duration-500' if should_dim %>">
 
-  <a href="<%= result.url %>"
-    target="_blank"
-    rel="noopener"
-    data-turbo="false"
-    data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
-    data-read-url="<%= result_path(result, status: :watched, current_tab: (params[:status].presence || "unread"), d: params[:d], show_acknowledged: params[:show_acknowledged]) %>"
-    data-read-status="<%= result.status %>"
-    class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight block truncate">
-    <%= result.title.presence || "Untitled Result" %>
-  </a>
+  <div class="flex items-start justify-between gap-3">
+    <a href="<%= result.url %>"
+      target="_blank"
+      rel="noopener"
+      data-turbo="false"
+      data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
+      data-read-url="<%= result_path(result, status: :watched, current_tab: (params[:status].presence || "unread"), d: params[:d], show_acknowledged: params[:show_acknowledged]) %>"
+      data-read-status="<%= result.status %>"
+      class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight block truncate flex-1">
+      <%= result.title.presence || "Untitled Result" %>
+    </a>
+
+    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold border <%= score_badge_class %>" title="Relevance Score based on matched keyword groups">
+      <span>🎯</span>
+      <span><%= score %> pts</span>
+    </div>
+  </div>
+
 
   <div class="text-xs text-breeze-muted font-mono flex items-center gap-1.5 w-full min-w-0">
     <svg class="w-3.5 h-3.5 text-breeze-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,13 +48,32 @@
     <span class="truncate block w-full" title="<%= result.url %>"><%= result.url %></span>
   </div>
 
-
   <div class="mt-1 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm h-20 sm:h-24 overflow-hidden">
     <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3">
       <%= result.content.presence || "* No preview available *" %>
     </p>
   </div>
 
+  <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+    <div class="flex flex-wrap items-center gap-1.5">
+      <span class="text-[11px] text-breeze-muted font-medium">Matches:</span>
+      <% if keywords.any? %>
+        <% keywords.each do |kw| %>
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20">
+            <%= kw %>
+          </span>
+        <% end %>
+      <% else %>
+        <span class="text-[11px] text-breeze-muted italic">No keyword tags</span>
+      <% end %>
+    </div>
+
+    <% if result.verification_status.to_s.start_with?("unverified") %>
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Full page fetching failed or required captcha verification">
+        ⚠️ <%= result.verification_status.humanize %>
+      </span>
+    <% end %>
+  </div>
 
   <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-breeze-border">
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">

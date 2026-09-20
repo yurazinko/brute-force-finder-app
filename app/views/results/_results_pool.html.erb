@@ -28,7 +28,9 @@
           <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
             ↕️ Sort:
           </span>
-          <%= link_to "Newest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_desc)), class: "font-medium inline-block #{params[:sort].blank? || params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Top Relevance", url_for(params.to_unsafe_h.merge(page: nil, sort: :relevance_desc)), class: "font-medium inline-block #{params[:sort].blank? || params[:sort] == 'relevance_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <span class="text-breeze-border">|</span>
+          <%= link_to "Newest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_desc)), class: "font-medium inline-block #{params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
           <%= link_to "Oldest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_asc)), class: "font-medium inline-block #{params[:sort] == 'created_asc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
           <span class="text-gray-500/40 px-0.5">•</span>

@@ -43,9 +43,10 @@ module Results
     def sorting_order
       {
         "created_asc" => { created_at: :asc, id: :asc },
+        "created_desc" => { created_at: :desc, id: :desc },
         "updated_desc" => { updated_at: :desc, id: :desc },
         "updated_asc" => { updated_at: :asc, id: :asc }
-      }.fetch(options[:sort].to_s, { created_at: :desc, id: :desc })
+      }.fetch(options[:sort].to_s, { relevance_score: :desc, created_at: :desc, id: :desc })
     end
   end
 end
