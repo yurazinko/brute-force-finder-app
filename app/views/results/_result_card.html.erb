@@ -32,7 +32,7 @@
       data-turbo="false"
       data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
       data-current-tab="<%= current_tab %>"
-      data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged]) %>"
+      data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
       data-read-status="<%= result.status %>"
       class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight block truncate flex-1">
       <%= result.title.presence || "Untitled Result" %>
@@ -73,7 +73,7 @@
 
     <% if result.verification_status.to_s.start_with?("unverified") %>
       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Full page fetching failed or required captcha verification">
-        ⚠️ <%= result.verification_status.humanize %>
+        ⚠️ <%="Unverified: #{result.verification_status.split("_").last}" %>
       </span>
     <% end %>
   </div>
@@ -89,6 +89,7 @@
                       q: params[:q],
                       sort: params[:sort],
                       show_acknowledged: params[:show_acknowledged],
+                      show_less_relevant: params[:show_less_relevant],
                       search_ids: params[:search_ids],
                       search_id: @search&.id),
                       method: :patch,
@@ -107,6 +108,7 @@
                       q: params[:q],
                       sort: params[:sort],
                       show_acknowledged: params[:show_acknowledged],
+                      show_less_relevant: params[:show_less_relevant],
                       search_ids: params[:search_ids],
                       search_id: @search&.id),
                       method: :patch,

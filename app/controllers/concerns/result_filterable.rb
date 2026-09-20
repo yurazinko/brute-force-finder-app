@@ -49,7 +49,8 @@ module ResultFilterable
       time_frame: params[:d],
       keyword: params[:q],
       sort: params[:sort].presence || "relevance_desc",
-      show_acknowledged: params[:show_acknowledged].presence || search_instance&.show_acknowledged
+      show_acknowledged: params[:show_acknowledged].presence || search_instance&.show_acknowledged,
+      show_less_relevant: params[:show_less_relevant]
     }
   end
 

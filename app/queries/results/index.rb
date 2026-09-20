@@ -25,7 +25,8 @@ module Results
     def apply_filters(scope)
       scope = scope.by_time_frame(options[:time_frame])
       scope = scope.search_by_keyword(options[:keyword])
-      filter_by_status(scope)
+      scope = filter_by_status(scope)
+      filter_by_relevance(scope)
     end
 
     def filter_by_status(scope)
@@ -35,8 +36,17 @@ module Results
       else
         search_ack = search.respond_to?(:show_acknowledged) ? cast_boolean(search.show_acknowledged) : false
         scope.where(
-          status: "unread", acknowledged: unread_acknowledged_conditions(options, search_show_acknowledged: search_ack)
+          status: "unread",
+          acknowledged: unread_acknowledged_conditions(options, search_show_acknowledged: search_ack)
         )
+      end
+    end
+
+    def filter_by_relevance(scope)
+      if cast_boolean(options[:show_less_relevant])
+        scope.where("results.relevance_score <= 0")
+      else
+        scope.where("results.relevance_score > 0")
       end
     end
 

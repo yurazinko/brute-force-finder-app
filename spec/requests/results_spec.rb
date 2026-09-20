@@ -26,7 +26,8 @@ RSpec.describe "Results", type: :request do
       url: "https://lever.co/jobs/1",
       url_hash: SecureRandom.hex(10),
       status: "unread",
-      acknowledged: false
+      acknowledged: false,
+      relevance_score: 150
     )
   end
 
