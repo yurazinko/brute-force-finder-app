@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { renderStreamMessage } from "@hotwired/turbo"
 
 export default class extends Controller {
   markAsRead(event: MouseEvent) {
@@ -21,18 +22,18 @@ export default class extends Controller {
     this.optimisticUpdateCounters()
     link.setAttribute("data-read-status", "watched")
 
-    const card = link.closest(".flex.flex-col.gap-2") as HTMLElement
+    const card = (link.closest('[data-controller*="read-status"]') ||
+                  link.closest('.flex.flex-col.gap-2\\.5') ||
+                  link.closest('.flex.flex-col.gap-2')) as HTMLElement
+
     if (card) {
-      card.classList.add("opacity-60")
+      card.classList.add("opacity-50", "transition-opacity", "duration-500")
     }
 
-    // Готуємо дані у правильному Rails-форматі
     const bodyData = {
       result: {
         status: "watched"
       },
-      // Якщо контролеру потрібні ці параметри для рендеру Turbo Stream відповіді,
-      // ми можемо передати їх поруч
       current_tab: link.getAttribute("data-current-tab") || "unread",
       status_filter: "watched"
     }
@@ -41,14 +42,17 @@ export default class extends Controller {
       method: "PATCH",
       headers: {
         "X-CSRF-Token": this.getCsrfToken(),
-        "Content-Type": "application/json", // Додаємо заголовок типу контенту
+        "Content-Type": "application/json",
         "Accept": "text/html; turbo-stream",
         "X-Requested-With": "XMLHttpRequest"
       },
-      body: JSON.stringify(bodyData) // Передаємо дані в тілі запиту
+      body: JSON.stringify(bodyData)
     })
     .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+      if (!response.ok) {
+        console.error(`Request failed for URL: ${url}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       return response.text()
     })
   }
