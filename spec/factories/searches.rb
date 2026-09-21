@@ -2,6 +2,7 @@
 
 FactoryBot.define do
   factory :search do
+    association :user
     sequence(:title) { |n| "Campaign ##{n}: #{Faker::Marketing.buzzwords}" }
     query_conditions { "developer remote Ruby" }
     status { "pending" }

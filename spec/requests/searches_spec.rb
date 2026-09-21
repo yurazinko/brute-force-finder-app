@@ -27,7 +27,7 @@ RSpec.describe "Searches", type: :request do
       { "all_clean" => 0, "interesting" => 0, "watched" => 0, "garbage" => 0 }.with_indifferent_access
     )
 
-    mock_counts = Results::Counters::Counts.new(1, 0, 0, 0)
+    mock_counts = Results::Counters::Counts.new(unread: 1, watched: 0, interesting: 0, garbage: 0)
     allow(Results::Counters).to receive(:calculate_filtered).and_return(mock_counts)
 
     allow_any_instance_of(Results::Index).to receive(:call).and_return(Result.none)

@@ -6,6 +6,12 @@
   </template>
 </turbo-stream>
 
+<turbo-stream action="replace" target="search_tabs_navigation">
+  <template>
+    <%= render partial: "searches/tabs_counters", locals: { search: @search, counts: @counts }, formats: [:html] %>
+  </template>
+</turbo-stream>
+
 <turbo-stream action="replace" target="results_pool_pagination">
   <template>
     <%= render partial: "results/results_pool_pagination_wrapper", formats: [:html] %>
