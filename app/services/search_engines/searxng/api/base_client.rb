@@ -3,7 +3,7 @@
 module SearchEngines
   module Searxng
     module Api
-      class BaseClient < ::BaseApiClient
+      class BaseClient < SearchEngines::BaseApiClient
         REDIS_DEAD_PREFIX = "searxng:dead:"
 
         private
