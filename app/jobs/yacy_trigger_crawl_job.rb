@@ -3,7 +3,7 @@
 class YacyTriggerCrawlJob < ApplicationJob
   CRAWL_LOCK_TTL = 3.hours.to_i
 
-  def perform(target_site, collection = "default")
+  def perform(target_site, collection = "default", crawl_query_urls: false)
     redis = Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1"))
     lock_key = "yacy:crawling_lock:#{target_site}"
 
@@ -17,7 +17,8 @@ class YacyTriggerCrawlJob < ApplicationJob
       url,
       depth: 3,
       max_pages: 50,
-      collection: collection
+      collection: collection,
+      crawl_query_urls: crawl_query_urls
     )
   end
 end
