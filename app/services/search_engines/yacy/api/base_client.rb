@@ -74,11 +74,17 @@ module SearchEngines
           return { success: false, error: "HTTP #{response.code}" } unless response.code == 200
 
           data = JSON.parse(response.body)
-
           Rails.logger.info("============================== Yacy Response: #{data} ===================================")
-          channels = data.dig("channels", 0, "items") || []
 
-          results = channels.map do |item|
+          results = parse_results(data)
+          trigger_fallback_crawl_if_needed(results)
+
+          { success: true, data: results, failed_engines: [] }
+        end
+
+        def parse_results(data)
+          channels = data.dig("channels", 0, "items") || []
+          channels.map do |item|
             {
               "url" => item["link"],
               "title" => item["title"],
@@ -86,10 +92,12 @@ module SearchEngines
               "engine" => provider_name
             }
           end
+        end
 
-          YacyTriggerCrawlJob.perform_in(10.seconds, @extracted_site) if results.empty? && @extracted_site.present?
+        def trigger_fallback_crawl_if_needed(results)
+          return unless results.empty? && @extracted_site.present?
 
-          { success: true, data: results, failed_engines: [] }
+          YacyTriggerCrawlJob.perform_in(10.seconds, @extracted_site, crawl_query_urls: options[:dynamic_url])
         end
       end
     end

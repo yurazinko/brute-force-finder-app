@@ -9,12 +9,14 @@ RSpec.describe PromptProcessorJob, type: :job do
   let(:full_query) { "site:lever.co \"ruby\"" }
 
   let(:search_mock) { instance_double("Search", time_frame: "month") }
+  let(:target_mock) { instance_double("Target", allow_query_strings: true) }
   let(:prompt_mock) do
     instance_double(
       "Prompt",
       id: prompt_id,
       full_query_text: full_query,
-      search: search_mock
+      search: search_mock,
+      target: target_mock
     )
   end
 
@@ -61,7 +63,8 @@ RSpec.describe PromptProcessorJob, type: :job do
         expect(SearchCampaigns::DorkRandomizer).to have_received(:perform).with(full_query)
         expect(SearchEngines::ResultsCollector).to have_received(:call).with(
           randomized_query,
-          time_range: "month"
+          time_range: "month",
+          dynamic_url: true
         )
       end
 

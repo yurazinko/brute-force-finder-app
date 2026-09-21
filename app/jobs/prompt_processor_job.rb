@@ -7,22 +7,30 @@ class PromptProcessorJob < ApplicationJob
     updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")
     return if updated_count.zero?
 
-    prompt = Prompt.find(prompt_id)
-    search = prompt.search
-    domain = extract_domain(prompt.full_query_text)
-    query_text = SearchCampaigns::DorkRandomizer.perform(prompt.full_query_text)
-    broadcast_live_status(search, "[#{domain}] Requesting data from Search Pipeline...")
-
-    raw_results = SearchEngines::ResultsCollector.call(query_text, time_range: search.time_frame)
-
-    handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
-    broadcast_handler_result(search, domain, handler_result)
+    execute_pipeline(Prompt.find(prompt_id))
   rescue StandardError => e
     Prompt.where(id: prompt_id).update_all(status: "pending")
     raise e
   end
 
   private
+
+  def execute_pipeline(prompt)
+    search = prompt.search
+    domain = extract_domain(prompt.full_query_text)
+    query_text = SearchCampaigns::DorkRandomizer.perform(prompt.full_query_text)
+
+    broadcast_live_status(search, "[#{domain}] Requesting data from Search Pipeline...")
+
+    raw_results = SearchEngines::ResultsCollector.call(
+      query_text,
+      time_range: search.time_frame,
+      dynamic_url: prompt.target.allow_query_strings
+    )
+
+    handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)
+    broadcast_handler_result(search, domain, handler_result)
+  end
 
   def broadcast_handler_result(search, domain, result)
     if result[:error].present?
