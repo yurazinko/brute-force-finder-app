@@ -17,7 +17,6 @@ class YacyTriggerCrawlJob < ApplicationJob
       url,
       depth: 3,
       max_pages: 50,
-      range: "domain",
       collection: collection
     )
   end
