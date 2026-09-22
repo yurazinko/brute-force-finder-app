@@ -16,7 +16,8 @@ RSpec.describe "Searches", type: :request do
       title: "Ruby Backend",
       query_conditions: "ruby",
       time_frame: "week",
-      status: "pending"
+      status: "pending",
+      targets: [target1, target2]
     )
   end
 
@@ -78,9 +79,33 @@ RSpec.describe "Searches", type: :request do
   end
 
   describe "GET /searches/new (new)" do
-    it "returns a successful response" do
-      get new_search_path
-      expect(response).to have_http_status(:ok)
+    context "without clone_from parameter" do
+      it "returns a successful response and renders empty search form" do
+        get new_search_path
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include("Ruby Backend (Copy)")
+      end
+    end
+
+    context "with valid clone_from parameter" do
+      it "pre-fills form inputs with donor attributes" do
+        get new_search_path(clone_from: search.id)
+
+        expect(response).to have_http_status(:ok)
+
+        expect(response.body).to include("Ruby Backend (Copy)")
+        expect(response.body).to include("ruby")
+      end
+    end
+
+    context "with non-existent clone_from parameter" do
+      it "fallbacks to an empty search form" do
+        get new_search_path(clone_from: 0)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include("Ruby Backend (Copy)")
+      end
     end
   end
 
@@ -149,7 +174,6 @@ RSpec.describe "Searches", type: :request do
           expect(response).to have_http_status(:ok)
           expect(search.reload.title).to eq("Updated Title")
 
-          # assert_select "turbo-stream[action='replace'][target='search_lifecycle_status']"
           assert_select "turbo-stream[action='prepend'][target='flash']"
         end
       end
