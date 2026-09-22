@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SearchesController < ApplicationController
+class SearchesController < ApplicationController # rubocop:disable Metrics/ClassLength
   include ResultFilterable
 
   before_action :set_search, only: %i[show edit update activate destroy toggle_pause complete]
@@ -24,7 +24,14 @@ class SearchesController < ApplicationController
     end
   end
 
-  def new = @search = Search.new
+  def new
+    if params[:clone_from].present?
+      donor = Search.find_by(id: params[:clone_from])
+      @search = donor ? build_clone_search(donor) : Search.new
+    else
+      @search = Search.new
+    end
+  end
 
   def edit; end
 
@@ -118,5 +125,15 @@ class SearchesController < ApplicationController
     else
       search_path(@search)
     end
+  end
+
+  def build_clone_search(donor)
+    current_user.searches.build(
+      title: "#{donor.title} (Copy)",
+      query_conditions: donor.query_conditions,
+      time_frame: donor.time_frame,
+      show_acknowledged: donor.show_acknowledged,
+      target_ids: donor.target_ids
+    )
   end
 end
