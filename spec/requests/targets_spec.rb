@@ -6,7 +6,7 @@ RSpec.describe "Targets", type: :request do
   include Devise::Test::IntegrationHelpers
 
   let(:user) { create(:user) }
-  let!(:category) { Category.create!(name: "Job Boards") }
+  let!(:category) { Category.create!(name: "Job Boards", user: user) }
   let!(:target) { Target.create!(category: category, name: "Indeed", domain: "indeed.com", is_active: true) }
 
   before do
