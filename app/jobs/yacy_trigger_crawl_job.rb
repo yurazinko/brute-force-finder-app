@@ -3,13 +3,17 @@
 class YacyTriggerCrawlJob < ApplicationJob
   CRAWL_LOCK_TTL = 3.hours.to_i
 
-  def perform(target_site, collection = "default", crawl_query_urls: false)
-    redis = Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1"))
+  def perform(target_site, collection = "default", options = {})
+    options = options.symbolize_keys
+    crawl_query_urls = options.fetch(:crawl_query_urls, false)
+
     lock_key = "yacy:crawling_lock:#{target_site}"
 
-    return if redis.exists?(lock_key)
+    acquired = Sidekiq.redis do |conn|
+      conn.set(lock_key, "in_progress", ex: CRAWL_LOCK_TTL, nx: true)
+    end
 
-    redis.setex(lock_key, CRAWL_LOCK_TTL, "in_progress")
+    return unless acquired
 
     url = target_site.start_with?("http") ? target_site : "https://#{target_site}"
 
