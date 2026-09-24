@@ -76,7 +76,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="categories_selector_root">
           <% @categories.each do |category| %>
-            <% active_targets = category.targets.active %>
+            <% active_targets = category.active_targets %>
             <% next if active_targets.empty? %>
 
             <div data-targets-selector-target="group" class="category-card-group border border-breeze-border rounded-xl p-4 bg-breeze-bg/50 flex flex-col justify-between">
@@ -93,7 +93,7 @@
                 </div>
 
                 <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                  <% active_targets.order(:name).each do |target| %>
+                  <% active_targets.each do |target| %>
                     <label class="flex items-start space-x-3 py-1 px-1.5 rounded hover:bg-breeze-view cursor-pointer transition text-sm">
                       <%= check_box_tag "search[target_ids][]", target.id, search.target_ids.include?(target.id),
                                         class: "target-item-checkbox mt-0.5 rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer",

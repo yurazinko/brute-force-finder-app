@@ -15,7 +15,7 @@
         <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
 
         <div class="space-y-2 max-h-[300px] lg:max-h-[500px] overflow-y-auto pr-1">
-          <% Search.order(created_at: :desc).each do |search| %>
+          <% @available_searches.each do |search| %>
             <label class="flex items-start space-x-2.5 cursor-pointer text-xs group py-1 px-1.5 rounded hover:bg-breeze-bg transition">
               <%= check_box_tag "search_ids[]", search.id, @selected_search_ids.include?(search.id.to_s),
                                 class: "rounded border-breeze-border text-breeze-accent scale-95 mt-0.5 cursor-pointer",

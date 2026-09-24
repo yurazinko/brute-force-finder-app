@@ -100,7 +100,7 @@ class SearchesController < ApplicationController # rubocop:disable Metrics/Class
     params.expect(search: [:title, :query_conditions, :time_frame, :show_acknowledged, { target_ids: [] }])
   end
 
-  def set_categories_for_form = @categories = current_user.categories.includes(:targets).all
+  def set_categories_for_form = @categories = current_user.categories.includes(:active_targets).order(:name)
 
   def handle_successful_update
     respond_to do |format|

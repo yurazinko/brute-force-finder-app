@@ -40,15 +40,4 @@ class Search < ApplicationRecord
   def activate_search!(target_ids)
     SearchCampaigns::Activator.call(self, target_ids)
   end
-
-  def calculate_counters(scoped_results = results, min_relevance: nil)
-    scoped = scoped_results
-    scoped = scoped.where(results: { relevance_score: min_relevance.to_i.. }) if min_relevance.present?
-
-    SearchCampaigns::CountersCalculator.new(self).calculate(scoped)
-  end
-
-  def counts_for_index(raw_counts)
-    SearchCampaigns::CountersCalculator.new(self).for_index(raw_counts)
-  end
 end

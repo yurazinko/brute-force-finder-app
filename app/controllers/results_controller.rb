@@ -7,6 +7,7 @@ class ResultsController < ApplicationController
 
   def index
     @selected_search_ids = params[:search_ids] || []
+    @available_searches = Search.order(created_at: :desc)
 
     fetch_filtered_results(@base_scope, @filter_options)
 
@@ -52,7 +53,8 @@ class ResultsController < ApplicationController
       base_scope: @base_scope,
       removed_id: @result.id,
       current_dom_count: dom_count,
-      options: @filter_options
+      options: @filter_options,
+      search: @search
     )
 
     @counts = Results::Counters.calculate_filtered(@base_scope, @filter_options, @search)

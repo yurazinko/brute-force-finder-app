@@ -34,17 +34,15 @@
         <div class="space-y-3">
           <% if @loser_targets.any? %>
             <% @loser_targets.each do |target| %>
-              <% results_count = Result.where("url LIKE ?", "%#{target.domain}%").count %>
-
-              <div class="p-3 bg-amber-50/40 rounded-lg border border-amber-100 flex justify-between items-center">
+                <div class="p-3 bg-amber-50/40 rounded-lg border border-amber-100 flex justify-between items-center">
                 <div>
                   <div class="text-xs font-bold text-breeze-text"><%= target.name %></div>
                   <div class="text-[10px] text-breeze-muted font-mono"><%= target.domain %></div>
                 </div>
                 <div class="text-right">
                   <span class="block text-xs font-semibold text-breeze-text"><%= target.prompts_count %> requests</span>
-                  <span class="block text-[10px] <%= results_count.zero? ? 'text-red-500 font-bold' : 'text-breeze-muted' %>">
-                    <%= results_count %> leads found
+                  <span class="block text-[10px] <%= @target_result_counts.fetch(target.id, 0).zero? ? 'text-red-500 font-bold' : 'text-breeze-muted' %>">
+                    <%= @target_result_counts.fetch(target.id, 0) %> leads found
                   </span>
                 </div>
               </div>

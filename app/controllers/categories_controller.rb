@@ -41,7 +41,7 @@ class CategoriesController < ApplicationController
   private
 
   def set_category
-    @category = current_user.categories.find(params.expect(:id))
+    @category = current_user.categories.includes(:targets).find(params.expect(:id))
   end
 
   def category_params

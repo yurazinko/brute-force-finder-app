@@ -6,7 +6,10 @@ class DashboardsController < ApplicationController
     prepare_target_metrics
 
     @prompt_failures = Prompt.where.not(error_message: nil)
-                             .group(:error_message).order(count_all: :desc).limit(5).count
+                             .group(:error_message)
+                             .order(count_all: :desc)
+                             .limit(5)
+                             .count
   end
 
   private
@@ -20,5 +23,6 @@ class DashboardsController < ApplicationController
     @loser_targets = Target.top_by_prompts_count(5)
     @target_prompts = Target.prompts_distribution_map
     @prompts_max = @target_prompts.values.max.to_i.nonzero? || 1
+    @target_result_counts = Targets::ResultCountsQuery.call(@loser_targets)
   end
 end

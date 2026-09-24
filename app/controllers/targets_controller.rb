@@ -6,7 +6,7 @@ class TargetsController < ApplicationController
   def edit; end
 
   def create
-    @category = Category.find(target_params[:category_id])
+    @category = current_user.categories.find(target_params[:category_id])
     @target = @category.targets.build(target_params)
 
     if @target.save
@@ -40,7 +40,7 @@ class TargetsController < ApplicationController
   private
 
   def set_target
-    @target = Target.find(params.expect(:id))
+    @target = current_user.targets.find(params.expect(:id))
   end
 
   def target_params

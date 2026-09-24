@@ -17,13 +17,13 @@
             <div class="flex justify-between items-start mb-2">
               <h2 class="text-xl font-bold text-breeze-text"><%= category.name %></h2>
               <span class="bg-breeze-bg text-gray-300 text-xs font-semibold px-2.5 py-1 rounded-md">
-                <%= category.targets.count %> sites
+                <%= category.targets.size %> sites
               </span>
             </div>
 
             <div class="mt-4 space-y-1">
               <% if category.targets.any? %>
-                <% category.targets.order(:name).limit(5).each do |target| %>
+                <% category.targets.first(5).each do |target| %>
                   <div class="flex items-center justify-between text-xs font-mono py-1 border-b border-gray-50 last:border-none">
                     <span class="<%= target.is_active? ? 'text-breeze-text' : 'text-breeze-muted line-through' %>">
                       <%= target.name %>
@@ -31,9 +31,9 @@
                     <span class="text-breeze-muted text-[10px]"><%= target.domain %></span>
                   </div>
                 <% end %>
-                <% if category.targets.count > 5 %>
+                <% if category.targets.size > 5 %>
                   <div class="text-[11px] text-blue-500 pt-1 font-medium">
-                    + <%= category.targets.count - 5 %> more websites...
+                    + <%= category.targets.size - 5 %> more websites...
                   </div>
                 <% end %>
               <% else %>
@@ -46,7 +46,7 @@
             <%= link_to 'Manage Sites →', category_path(category), class: "text-breeze-accent font-semibold hover:text-blue-800 transition" %>
             <div class="flex space-x-3">
               <%= link_to 'Edit', edit_category_path(category), class: "text-breeze-muted hover:text-breeze-text" %>
-              <%= button_to 'Delete', category_path(category), method: :delete, data: { confirm: "Are you sure? This will delete the category and all its #{category.targets.count} linked sites!" }, class: "text-red-500 hover:text-red-700 cursor-pointer text-sm" %>
+              <%= button_to 'Delete', category_path(category), method: :delete, data: { confirm: "Are you sure? This will delete the category and all its #{category.targets.size} linked sites!" }, class: "text-red-500 hover:text-red-700 cursor-pointer text-sm" %>
             </div>
           </div>
         </div>
