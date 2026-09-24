@@ -7,6 +7,7 @@ class ResultsController < ApplicationController
 
   def index
     @selected_search_ids = params[:search_ids] || []
+    @available_searches = Search.order(created_at: :desc)
 
     fetch_filtered_results(@base_scope, @filter_options)
 
@@ -18,7 +19,7 @@ class ResultsController < ApplicationController
   end
 
   def update
-    @result = current_user.results.find(params.expect(:id))
+    @result = Result.find(params.expect(:id))
 
     if @result.update(result_params)
       prepare_update_variables
@@ -31,14 +32,14 @@ class ResultsController < ApplicationController
   private
 
   def set_scopes_and_options
-    @search = current_user.searches.find_by(id: params[:search_id])
+    @search = Search.find_by(id: params[:search_id])
 
     @base_scope = if @search
                     @search.results
                   elsif params[:search_ids].present?
-                    current_user.results.where(search_id: params[:search_ids])
+                    Result.where(search_id: params[:search_ids])
                   else
-                    current_user.results
+                    Result.all
                   end
 
     @filter_options = parse_filter_options(search_instance: @search)
@@ -52,7 +53,8 @@ class ResultsController < ApplicationController
       base_scope: @base_scope,
       removed_id: @result.id,
       current_dom_count: dom_count,
-      options: @filter_options
+      options: @filter_options,
+      search: @search
     )
 
     @counts = Results::Counters.calculate_filtered(@base_scope, @filter_options, @search)

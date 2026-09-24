@@ -37,15 +37,13 @@ module SearchCampaigns
       @search.results.reset
       @coordinator.success!
 
-      db_counts = Result.where(search_id: @search.id).group(:status).count
-      total_cached = db_counts.values.sum
-
-      SearchCampaigns::LifecycleNotifier.broadcast_metrics(@search, db_counts, total_cached)
+      counts = Results::Counters.calculate(@search.results, search: @search)
+      SearchCampaigns::LifecycleNotifier.broadcast_metrics(@search, counts)
 
       {
         raw_count: metrics[:raw_count],
         new_count: metrics[:new_count],
-        total: total_cached
+        total: counts.total
       }
     end
 

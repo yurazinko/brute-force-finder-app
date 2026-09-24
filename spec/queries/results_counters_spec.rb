@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe Results::Counters, type: :model do
+RSpec.describe Results::Counters, type: :query do
   describe ".calculate" do
     it "returns calculated status counts without additional filters" do
       create(:result, status: "unread")
@@ -17,6 +17,8 @@ RSpec.describe Results::Counters, type: :model do
       expect(counts.interesting).to eq(3)
       expect(counts.garbage).to eq(1)
       expect(counts.has_less_relevant).to be(false)
+      expect(counts.all_clean).to eq(6)
+      expect(counts.total).to eq(7)
     end
   end
 

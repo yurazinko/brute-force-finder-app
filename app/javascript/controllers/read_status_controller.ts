@@ -23,7 +23,7 @@ export default class extends Controller {
     link.setAttribute("data-read-status", "watched")
 
     const card = (link.closest('[data-controller*="read-status"]') ||
-                  link.closest('.flex.flex-col.gap-2\\.5') ||
+                  link.closest('.flex.flex-col.gap-2\.5') ||
                   link.closest('.flex.flex-col.gap-2')) as HTMLElement
 
     if (card) {
@@ -34,8 +34,7 @@ export default class extends Controller {
       result: {
         status: "watched"
       },
-      current_tab: link.getAttribute("data-current-tab") || "unread",
-      status_filter: "watched"
+      current_tab: link.getAttribute("data-current-tab") || "unread"
     }
 
     fetch(url, {
@@ -43,18 +42,22 @@ export default class extends Controller {
       headers: {
         "X-CSRF-Token": this.getCsrfToken(),
         "Content-Type": "application/json",
-        "Accept": "text/html; turbo-stream",
+        "Accept": "text/vnd.turbo-stream.html",
         "X-Requested-With": "XMLHttpRequest"
       },
       body: JSON.stringify(bodyData)
     })
-    .then(response => {
-      if (!response.ok) {
-        console.error(`Request failed for URL: ${url}`)
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return response.text()
-    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        return response.text()
+      })
+      .then((streamHtml) => renderStreamMessage(streamHtml))
+      .catch((error) => {
+        console.error("Failed to mark result as read", error)
+      })
   }
 
   private optimisticUpdateCounters(): void {

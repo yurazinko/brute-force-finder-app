@@ -29,11 +29,11 @@
     </div>
 
     <div class="md:col-span-2 bg-breeze-view p-6 shadow rounded-xl">
-      <h2 class="text-sm font-semibold text-breeze-muted uppercase tracking-wider mb-4">Linked Target Sites (<%= @category.targets.count %>)</h2>
+      <h2 class="text-sm font-semibold text-breeze-muted uppercase tracking-wider mb-4">Linked Target Sites (<%= @category.targets.size %>)</h2>
 
       <div class="divide-y divide-gray-100" id="targets_list">
         <% if @category.targets.any? %>
-          <%= render partial: "targets/target_row", collection: @category.targets.order(:name), as: :target %>
+          <%= render partial: "targets/target_row", collection: @category.targets, as: :target %>
         <% else %>
           <p class="text-breeze-muted text-sm py-4 text-center">No target sites added to this category yet.</p>
         <% end %>

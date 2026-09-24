@@ -24,14 +24,10 @@ RSpec.describe "Searches", type: :request do
   before do
     sign_in user if respond_to?(:sign_in)
 
-    allow_any_instance_of(Search).to receive(:calculate_counters).and_return(
-      { "all_clean" => 0, "interesting" => 0, "watched" => 0, "garbage" => 0 }.with_indifferent_access
-    )
-
     mock_counts = Results::Counters::Counts.new(unread: 1, watched: 0, interesting: 0, garbage: 0)
     allow(Results::Counters).to receive(:calculate_filtered).and_return(mock_counts)
 
-    allow_any_instance_of(Results::Index).to receive(:call).and_return(Result.none)
+    allow_any_instance_of(Results::Query).to receive(:call).and_return(Result.none)
   end
 
   describe "GET /searches (index)" do
@@ -68,7 +64,7 @@ RSpec.describe "Searches", type: :request do
           status: "interesting"
         )
 
-        allow_any_instance_of(Results::Index).to receive(:call).and_return([mock_result])
+        allow_any_instance_of(Results::Query).to receive(:call).and_return([mock_result])
 
         get search_path(search), params: { status: "interesting", d: "day" }
 
