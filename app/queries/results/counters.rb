@@ -29,21 +29,6 @@ module Results
     end
 
     class << self
-      def calculate(base_scope, search: nil)
-        raw_counts = base_scope.group(:status, :acknowledged).count
-        show_ack = search.nil? || search.show_acknowledged?
-
-        counts = empty_status_counts
-        raw_counts.each do |(status, acknowledged), count|
-          next unless STATUSES.include?(status)
-          next if status == "unread" && acknowledged && !show_ack
-
-          counts[status.to_sym] += count
-        end
-
-        build_counts(counts.merge(total: raw_counts.values.sum))
-      end
-
       def calculate_filtered(base_scope, options = {}, search = nil)
         normalized = options.to_h.symbolize_keys
         query = Results::Query.new(base_scope, normalized, search: search)

@@ -3,25 +3,6 @@
 require "rails_helper"
 
 RSpec.describe Results::Counters, type: :query do
-  describe ".calculate" do
-    it "returns calculated status counts without additional filters" do
-      create(:result, status: "unread")
-      create_list(:result, 2, status: "watched")
-      create_list(:result, 3, status: "interesting")
-      create(:result, status: "garbage")
-
-      counts = described_class.calculate(Result.all)
-
-      expect(counts.unread).to eq(1)
-      expect(counts.watched).to eq(2)
-      expect(counts.interesting).to eq(3)
-      expect(counts.garbage).to eq(1)
-      expect(counts.has_less_relevant).to be(false)
-      expect(counts.all_clean).to eq(6)
-      expect(counts.total).to eq(7)
-    end
-  end
-
   describe ".calculate_filtered" do
     let(:user) { create(:user) }
     let(:search) { create(:search, user: user, show_acknowledged: false) }

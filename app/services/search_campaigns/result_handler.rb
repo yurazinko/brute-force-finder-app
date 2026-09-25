@@ -37,13 +37,23 @@ module SearchCampaigns
       @search.results.reset
       @coordinator.success!
 
-      counts = Results::Counters.calculate(@search.results, search: @search)
+      counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
       SearchCampaigns::LifecycleNotifier.broadcast_metrics(@search, counts)
 
       {
         raw_count: metrics[:raw_count],
         new_count: metrics[:new_count],
         total: counts.total
+      }
+    end
+
+    def filter_options
+      {
+        status: "unread",
+        time_frame: @search.time_frame,
+        sort: Results::Query::DEFAULT_SORT,
+        show_acknowledged: @search.show_acknowledged,
+        show_less_relevant: false
       }
     end
 
