@@ -19,50 +19,73 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-breeze-bg text-breeze-text flex flex-col min-h-screen">
-    <div id="flash">
+  <body class="bg-breeze-bg text-breeze-text flex flex-col min-h-screen antialiased selection:bg-breeze-accent/30 selection:text-breeze-accent">
+    <!-- Flash Notifications Container -->
+    <div id="flash" class="sticky top-0 z-50">
       <%= render "layouts/flash" %>
     </div>
 
     <% if current_user.present? %>
-      <nav class="bg-breeze-view border-b border-breeze-border sticky top-0 z-50 shadow-sm h-16 flex items-center">
+      <!-- Navigation Bar -->
+      <nav class="bg-breeze-view/90 backdrop-blur-md border-b border-breeze-border/80 sticky top-0 z-40 shadow-xs h-16 flex items-center">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div class="flex justify-between h-full items-center">
+          <div class="flex justify-between items-center h-full">
 
-            <div class="flex items-center space-x-8">
-              <div class="flex-shrink-0 flex items-center">
-                <%= link_to root_path, class: "text-xl font-bold text-breeze-accent tracking-wide flex items-center gap-2" do %>
-                  ⚡ Brute Force Finder
+            <!-- Left Group: Logo + Main Navigation -->
+            <div class="flex items-center gap-6 lg:gap-8">
+              <!-- Brand Logo -->
+              <div class="shrink-0 flex items-center">
+                <%= link_to root_path, class: "text-lg sm:text-xl font-extrabold tracking-wide text-breeze-accent hover:opacity-90 transition flex items-center gap-2" do %>
+                  <span class="p-1.5 rounded-lg bg-breeze-accent/10 border border-breeze-accent/20 text-breeze-accent text-sm">⚡</span>
+                  <span class="bg-gradient-to-r from-breeze-text to-breeze-accent bg-clip-text text-transparent">
+                    Brute Force Finder
+                  </span>
                 <% end %>
               </div>
 
-              <div class="hidden md:flex space-x-2">
-                <%= link_to "Searches", searches_path, class: "text-gray-300 hover:text-breeze-accent px-3 py-2 rounded-md text-sm font-medium transition" %>
-                <%= link_to "Results", results_path, class: "text-gray-300 hover:text-breeze-accent px-3 py-2 rounded-md text-sm font-medium transition" %>
-                <%= link_to "Categories", categories_path, class: "text-gray-300 hover:text-breeze-accent px-3 py-2 rounded-md text-sm font-medium transition" %>
-                <%= link_to "Statistics", dashboard_path, class: "text-gray-300 hover:text-breeze-accent px-3 py-2 rounded-md text-sm font-medium transition" %>
+              <!-- Main Links -->
+              <div class="hidden md:flex items-center space-x-1 font-medium text-xs sm:text-sm">
+                <%= link_to searches_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(searches_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Searches
+                <% end %>
+
+                <%= link_to results_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(results_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Results
+                <% end %>
+
+                <%= link_to categories_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(categories_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Categories
+                <% end %>
+
+                <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(dashboard_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Statistics
+                <% end %>
               </div>
             </div>
 
-            <div class="flex items-center space-x-4">
-              <%= link_to data_transfers_path, class: "flex items-center gap-2 bg-breeze-bg hover:bg-gray-700 text-breeze-text px-3.5 py-1.5 rounded-lg text-sm font-medium border border-breeze-border transition" do %>
-                🔄 Sync & Data
+            <!-- Right Group: Actions + Profile -->
+            <div class="flex items-center space-x-3 sm:space-x-4">
+              <!-- Data Sync Link -->
+              <%= link_to data_transfers_path, class: "flex items-center gap-2 bg-breeze-bg/80 hover:bg-breeze-bg text-breeze-text px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-breeze-border/80 hover:border-breeze-border transition shadow-2xs" do %>
+                <span class="text-xs">🔄</span>
+                <span>Sync & Data</span>
               <% end %>
 
-              <div class="h-5 w-px bg-breeze-border hidden sm:block"></div>
+              <div class="h-5 w-px bg-breeze-border/60 hidden sm:block"></div>
 
-              <div class="flex items-center space-x-3 text-sm">
+              <!-- User Profile & Logout -->
+              <div class="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
                 <div class="hidden lg:flex flex-col text-right leading-tight">
-                  <span class="font-medium text-gray-200 truncate max-w-[160px]" title="<%= current_user.email %>">
+                  <span class="font-semibold text-breeze-text truncate max-w-[160px]" title="<%= current_user.email %>">
                     <%= current_user.email %>
                   </span>
                 </div>
 
                 <%= link_to destroy_user_session_path,
                             data: { turbo_method: :delete },
-                            class: "flex items-center gap-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 px-2.5 py-1.5 rounded-md text-sm transition",
+                            class: "flex items-center gap-1.5 text-breeze-muted hover:text-red-400 hover:bg-red-500/10 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-transparent hover:border-red-500/20 transition",
                             title: "Log out" do %>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                   </svg>
                   <span class="hidden sm:inline">Log out</span>
@@ -75,7 +98,8 @@
       </nav>
     <% end %>
 
-    <main class="flex-grow pt-3 pb-12">
+    <!-- Main Content Body -->
+    <main class="flex-grow pt-4 pb-12">
       <%= yield %>
     </main>
   </body>

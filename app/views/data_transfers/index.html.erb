@@ -1,44 +1,87 @@
-<div class="container mx-auto p-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
   <%= turbo_stream_from "data_transfer_channel" %>
 
-  <h1 class="text-3xl font-bold mb-8">Database Sync & Backups</h1>
+  <!-- Page Header -->
+  <div class="border-b border-breeze-border/60 pb-5">
+    <h1 class="text-2xl sm:text-3xl font-bold text-breeze-text flex items-center gap-3">
+      <span>💾</span>
+      <span>Database Sync & Backups</span>
+    </h1>
+    <p class="text-xs sm:text-sm text-breeze-muted mt-1">
+      Export campaign structures, categories, and leads to JSON or restore database state seamlessly.
+    </p>
+  </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-    <div class="bg-breeze-view p-6 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-4">Export Database to JSON</h2>
-      <div id="export" class="mb-4">
-        <%= form_with url: export_data_transfers_path, method: :post, local: false do |f| %>
+  <!-- Cards Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          <details class="mb-4 text-sm text-breeze-muted cursor-pointer">
-            <summary class="font-medium hover:text-breeze-accent select-none mb-2">
-              ⚙️ Advanced Options
-            </summary>
+    <!-- Export Section -->
+    <div class="bg-breeze-view p-5 sm:p-6 rounded-xl border border-breeze-border/80 shadow-xs flex flex-col justify-between space-y-6">
+      <div>
+        <div class="flex items-center gap-2.5 mb-2">
+          <div class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-base">
+            📤
+          </div>
+          <h2 class="text-lg font-bold text-breeze-text">Export Database to JSON</h2>
+        </div>
+        <p class="text-xs text-breeze-muted mb-4">
+          Select specific database entities or export everything into a structured JSON backup.
+        </p>
 
-            <div class="mt-3 pl-2 flex flex-col gap-2 bg-breeze-bg/50 p-3 rounded-md border border-breeze-border">
-              <% %w[categories targets searches prompts results].each do |table| %>
-                <label class="inline-flex items-center gap-2 cursor-pointer text-gray-200">
-                  <%= check_box_tag "tables[]", table, true, class: "rounded border-breeze-border text-blue-600 focus:ring-blue-500" %>
-                  <span class="capitalize"><%= table %></span>
-                </label>
-              <% end %>
-            </div>
-          </details>
+        <div id="export">
+          <%= form_with url: export_data_transfers_path, method: :post, local: false, class: "space-y-4" do |f| %>
 
-          <%= f.submit "Launch Export", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer w-full sm:w-auto" %>
-        <% end %>
+            <!-- Advanced Options Dropdown -->
+            <details class="group bg-breeze-bg/40 rounded-xl border border-breeze-border/60 overflow-hidden">
+              <summary class="flex items-center justify-between p-3.5 text-xs font-semibold text-breeze-text cursor-pointer select-none hover:bg-breeze-bg/80 transition">
+                <span class="flex items-center gap-2">
+                  <span>⚙️</span>
+                  <span>Select Specific Tables</span>
+                </span>
+                <span class="text-breeze-muted transition-transform group-open:rotate-180 text-[10px]">
+                  ▼
+                </span>
+              </summary>
+
+              <div class="p-3.5 pt-1 border-t border-breeze-border/40 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <% %w[categories targets searches prompts results].each do |table| %>
+                  <label class="flex items-center gap-2 p-2 rounded-lg bg-breeze-bg/80 border border-breeze-border/40 hover:border-breeze-border cursor-pointer transition text-xs">
+                    <%= check_box_tag "tables[]", table, true, class: "rounded border-breeze-border bg-breeze-view text-breeze-accent focus:ring-breeze-accent cursor-pointer h-3.5 w-3.5" %>
+                    <span class="capitalize text-breeze-text font-medium truncate"><%= table %></span>
+                  </label>
+                <% end %>
+              </div>
+            </details>
+
+            <%= f.submit "Launch Export", class: "w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow transition-all cursor-pointer border border-blue-400/20 flex items-center justify-center gap-2" %>
+          <% end %>
+        </div>
       </div>
     </div>
 
-
-    <div class="bg-breeze-view p-6 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-4">Import & Upsert Sync</h2>
-      <div id="import" class="mb-4">
-        <%= form_with url: import_data_transfers_path, method: :post, local: false, multipart: true do |f| %>
-          <div class="mb-4">
-            <%= f.file_field :file, accept: '.json', class: "block w-full text-sm text-breeze-muted" %>
+    <!-- Import Section -->
+    <div class="bg-breeze-view p-5 sm:p-6 rounded-xl border border-breeze-border/80 shadow-xs flex flex-col justify-between space-y-6">
+      <div>
+        <div class="flex items-center gap-2.5 mb-2">
+          <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-base">
+            📥
           </div>
-          <%= f.submit "Upload & Sync Database", class: "bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer" %>
-        <% end %>
+          <h2 class="text-lg font-bold text-breeze-text">Import & Upsert Sync</h2>
+        </div>
+        <p class="text-xs text-breeze-muted mb-4">
+          Upload a previously exported JSON backup file to restore records or merge changes.
+        </p>
+
+        <div id="import">
+          <%= form_with url: import_data_transfers_path, method: :post, local: false, multipart: true, class: "space-y-4" do |f| %>
+            <div class="p-3 bg-breeze-bg/40 border border-breeze-border/60 rounded-xl space-y-1">
+              <label class="block text-[11px] font-semibold text-breeze-muted">Backup JSON File</label>
+              <%= f.file_field :file, accept: '.json', class: "block w-full text-xs text-breeze-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-breeze-bg file:text-breeze-text hover:file:bg-breeze-border/40 cursor-pointer border-0 focus:outline-none" %>
+            </div>
+
+            <%= f.submit "Upload & Sync Database", class: "w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-xs hover:shadow transition-all cursor-pointer border border-emerald-400/20 flex items-center justify-center gap-2" %>
+          <% end %>
+        </div>
       </div>
     </div>
   </div>

@@ -23,7 +23,7 @@
      data-controller="read-status result-card"
      data-read-status-url-value="<%= result_path(result) %>"
      data-read-status-current-status-value="<%= result.status %>"
-     class="p-4 sm:p-5 border border-breeze-border rounded-xl hover:border-blue-500/40 hover:bg-blue-500/[0.02] transition bg-breeze-bg/50 flex flex-col gap-2.5 <%= 'opacity-50 duration-500' if should_dim %>">
+     class="p-4 sm:p-5 border border-breeze-border/80 rounded-xl hover:border-breeze-accent/50 hover:bg-breeze-view/40 transition-all bg-breeze-bg/60 flex flex-col gap-3 shadow-xs <%= 'opacity-50 duration-500' if should_dim %>">
 
   <div class="flex items-start justify-between gap-3">
     <a href="<%= result.url %>"
@@ -34,32 +34,32 @@
       data-current-tab="<%= current_tab %>"
       data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
       data-read-status="<%= result.status %>"
-      class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-tight block truncate flex-1">
+      class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate flex-1 transition-colors">
       <%= result.title.presence || "Untitled Result" %>
     </a>
 
-    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold border <%= score_badge_class %>" title="Relevance Score based on matched keyword groups">
+    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border <%= score_badge_class %> shadow-2xs" title="Relevance Score based on matched keyword groups">
       <span>🎯</span>
       <span><%= score %></span>
     </div>
   </div>
 
-  <div class="text-xs text-breeze-muted font-mono flex items-center gap-1.5 w-full min-w-0">
+  <div class="text-xs text-breeze-muted font-mono flex items-center gap-1.5 w-full min-w-0 bg-breeze-view/60 px-2.5 py-1 rounded-md border border-breeze-border/40">
     <svg class="w-3.5 h-3.5 text-breeze-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 005.656-5.656l-1.1 1.1"></path>
     </svg>
-    <span class="truncate block w-full" title="<%= result.url %>"><%= result.url %></span>
+    <span class="truncate block w-full text-breeze-muted/80 hover:text-breeze-text transition-colors" title="<%= result.url %>"><%= result.url %></span>
   </div>
 
-  <div class="mt-1 bg-breeze-view p-3 rounded-lg border border-breeze-border shadow-sm h-20 sm:h-24 overflow-hidden">
-    <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3">
-      <%= result.content.presence || "* No preview available *" %>
+  <div class="bg-breeze-view p-3 sm:p-3.5 rounded-lg border border-breeze-border/60 shadow-inner h-20 sm:h-24 overflow-hidden">
+    <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3 leading-relaxed">
+      <%= result.content.presence || "* No preview content available *" %>
     </p>
   </div>
 
-  <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+  <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
     <div class="flex flex-wrap items-center gap-1.5">
-      <span class="text-[11px] text-breeze-muted font-medium">Matches:</span>
+      <span class="text-[11px] text-breeze-muted font-semibold uppercase tracking-wider">Matches:</span>
       <% if keywords.any? %>
         <% keywords.each do |kw| %>
           <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20">
@@ -67,18 +67,18 @@
           </span>
         <% end %>
       <% else %>
-        <span class="text-[11px] text-breeze-muted italic">No keyword tags</span>
+        <span class="text-[11px] text-breeze-muted/60 italic">No keyword tags matched</span>
       <% end %>
     </div>
 
     <% if result.verification_status.to_s.start_with?("unverified") %>
-      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Full page fetching failed or required captcha verification">
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-2xs" title="Full page fetching failed or required captcha verification">
         ⚠️ <%="Unverified: #{result.verification_status.split("_").last}" %>
       </span>
     <% end %>
   </div>
 
-  <div class="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-breeze-border">
+  <div class="mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-breeze-border/60">
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">
 
       <% unless result.status == "interesting" %>
@@ -95,8 +95,9 @@
                       method: :patch,
                       form: { data: { action: "submit->result-card#appendDomCount" } },
                       data: { turbo_stream: true },
-                      class: "text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
-          <span>⭐ Mark as Interesting</span>
+                      class: "text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-amber-200 border border-amber-500/30 px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto shadow-2xs" do %>
+          <span>⭐</span>
+          <span>Mark as Starred</span>
         <% end %>
       <% end %>
 
@@ -114,8 +115,9 @@
                       method: :patch,
                       form: { data: { action: "submit->result-card#appendDomCount" } },
                       data: { turbo_stream: true },
-                      class: "text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-2.5 py-2 sm:py-1 rounded-md shadow-sm transition flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto" do %>
-          <span>🗑️ Mark as Garbage</span>
+                      class: "text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto shadow-2xs" do %>
+          <span>🗑️</span>
+          <span>Mark as Garbage</span>
         <% end %>
       <% end %>
 
@@ -133,16 +135,17 @@
                       method: :patch,
                       form: { data: { action: "submit->result-card#appendDomCount" } },
                       data: { turbo_stream: true },
-                      class: "text-xs font-medium bg-breeze-bg hover:bg-breeze-bg text-gray-300 border border-breeze-border px-2.5 py-2 sm:py-1 rounded-md transition flex items-center justify-center cursor-pointer w-full sm:w-auto" do %>
-          <span>↩️ Move to Inbox</span>
+                      class: "text-xs font-medium bg-breeze-view hover:bg-breeze-border/40 text-gray-300 hover:text-breeze-text border border-breeze-border px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto shadow-2xs" do %>
+          <span>↩️</span>
+          <span>Move to Inbox</span>
         <% end %>
       <% end %>
 
     </div>
 
-    <div class="flex items-center gap-2 order-1 sm:order-2 self-start sm:self-auto text-[10px] text-breeze-muted font-medium">
-      <span><%= engine %></span>
-      <span>•</span>
+    <div class="flex items-center gap-2 order-1 sm:order-2 self-start sm:self-auto text-[11px] text-breeze-muted font-medium bg-breeze-view/40 px-2.5 py-1 rounded-md border border-breeze-border/30">
+      <span class="font-mono text-breeze-text/80"><%= engine %></span>
+      <span class="text-breeze-border">•</span>
       <span>Discovered <%= time_ago_in_words(result.created_at) %> ago</span>
     </div>
   </div>

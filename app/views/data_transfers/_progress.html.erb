@@ -1,9 +1,15 @@
-<div id="<%= id %>" class="w-full bg-breeze-bg p-4 rounded border border-breeze-border animate-fade-in">
-  <div class="flex justify-between mb-1">
-    <span class="text-sm font-medium text-breeze-text"><%= raw message %></span>
-    <span class="text-sm font-medium text-breeze-text"><%= progress %>%</span>
+<div id="<%= id %>" class="w-full bg-breeze-bg/90 p-4 rounded-xl border border-breeze-border/80 shadow-xs space-y-2 animate-fade-in">
+  <div class="flex justify-between items-center text-xs">
+    <span class="font-medium text-breeze-text flex items-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-breeze-accent animate-ping"></span>
+      <%= raw message %>
+    </span>
+    <span class="font-mono font-bold text-breeze-accent bg-breeze-accent/10 px-2 py-0.5 rounded border border-breeze-accent/20">
+      <%= progress %>%
+    </span>
   </div>
-  <div class="w-full bg-gray-200 rounded-full h-2.5">
-    <div class="bg-breeze-accent h-2.5 rounded-full transition-all duration-300" style="width: <%= progress %>%"></div>
+
+  <div class="w-full bg-breeze-view rounded-full h-2 overflow-hidden border border-breeze-border/40 p-0.5">
+    <div class="bg-gradient-to-r from-breeze-accent to-blue-500 h-full rounded-full transition-all duration-300 shadow-sm" style="width: <%= progress %>%"></div>
   </div>
 </div>
