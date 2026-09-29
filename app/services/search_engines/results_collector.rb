@@ -4,7 +4,8 @@ module SearchEngines
   class ResultsCollector
     COLLECTORS = [
       SearchEngines::Yacy::RawResultsCollector,
-      SearchEngines::Searxng::RawResultsCollector
+      SearchEngines::Searxng::RawResultsCollector,
+      SearchEngines::Fourget::RawResultsCollector
     ].freeze
 
     def self.call(query, options = {}) = new(query, options).collect
