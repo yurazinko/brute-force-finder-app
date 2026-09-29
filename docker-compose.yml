@@ -11,7 +11,7 @@ x-app: &app
   environment:
     RAILS_ENV: development
     REDIS_URL: redis://redis:6379/1
-    SEARXNG_URLS: "http://searxng_1:8080,http://searxng_2:8080,http://searxng_3:8080,http://searxng_4:8080,http://searxng_5:8080"
+    SEARXNG_URLS: "http://searxng_1:8080,http://searxng_2:8080,http://searxng_3:8080"
     YACY_PEER_URLS: "http://yacy:8090"
     YACY_ADMIN_USER: "admin"
     YACY_ADMIN_PASSWORD: "yacy"
@@ -20,6 +20,7 @@ x-app: &app
     RUBY_GC_HEAP_GROWTH_MAX_SLOTS: 30000
     LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
     COMPOSE_PROJECT_NAME: "brute-force-finder-app"
+    FOURGET_URLS: "http://fourget:80"
   networks:
     - finder_network
 
@@ -58,10 +59,10 @@ services:
     <<: *tor-base
   tor_3:
     <<: *tor-base
-  tor_4:
-    <<: *tor-base
-  tor_5:
-    <<: *tor-base
+  # tor_4:
+  #   <<: *tor-base
+  # tor_5:
+  #   <<: *tor-base
 
   searxng_1:
     <<: *searxng-base
@@ -90,23 +91,23 @@ services:
       tor_3:
         condition: service_healthy
 
-  searxng_4:
-    <<: *searxng-base
-    container_name: finder_searxng_4
-    volumes:
-      - ./searxng/searxng_4:/etc/searxng
-    depends_on:
-      tor_4:
-        condition: service_healthy
+  # searxng_4:
+  #   <<: *searxng-base
+  #   container_name: finder_searxng_4
+  #   volumes:
+  #     - ./searxng/searxng_4:/etc/searxng
+  #   depends_on:
+  #     tor_4:
+  #       condition: service_healthy
 
-  searxng_5:
-    <<: *searxng-base
-    container_name: finder_searxng_5
-    volumes:
-      - ./searxng/searxng_5:/etc/searxng
-    depends_on:
-      tor_5:
-        condition: service_healthy
+  # searxng_5:
+  #   <<: *searxng-base
+  #   container_name: finder_searxng_5
+  #   volumes:
+  #     - ./searxng/searxng_5:/etc/searxng
+  #   depends_on:
+  #     tor_5:
+  #       condition: service_healthy
 
   yacy:
     image: yacy/yacy_search_server:latest-alpine
@@ -132,6 +133,30 @@ services:
       timeout: 5s
       retries: 10
       start_period: 60s
+
+  fourget:
+    image: luuul/4get:latest
+    container_name: finder_4get
+    restart: unless-stopped
+    environment:
+      - FOURGET_PROTO=http
+      - FOURGET_SERVER_NAME=fourget
+      - FOURGET_PROXY_DDG=onion
+      - FOURGET_PROXY_BRAVE=onion
+      - FOURGET_PROXY_GOOGLE=onion
+      - FOURGET_PROXY_QWANT=onion
+      - FOURGET_PROXY_MOJEEK=onion
+      - FOURGET_PROXY_SPOTIFY=onion
+      - FOURGET_PROXY_YANDEX_W=onion
+      - FOURGET_PROXY_YANDEX_I=onion
+      - FOURGET_PROXY_YANDEX_V=onion
+    volumes:
+      - ./fourget/proxies/:/var/www/html/4get/data/proxies/
+    depends_on:
+      tor_1:
+        condition: service_healthy
+    networks:
+      - finder_network
 
   db:
     image: postgres:17.11-alpine
@@ -171,6 +196,8 @@ services:
         condition: service_healthy
       yacy:
         condition: service_started
+      fourget:
+        condition: service_started
 
   app:
     <<: *app
@@ -208,8 +235,8 @@ volumes:
   searxng_1_data:
   searxng_2_data:
   searxng_3_data:
-  searxng_4_data:
-  searxng_5_data:
+  # searxng_4_data:
+  # searxng_5_data:
   yacy_data:
 
 networks:
