@@ -11,6 +11,11 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 # return unless Rails.env.test?
 require "rspec/rails"
 # Add additional requires below this line. Rails is not loaded until this point!
+#
+require "simplecov"
+SimpleCov.start "rails"
+
+# Previous content of test helper now starts here
 require "webmock/rspec"
 require "sidekiq/testing"
 
@@ -80,6 +85,8 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
 
   config.include FactoryBot::Syntax::Methods
+
+  config.include Devise::Test::IntegrationHelpers, type: :system
 
   config.before(:suite) do
     DatabaseCleaner.clean_with(:truncation)
