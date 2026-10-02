@@ -18,6 +18,7 @@ module Results
 
     def process
       @raw_results.each_with_object([]) do |result, records|
+        binding.pry
         filter = ResultFilter.new(result, @prompt, @target_configs)
         next unless filter.valid?
 
