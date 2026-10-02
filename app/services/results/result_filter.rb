@@ -1,8 +1,5 @@
-# frozen_string_literal: true
-
 module Results
   class ResultFilter
-    # TODO: Implement better memory consuming approach for large pages, e.g., streaming and searching in chunks
     attr_reader :rank_result
 
     def initialize(result, prompt, target_configs)
@@ -18,7 +15,14 @@ module Results
       return false if @url.blank?
       return false unless UrlMatcher.matches?(@url, @prompt&.target)
 
-      @rank_result = RelevanceRanker.call(@result, snippet_text, @keyword_groups, @url)
+      @rank_result = RelevanceRanker.call(
+        @result,
+        snippet_text,
+        @keyword_groups,
+        @url,
+        time_range: @prompt&.search&.time_frame
+      )
+
       @rank_result.valid?
     end
 

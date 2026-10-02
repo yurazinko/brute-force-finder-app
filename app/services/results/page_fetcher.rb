@@ -20,7 +20,8 @@ module Results
       "Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0"
     ].freeze
 
-    FetchResult = Struct.new(:text, :status, keyword_init: true) do
+    # Додали :headers в атрибути Struct
+    FetchResult = Struct.new(:text, :status, :headers, keyword_init: true) do
       def captcha_detected?
         status == :captcha
       end
@@ -47,14 +48,15 @@ module Results
       body_text = response.body.to_s
 
       if captcha_detected?(response, body_text)
-        FetchResult.new(text: "", status: :captcha)
+        FetchResult.new(text: "", status: :captcha, headers: response.headers)
       else
         clean_text = extract_plain_text(body_text)
-        FetchResult.new(text: clean_text, status: :verified)
+        # Передаємо response.headers далі
+        FetchResult.new(text: clean_text, status: :verified, headers: response.headers)
       end
     rescue StandardError => e
       Rails.logger.warn("[PageFetcher] Failed to fetch #{@url}: #{e.message}")
-      FetchResult.new(text: "", status: :error)
+      FetchResult.new(text: "", status: :error, headers: {})
     end
 
     private
