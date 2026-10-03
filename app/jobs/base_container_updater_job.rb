@@ -23,6 +23,8 @@ class BaseContainerUpdaterJob
 
   private
 
+  def before_recreate(_info); end
+
   def image_name
     raise NotImplementedError, "#{self.class} must implement #image_name"
   end
@@ -43,6 +45,8 @@ class BaseContainerUpdaterJob
   def process_container_update(info) # rubocop:disable Metrics/AbcSize
     service_name = info[:service]
     container_name = info[:container_name]
+
+    before_recreate(info)
 
     logger.info "[#{self.class.name}] Updating #{service_name} via Docker Compose (path: #{host_project_path})..."
 
