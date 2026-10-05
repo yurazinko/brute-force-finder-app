@@ -121,10 +121,7 @@ module SearchEngines
         end
 
         def format_content(hash)
-          content_parts = hash.values_at("content", "snippet")
-          content_parts.compact
-          content_parts.uniq!
-          content_parts.join(" ")
+          [hash["content"], hash["snippet"]].compact_blank.uniq.join(" ").squish
         end
 
         def format_engine_label(hash)
