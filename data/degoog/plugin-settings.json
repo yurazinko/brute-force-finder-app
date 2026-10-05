@@ -1,0 +1,13 @@
+{
+  "__faviconDefaultsDone": [
+    "favicon/google",
+    "favicon/duckduckgo"
+  ],
+  "degoog-org-official-extensions-google-favicon": {
+    "priority": "1"
+  },
+  "degoog-org-official-extensions-duckduckgo-favicon": {
+    "priority": "0"
+  },
+  "__schemaVersion": 93026
+}

@@ -1,0 +1,10 @@
+{
+  "id": "1dd648a6-6941-43e0-a4e6-a9f1bcbd9bb9",
+  "at": 1791192026214,
+  "seq": 13,
+  "payload": {
+    "scope": "plugin-settings",
+    "key": "__schemaVersion",
+    "origin": "99fd6102744f9eac"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "f2ecf84b-aa79-4bc2-bb8c-c0cf4c118df5",
+  "at": 1791196865573,
+  "seq": 1,
+  "payload": {
+    "scope": "cache-clear",
+    "key": "favicon-miss",
+    "origin": "c830f009b7d11338"
+  }
+}

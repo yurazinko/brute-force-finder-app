@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 module SearchEngines
-  module Searxng
+  module Degoog
     class RawResultsCollector < BaseRawResultsCollector
       private
 
-      # [Api::TorClient, Api::PublicInstancesClient]
-      def client_classes = [Api::TorClient]
+      def client_classes = [Api::DefaultClient]
     end
   end
 end

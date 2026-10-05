@@ -1,0 +1,79 @@
+{
+  "repos": [
+    {
+      "url": "https://github.com/degoog-org/official-extensions.git",
+      "localPath": "degoog-org-official-extensions",
+      "addedAt": "2026-10-05T09:20:26.161Z",
+      "lastFetched": "2026-10-05T10:14:37.766Z",
+      "name": "official-extensions",
+      "description": "Plugins, themes, engines, transports and favicon providers for degoog search.",
+      "error": null,
+      "repoImage": "https://avatars.githubusercontent.com/u/280656364"
+    }
+  ],
+  "installed": [
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "favicon",
+      "itemPath": "favicon/google",
+      "installedAs": "degoog-org-official-extensions-google-favicon",
+      "installedAt": "2026-10-05T09:20:26.178Z",
+      "version": "1.0.0",
+      "minDegoogVersion": "1.0.0"
+    },
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "favicon",
+      "itemPath": "favicon/duckduckgo",
+      "installedAs": "degoog-org-official-extensions-duckduckgo-favicon",
+      "installedAt": "2026-10-05T09:20:26.197Z",
+      "version": "1.0.0",
+      "minDegoogVersion": "1.0.0"
+    },
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "engine",
+      "itemPath": "engines/google",
+      "installedAs": "degoog-org-official-extensions-google",
+      "installedAt": "2026-10-05T09:47:53.255Z",
+      "version": "1.2.2",
+      "minDegoogVersion": "0.19.0"
+    },
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "engine",
+      "itemPath": "engines/brave",
+      "installedAs": "degoog-org-official-extensions-brave",
+      "installedAt": "2026-10-05T09:48:00.973Z",
+      "version": "1.0.0",
+      "minDegoogVersion": "0.19.0"
+    },
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "engine",
+      "itemPath": "engines/startpage",
+      "installedAs": "degoog-org-official-extensions-startpage",
+      "installedAt": "2026-10-05T09:48:11.934Z",
+      "version": "1.3.0",
+      "minDegoogVersion": "1.0.0"
+    },
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "engine",
+      "itemPath": "engines/duckduckgo",
+      "installedAs": "degoog-org-official-extensions-duckduckgo",
+      "installedAt": "2026-10-05T09:48:27.659Z",
+      "version": "1.1.1",
+      "minDegoogVersion": "0.19.0"
+    },
+    {
+      "repoUrl": "https://github.com/degoog-org/official-extensions.git",
+      "type": "engine",
+      "itemPath": "engines/bing",
+      "installedAs": "degoog-org-official-extensions-bing",
+      "installedAt": "2026-10-05T09:48:53.947Z",
+      "version": "1.0.5",
+      "minDegoogVersion": "0.19.0"
+    }
+  ]
+}
