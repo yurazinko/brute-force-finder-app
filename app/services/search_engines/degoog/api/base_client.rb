@@ -106,9 +106,9 @@ module SearchEngines
         end
 
         def extract_results(data)
-          results = data["results"] || []
+          results = (data["results"] || []).filter_map { |hash| build_result_item(hash) }
 
-          results.filter_map { |hash| build_result_item(hash) }.uniq { |hash| hash["url"] }
+          results.uniq { |hash| hash["url"] }
         end
 
         def build_result_item(hash)
