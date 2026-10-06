@@ -23,7 +23,7 @@ RSpec.describe YacyTriggerCrawlJob, type: :job do
 
         expect(SearchEngines::Yacy::Api::Crawler).to have_received(:search).with(
           "https://example.com",
-          depth: 5,
+          depth: 3,
           max_pages: 200,
           collection: collection,
           crawl_query_urls: false
@@ -41,7 +41,7 @@ RSpec.describe YacyTriggerCrawlJob, type: :job do
 
         expect(SearchEngines::Yacy::Api::Crawler).to have_received(:search).with(
           "http://my-site.org",
-          depth: 5,
+          depth: 3,
           max_pages: 200,
           collection: "default",
           crawl_query_urls: false
@@ -55,7 +55,7 @@ RSpec.describe YacyTriggerCrawlJob, type: :job do
 
         expect(SearchEngines::Yacy::Api::Crawler).to have_received(:search).with(
           "https://example.com",
-          depth: 5,
+          depth: 3,
           max_pages: 200,
           collection: collection,
           crawl_query_urls: true
