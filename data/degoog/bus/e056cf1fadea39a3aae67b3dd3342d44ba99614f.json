@@ -1,0 +1,10 @@
+{
+  "id": "6ff00da7-f7a1-4403-96ca-cb4f4b40a83c",
+  "at": 1791192026205,
+  "seq": 7,
+  "payload": {
+    "scope": "extensions",
+    "key": "favicon:bump",
+    "origin": "99fd6102744f9eac"
+  }
+}

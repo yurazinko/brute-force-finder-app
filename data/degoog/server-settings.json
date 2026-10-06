@@ -1,0 +1,27 @@
+{
+  "wizard": false,
+  "instanceId": "04fe4d10b78f6bc500ad7532da58b546",
+  "settings": {
+    "apiSecretKey": "c0fb3469148a651d79fdee5496c0431ab9a81532bb2ced27f2deeea4e689b92f",
+    "imageProxyAllowLocal": true,
+    "rateLimitEnabled": false,
+    "rateLimitBurstWindow": "60",
+    "rateLimitBurstMax": "120",
+    "rateLimitLongWindow": "3600",
+    "rateLimitLongMax": "1000",
+    "rateLimitSuggestEnabled": false,
+    "rateLimitSuggestBurstWindow": "60",
+    "rateLimitSuggestBurstMax": "240",
+    "rateLimitSuggestLongWindow": "3600",
+    "rateLimitSuggestLongMax": "2000",
+    "acDebounceMs": "200",
+    "streamingEnabled": true,
+    "streamingAutoRetry": true,
+    "streamingMaxRetries": "2",
+    "apiKeySearchEnabled": false,
+    "apiKeySuggestEnabled": false,
+    "honeypotEnabled": true,
+    "honeypotCssCheck": true,
+    "honeypotBanDuration": "24"
+  }
+}

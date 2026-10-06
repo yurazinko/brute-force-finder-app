@@ -25,7 +25,7 @@ class PromptProcessorJob < ApplicationJob
     raw_results = SearchEngines::ResultsCollector.call(
       query_text,
       time_range: search.time_frame,
-      dynamic_url: prompt.target.allow_query_strings
+      dynamic_url: prompt.target&.allow_query_strings || false
     )
 
     handler_result = SearchCampaigns::ResultHandler.call(prompt, raw_results)

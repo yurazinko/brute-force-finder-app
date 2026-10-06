@@ -10,12 +10,20 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
   end
 
   def containers_to_update
-    [
-      {
-        service: "yacy",
-        container_name: "finder_yacy"
-      }
-    ]
+    [{ service: "yacy", container_name: "finder_yacy" }]
+  end
+
+  def before_recreate(info)
+    clean_cache_if_odd_day(info[:container_name])
+  end
+
+  def clean_cache_if_odd_day(container_name)
+    return unless Date.current.day.odd?
+
+    logger.info "[#{self.class.name}] Today is an odd day (#{Date.current.day}). Cleaning YaCy cache..."
+    system("docker", "exec", container_name, "rm", "-rf", "/opt/yacy_search_server/DATA/INDEX")
+  rescue StandardError => e
+    logger.error "[#{self.class.name}] Failed to clean YaCy cache: #{e.message}"
   end
 
   def run_smoke_test(info) # rubocop:disable Metrics/MethodLength

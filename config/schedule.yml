@@ -14,3 +14,8 @@ yacy_updater_job:
   cron: "15 13 * * *"
   class: "YacyUpdaterJob"
   queue: default
+
+fourget_updater_job:
+  cron: "10 13 * * *"
+  class: FourgetUpdaterJob
+  queue: default

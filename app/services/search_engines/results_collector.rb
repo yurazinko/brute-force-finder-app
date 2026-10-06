@@ -4,7 +4,9 @@ module SearchEngines
   class ResultsCollector
     COLLECTORS = [
       SearchEngines::Yacy::RawResultsCollector,
-      SearchEngines::Searxng::RawResultsCollector
+      SearchEngines::Searxng::RawResultsCollector,
+      SearchEngines::Fourget::RawResultsCollector,
+      SearchEngines::Degoog::RawResultsCollector
     ].freeze
 
     def self.call(query, options = {}) = new(query, options).collect
@@ -20,7 +22,8 @@ module SearchEngines
       last_error = nil
 
       COLLECTORS.each do |collector_class|
-        last_error = process_collector(collector_class, combined_data, failed_engines) || last_error
+        error = process_collector(collector_class, combined_data, failed_engines)
+        last_error = error if error.present?
       end
 
       combined_data.uniq! { |r| r["url"] }
@@ -33,7 +36,7 @@ module SearchEngines
     def process_collector(collector_class, combined_data, failed_engines)
       result = collector_class.call(@query, @options)
 
-      combined_data.concat(result[:data]) if result[:success] && result[:data].present?
+      combined_data.concat(result[:data]) if result[:data].present?
       failed_engines.concat(result[:failed_engines]) if result[:failed_engines].present?
 
       result[:error]

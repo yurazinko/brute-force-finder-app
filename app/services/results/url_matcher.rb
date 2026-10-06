@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# app/services/results/url_matcher.rb
 module Results
   class UrlMatcher
     def self.matches?(url, target)
