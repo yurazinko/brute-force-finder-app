@@ -48,7 +48,7 @@ RSpec.describe Results::BatchPersister, type: :service do
 
       it "returns zero counts and does not insert anything" do
         expect { subject }.not_to change(Result, :count)
-        expect(subject).to eq({ raw_count: 0, new_count: 0 })
+        expect(subject).to eq({ raw_count: 0, new_count: 0, persisted_results: [] })
       end
 
       context "when nil is passed" do
@@ -56,7 +56,7 @@ RSpec.describe Results::BatchPersister, type: :service do
 
         it "returns zero counts safely" do
           expect { subject }.not_to change(Result, :count)
-          expect(subject).to eq({ raw_count: 0, new_count: 0 })
+          expect(subject).to eq({ raw_count: 0, new_count: 0, persisted_results: [] })
         end
       end
     end
@@ -81,7 +81,11 @@ RSpec.describe Results::BatchPersister, type: :service do
       end
 
       it "returns correct raw_count and new_count metrics" do
-        expect(subject).to eq({ raw_count: 2, new_count: 2 })
+        expect(subject).to include(
+          raw_count: 2,
+          new_count: 2
+        )
+        expect(subject[:persisted_results].size).to eq(2)
       end
     end
 
@@ -101,7 +105,11 @@ RSpec.describe Results::BatchPersister, type: :service do
       end
 
       it "returns original raw_count and deduplicated new_count" do
-        expect(subject).to eq({ raw_count: 2, new_count: 1 })
+        expect(subject).to include(
+          raw_count: 2,
+          new_count: 1
+        )
+        expect(subject[:persisted_results].size).to eq(1)
       end
     end
 
@@ -144,7 +152,11 @@ RSpec.describe Results::BatchPersister, type: :service do
       end
 
       it "returns new_count as 0 for already existing records in current search" do
-        expect(subject).to eq({ raw_count: 1, new_count: 0 })
+        expect(subject).to include(
+          raw_count: 1,
+          new_count: 0
+        )
+        expect(subject[:persisted_results].size).to eq(1)
       end
     end
 
@@ -170,7 +182,6 @@ RSpec.describe Results::BatchPersister, type: :service do
             content: "Old Content",
             status: "watched"
           )
-          # Оновлюємо напряму, якщо поле заблоковане readonly/default атрибутами
           Result.where(id: res.id).update_all(acknowledged: true)
         end
 

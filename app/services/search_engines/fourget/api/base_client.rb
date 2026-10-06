@@ -68,14 +68,11 @@ module SearchEngines
         end
 
         def time_frame_start_date
-          time_range = @time_range.presence || @options&.dig(:time_range)
+          time_range = @time_range.presence.to_s
 
-          case time_range.to_s
-          when "day"   then 1.day.ago
-          when "week"  then 1.week.ago
-          when "month" then 1.month.ago
-          when "year"  then 1.year.ago
-          end
+          return unless %w[day week month year].include?(time_range)
+
+          1.public_send(time_range).ago
         end
 
         def sanitize_query(raw_query)
@@ -101,7 +98,7 @@ module SearchEngines
           {
             success: true,
             data: extract_results(data),
-            npt: data["npt"] # Next Page Token для пагінації
+            npt: data["npt"]
           }
         rescue JSON::ParserError => e
           Rails.logger.error("[#{logger_tag}] Malformed JSON from #{instance}: #{e.message}")

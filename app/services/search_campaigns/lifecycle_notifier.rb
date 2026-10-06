@@ -2,8 +2,8 @@
 
 module SearchCampaigns
   class LifecycleNotifier
-    def self.broadcast_metrics(search, counts)
-      new(search).broadcast_metrics(counts)
+    def self.broadcast_metrics(search, counts, new_results: [])
+      new(search).broadcast_metrics(counts, new_results: new_results)
     end
 
     def self.broadcast_status(search, message = nil)
@@ -14,8 +14,9 @@ module SearchCampaigns
       @search = search
     end
 
-    def broadcast_metrics(counts)
+    def broadcast_metrics(counts, new_results: [])
       broadcast_counters(counts)
+      broadcast_new_results(new_results) if new_results.present?
     rescue StandardError => e
       Rails.logger.error("[SearchCampaigns::LifecycleNotifier] Metrics broadcast failed: #{e.message}")
     end
@@ -64,6 +65,18 @@ module SearchCampaigns
           :results,
           target: target_id,
           html: value.to_i.to_s
+        )
+      end
+    end
+
+    def broadcast_new_results(new_results)
+      new_results.each do |result|
+        Turbo::StreamsChannel.broadcast_prepend_to(
+          @search,
+          :results,
+          target: "results_pool_list",
+          partial: "results/result_card",
+          locals: { result: result }
         )
       end
     end

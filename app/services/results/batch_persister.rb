@@ -10,16 +10,20 @@ module Results
     end
 
     def call
-      return { raw_count: 0, new_count: 0 } if @result_records.blank?
+      return { raw_count: 0, new_count: 0, persisted_results: [] } if @result_records.blank?
 
       records = process_incoming_records
       existing_db_records = fetch_existing_records(records)
 
       new_count = calculate_new_records(records, existing_db_records)
 
-      persist_records!(records, existing_db_records)
+      inserted_records = persist_records!(records, existing_db_records)
 
-      { raw_count: @result_records.size, new_count: new_count }
+      {
+        raw_count: @result_records.size,
+        new_count: new_count,
+        persisted_results: inserted_records
+      }
     end
 
     private
@@ -84,11 +88,15 @@ module Results
 
     def execute_upsert(enriched_records)
       ActiveRecord::Base.transaction(requires_new: true) do
-        Result.upsert_all(
+        result_data = Result.upsert_all(
           enriched_records,
           unique_by: %i[search_id url_hash],
-          update_only: %i[title content engine relevance_score matched_keywords verification_status]
+          update_only: %i[title content engine relevance_score matched_keywords verification_status],
+          returning: %i[id search_id url_hash created_at]
         )
+
+        inserted_ids = result_data.pluck("id")
+        Result.where(id: inserted_ids).to_a
       end
     end
   end

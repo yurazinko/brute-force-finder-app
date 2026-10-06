@@ -38,7 +38,12 @@ module SearchCampaigns
       @coordinator.success!
 
       counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
-      SearchCampaigns::LifecycleNotifier.broadcast_metrics(@search, counts)
+
+      SearchCampaigns::LifecycleNotifier.broadcast_metrics(
+        @search,
+        counts,
+        new_results: metrics[:persisted_results]
+      )
 
       {
         raw_count: metrics[:raw_count],
