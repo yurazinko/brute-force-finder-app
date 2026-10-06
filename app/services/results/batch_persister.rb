@@ -2,10 +2,11 @@
 
 module Results
   class BatchPersister
-    def self.call(search_id, result_records) = new(search_id, result_records).call
+    def self.call(search, result_records) = new(search, result_records).call
 
-    def initialize(search_id, result_records)
-      @search_id = search_id
+    def initialize(search, result_records)
+      @search = search
+      @search_id = search.id
       @result_records = result_records
     end
 
@@ -96,7 +97,7 @@ module Results
         )
 
         inserted_ids = result_data.pluck("id")
-        Result.where(id: inserted_ids).to_a
+        Result.where(id: inserted_ids, acknowledged: [false, @search.show_acknowledged].uniq).to_a
       end
     end
   end

@@ -41,7 +41,7 @@ RSpec.describe Results::BatchPersister, type: :service do
   end
 
   describe ".call" do
-    subject { described_class.call(search.id, result_records) }
+    subject { described_class.call(search, result_records) }
 
     context "when input records are blank or nil" do
       let(:result_records) { [] }

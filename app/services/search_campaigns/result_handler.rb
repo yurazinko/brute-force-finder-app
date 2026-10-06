@@ -32,7 +32,7 @@ module SearchCampaigns
 
     def process_records
       result_records = Results::DataTransformer.process(@search.id, @scraped_data, @prompt)
-      metrics = Results::BatchPersister.call(@search.id, result_records)
+      metrics = Results::BatchPersister.call(@search, result_records)
 
       @search.results.reset
       @coordinator.success!
