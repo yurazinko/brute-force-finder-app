@@ -32,13 +32,18 @@ module SearchCampaigns
 
     def process_records
       result_records = Results::DataTransformer.process(@search.id, @scraped_data, @prompt)
-      metrics = Results::BatchPersister.call(@search.id, result_records)
+      metrics = Results::BatchPersister.call(@search, result_records)
 
       @search.results.reset
       @coordinator.success!
 
       counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
-      SearchCampaigns::LifecycleNotifier.broadcast_metrics(@search, counts)
+
+      SearchCampaigns::LifecycleNotifier.broadcast_metrics(
+        @search,
+        counts,
+        new_results: metrics[:persisted_results]
+      )
 
       {
         raw_count: metrics[:raw_count],
