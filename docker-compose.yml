@@ -11,6 +11,7 @@ x-app: &app
   environment:
     RAILS_ENV: development
     REDIS_URL: redis://redis:6379/1
+    REDIS_CACHE_URL: redis://redis:6379/2
     SEARXNG_URLS: "http://searxng_1:8080,http://searxng_2:8080,http://searxng_3:8080"
     YACY_PEER_URLS: "http://yacy:8090"
     YACY_ADMIN_USER: "admin"
@@ -198,6 +199,11 @@ services:
   redis:
     image: redis:8.6.2-alpine
     container_name: finder_redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy volatile-lru
+    deploy:
+      resources:
+        limits:
+          memory: 150M
     volumes:
       - redis_data:/data
     networks:

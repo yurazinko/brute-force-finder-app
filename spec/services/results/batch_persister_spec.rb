@@ -89,6 +89,33 @@ RSpec.describe Results::BatchPersister, type: :service do
       end
     end
 
+    context "when processing records exceeding BATCH_SIZE (chunking behavior)" do
+      let(:total_records_count) { (described_class::BATCH_SIZE * 2) + 15 }
+      let(:large_record_set) do
+        Array.new(total_records_count) do |i|
+          url = "https://example.com/jobs/chunk_#{i}"
+          {
+            "url" => url,
+            "url_hash" => Digest::SHA256.hexdigest(url),
+            "title" => "Developer #{i}",
+            "content" => "Content #{i}",
+            "engine" => "google",
+            "relevance_score" => 50
+          }
+        end
+      end
+
+      let(:result_records) { large_record_set }
+
+      it "processes all records across multiple batches successfully" do
+        expect { subject }.to change(Result, :count).by(total_records_count)
+
+        expect(subject[:raw_count]).to eq(total_records_count)
+        expect(subject[:new_count]).to eq(total_records_count)
+        expect(subject[:persisted_results].size).to eq(total_records_count)
+      end
+    end
+
     context "when records contain internal duplicates within the same batch" do
       let(:result_records) do
         [

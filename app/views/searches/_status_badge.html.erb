@@ -11,5 +11,5 @@
 
 <span id="<%= dom_id(search) %>_badge"
       class="px-2.5 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded-full tracking-wider uppercase <%= badge_classes %> shadow-xs">
-  <%= search.status == "processing" ? "Scanning" : search.status %>
+  <%= search.status == "completed" ? "Activated" : search.status %>
 </span>

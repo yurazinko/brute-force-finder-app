@@ -21,13 +21,16 @@ RSpec.describe PromptProcessorJob, type: :job do
   end
 
   let(:randomized_query) { "site:lever.co intitle:\"ruby\"" }
-  let(:collector_result) { { success: true, data: [{ "url" => "https://lever.co/1" }], failed_engines: [] } }
+  let(:batch_data) { [{ "url" => "https://lever.co/1" }] }
+  let(:collector_summary) { { success: true, failed_engines: [], error: nil } }
 
   before do
     allow(Turbo::StreamsChannel).to receive(:broadcast_render_to)
     allow(SearchCampaigns::DorkRandomizer).to receive(:perform).with(full_query).and_return(randomized_query)
 
-    allow(SearchEngines::ResultsCollector).to receive(:call).and_return(collector_result)
+    allow(SearchEngines::ResultsCollector).to receive(:call)
+      .and_yield(batch_data, "SearchEngines::Yacy::RawResultsCollector")
+      .and_return(collector_summary)
 
     allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 1, new_count: 1 })
     allow(Prompt).to receive(:find).with(prompt_id).and_return(prompt_mock)
@@ -104,7 +107,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         end
 
         it "broadcasts specific message when engine error occurs" do
-          allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ error: "Timeout" })
+          allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 0, new_count: 0, error: "Timeout" })
 
           job.perform(prompt_id, user_id)
 

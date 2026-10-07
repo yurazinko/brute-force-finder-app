@@ -7,21 +7,23 @@ module SearchEngines
     def initialize(query, options = {})
       @query = query
       @options = options
-      @combined_data = []
       @failed_engines = []
       @errors = []
     end
 
     def collect
-      client_classes.each { |client_class| process_client(client_class) }
+      seen_urls = Set.new
+      collected_data = []
 
-      @combined_data.uniq! { |result| result["url"] }
+      client_classes.each do |client_class|
+        process_client(client_class, collected_data, seen_urls)
+      end
 
       {
-        success: @combined_data.any?,
-        data: @combined_data,
+        success: collected_data.any?,
+        data: collected_data,
         failed_engines: @failed_engines.uniq,
-        error: @combined_data.empty? ? @errors.join(", ").presence : nil
+        error: collected_data.empty? ? @errors.join(", ").presence : nil
       }
     end
 
@@ -31,16 +33,29 @@ module SearchEngines
       raise NotImplementedError, "#{self.class} must define #client_classes"
     end
 
-    def process_client(client_class)
+    def process_client(client_class, collected_data, seen_urls)
       result = client_class.search(@query, @options)
 
-      @combined_data.concat(result[:data]) if result[:data].is_a?(Array)
+      extract_fresh_items(result[:data], seen_urls) { |item| collected_data << item }
 
       @failed_engines.concat(result[:failed_engines]) if result[:failed_engines].is_a?(Array)
 
-      return if result[:success]
+      record_client_failure(client_class.name, result[:error]) unless result[:success]
+    end
 
-      @errors << "#{client_class.name}: #{result[:error]}" if result[:error].present?
+    def extract_fresh_items(raw_items, seen_urls)
+      return unless raw_items.is_a?(Array)
+
+      raw_items.each do |item|
+        url = item["url"]
+        yield(item) if url.present? && seen_urls.add?(url)
+      end
+    end
+
+    def record_client_failure(client_name, error)
+      return if error.blank?
+
+      @errors << "#{client_name}: #{error}"
     end
   end
 end

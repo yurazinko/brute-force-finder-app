@@ -69,7 +69,6 @@ module SearchEngines
 
         def parse_urls(response_body, instance)
           data = JSON.parse(response_body)
-          Rails.logger.info("==================== SearXNG Response from #{instance}: #{data} =========================")
 
           return { success: false, error: "Engine Error: #{data['error']}" } if data["error"]
 
