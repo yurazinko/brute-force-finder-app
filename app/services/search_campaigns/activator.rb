@@ -2,6 +2,9 @@
 
 module SearchCampaigns
   class Activator
+    BATCH_SIZE = 500
+    TOTAL_SCHEDULE_WINDOW = 6.hours
+
     def self.call(search, target_ids) = new(search, target_ids).call
 
     def initialize(search, target_ids)
@@ -14,8 +17,8 @@ module SearchCampaigns
       ApplicationRecord.transaction do
         @search.update!(status: "processing")
 
-        inserted_ids = create_prompts
-        perform_workers(inserted_ids)
+        create_prompts
+        schedule_prompt_jobs
       end
 
       true
@@ -32,7 +35,6 @@ module SearchCampaigns
         unique_by: unique_index_name,
         update_only: %i[status]
       )
-      fetch_inserted_prompt_ids
     end
 
     def unique_index_name
@@ -43,27 +45,37 @@ module SearchCampaigns
       end
     end
 
-    def fetch_inserted_prompt_ids
-      @search.prompts.where(target_id: @target_ids.presence).pluck(:id)
+    def prompts_scope
+      @search.prompts.where(target_id: @target_ids.presence)
     end
 
-    def perform_workers(prompt_ids)
-      return if prompt_ids.blank?
+    def schedule_prompt_jobs
+      total_count = prompts_scope.count
+      return if total_count.zero?
 
-      broadcast_live_status("Initializing #{prompt_ids.size} parallel scraping streams...")
+      broadcast_live_status("Initializing #{total_count} parallel scraping streams...")
 
-      step = 6.hours / prompt_ids.size
+      step = TOTAL_SCHEDULE_WINDOW / total_count
       user_id = @search.user_id
+      offset = 0
 
-      prompt_ids.shuffle.each_with_index do |prompt_id, index|
-        scheduled_time = calculate_scheduled_time(index, step)
+      prompts_scope.in_batches(of: BATCH_SIZE) do |batch|
+        offset = schedule_batch(batch, step, user_id, offset)
+      end
+    end
+
+    def schedule_batch(batch, step, user_id, offset)
+      batch.pluck(:id).each_with_index do |prompt_id, local_index|
+        global_index = offset + local_index
+        scheduled_time = calculate_scheduled_time(global_index, step)
         PromptProcessorJob.perform_at(scheduled_time, prompt_id, user_id)
       end
+
+      offset + batch.size
     end
 
     def calculate_scheduled_time(index, step)
       base_time = @now + (index * step)
-
       jitter = rand((-step.to_f / 2)..(step.to_f / 2))
 
       [base_time + jitter, @now].max
