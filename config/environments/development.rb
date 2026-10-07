@@ -19,8 +19,9 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
-  # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
-  # Run rails dev:cache to toggle Action Controller caching.
+  # Redis-backed cache store configuration for development
+  redis_cache_url = ENV.fetch("REDIS_CACHE_URL", "redis://redis:6379/2")
+
   if Rails.root.join("tmp/caching-dev.txt").exist?
     config.action_controller.perform_caching = true
     config.action_controller.enable_fragment_cache_logging = true
@@ -29,6 +30,14 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
   end
 
+  config.cache_store = :redis_cache_store, {
+    url: redis_cache_url,
+    connect_timeout: 30,
+    read_timeout: 0.2,
+    write_timeout: 0.5,
+    reconnect_attempts: 1,
+    expires_in: 1.day
+  }
   logger           = ActiveSupport::Logger.new($stdout)
   logger.formatter = config.log_formatter
   config.logger    = ActiveSupport::TaggedLogging.new(logger)
