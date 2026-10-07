@@ -55,7 +55,8 @@ module Results
     end
 
     def fetch_existing_records(batch)
-      incoming_hashes = batch.filter_map { |r| r["url_hash"] }.uniq
+      incoming_hashes = batch.filter_map { |r| r["url_hash"] }
+      incoming_hashes.uniq!
       return [] if incoming_hashes.empty?
 
       Result.unscoped
