@@ -74,7 +74,6 @@ module SearchEngines
           return { success: false, error: "HTTP #{response.code}" } unless response.code == 200
 
           data = JSON.parse(response.body)
-          Rails.logger.info("============================== Yacy Response: #{data} ===================================")
 
           results = parse_results(data)
           trigger_fallback_crawl_if_needed(results)
