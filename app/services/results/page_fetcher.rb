@@ -6,12 +6,19 @@ module Results
   class PageFetcher
     include HTTParty
 
+    MAX_BODY_SIZE = 2 * 1024 * 1024
+
     CAPTCHA_INDICATORS = [
       "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha", "enable javascript", "cloudflare", "captcha",
       "ray id:", "just a moment...", "attention required!", "enable cookies", "performing security verification",
       "are you a human?", "verify you are a human", "please complete the security check",
       "security check required", "access denied", "you are being redirected"
     ].freeze
+
+    CAPTCHA_REGEX = Regexp.new(
+      CAPTCHA_INDICATORS.map { |i| Regexp.escape(i) }.join("|"),
+      Regexp::IGNORECASE
+    ).freeze
 
     USER_AGENTS = [
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -34,8 +41,12 @@ module Results
       end
     end
 
-    def self.fetch(url)
-      new(url).fetch
+    def self.fetch(url, keyword_groups: [])
+      if keyword_groups.present?
+        Results::StreamingPageFetcher.fetch_and_match(url, keyword_groups: keyword_groups)
+      else
+        new(url).fetch
+      end
     end
 
     def initialize(url)
@@ -49,7 +60,7 @@ module Results
       if captcha_detected?(response, body_text)
         FetchResult.new(text: "", status: :captcha)
       else
-        clean_text = extract_plain_text(body_text)
+        clean_text = extract_and_normalize_text(body_text)
         FetchResult.new(text: clean_text, status: :verified)
       end
     rescue StandardError => e
@@ -73,14 +84,20 @@ module Results
       return true if [403, 429, 503].include?(response.code)
       return true if response.headers["server"]&.downcase&.include?("cloudflare") && response.code != 200
 
-      downcased_body = body_text.downcase
-      CAPTCHA_INDICATORS.any? { |indicator| downcased_body.include?(indicator) }
+      body_text.match?(CAPTCHA_REGEX)
     end
 
-    def extract_plain_text(html)
-      doc = Nokogiri::HTML(html)
+    def extract_and_normalize_text(html)
+      processable_html = html.bytesize > MAX_BODY_SIZE ? html.byteslice(0, MAX_BODY_SIZE) : html
+
+      doc = Nokogiri::HTML(processable_html)
       doc.xpath("//script|//style|//noscript|//svg|//header|//footer|//nav").remove
-      doc.text.squeeze(" \n\r\t")
+
+      text = doc.text
+      text.gsub!(/\s+/, " ")
+      text.strip!
+      text.downcase!
+      text
     end
   end
 end
