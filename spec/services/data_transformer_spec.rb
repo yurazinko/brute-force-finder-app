@@ -10,8 +10,13 @@ RSpec.describe Results::DataTransformer, type: :model do
     let(:prompt) { instance_double("Prompt", target: target, full_query_text: "ruby") }
 
     before do
-      # Mock URL normalizer
-      allow(Utils::UrlNormalizer).to receive(:normalize) do |url, keep_query:|
+      allow(Utils::UrlNormalizer).to receive(:normalize) do |url, target_configs: {}|
+        domain = url.split("/").third&.delete_prefix("www.")
+
+        keep_query = target_configs.any? do |target_domain, allow_query|
+          (domain == target_domain || domain&.end_with?(".#{target_domain}")) && allow_query
+        end
+
         keep_query ? url : url.split("?").first
       end
 
@@ -19,8 +24,8 @@ RSpec.describe Results::DataTransformer, type: :model do
         "hash_of_#{url}"
       end
 
-      allow(Target).to receive_message_chain(:joins, :where, :pluck, :to_h)
-        .and_return({ "example.com" => false, "query.com" => true })
+      allow(Target).to receive_message_chain(:joins, :where, :pluck)
+        .and_return([["example.com", false], ["query.com", true], ["indeed.com", true]])
 
       stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby</body></html>", headers: {})
     end
@@ -168,9 +173,11 @@ RSpec.describe Results::DataTransformer, type: :model do
         ]
       end
 
-      it "passes the correct keep_query flag to the normalizer based on domain config" do
-        expect(Utils::UrlNormalizer).to receive(:normalize).with("https://example.com/p?q=1", keep_query: false)
-        expect(Utils::UrlNormalizer).to receive(:normalize).with("https://query.com/p?q=2", keep_query: true)
+      it "passes target_configs to the normalizer based on domain config" do
+        expect(Utils::UrlNormalizer).to receive(:normalize)
+          .with("https://example.com/p?q=1", target_configs: hash_including("query.com" => true))
+        expect(Utils::UrlNormalizer).to receive(:normalize)
+          .with("https://query.com/p?q=2", target_configs: hash_including("query.com" => true))
 
         processed_records
       end
@@ -179,6 +186,32 @@ RSpec.describe Results::DataTransformer, type: :model do
         urls = processed_records.pluck(:url)
         expect(urls).to include("https://example.com/p")
         expect(urls).to include("https://query.com/p?q=2")
+      end
+    end
+
+    context "when processing subdomains with allow_query_strings enabled" do
+      let(:target_domain) { "indeed.com" }
+      let(:raw_results) do
+        [
+          { "url" => "https://pl.indeed.com/viewjob?jk=c632099926f119ae", "title" => "Job PL" },
+          { "url" => "https://ca.indeed.com/viewjob?jk=a111222333b4455c", "title" => "Job CA" }
+        ]
+      end
+
+      it "matches regional subdomains to the root target domain and keeps query strings" do
+        expect(Utils::UrlNormalizer).to receive(:normalize)
+          .with("https://pl.indeed.com/viewjob?jk=c632099926f119ae", target_configs: hash_including("indeed.com" => true))
+        expect(Utils::UrlNormalizer).to receive(:normalize)
+          .with("https://ca.indeed.com/viewjob?jk=a111222333b4455c", target_configs: hash_including("indeed.com" => true))
+
+        processed_records
+      end
+
+      it "generates unique url_hashes for each job on regional subdomains" do
+        hashes = processed_records.pluck(:url_hash)
+        expect(hashes.first).to eq("hash_of_https://pl.indeed.com/viewjob?jk=c632099926f119ae")
+        expect(hashes.last).to eq("hash_of_https://ca.indeed.com/viewjob?jk=a111222333b4455c")
+        expect(hashes.first).not_to eq(hashes.last)
       end
     end
 

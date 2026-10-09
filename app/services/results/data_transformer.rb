@@ -2,8 +2,6 @@
 
 module Results
   class DataTransformer
-    WWW_PREFIX = "www."
-
     def self.process(search_id, raw_results, prompt)
       new(search_id, raw_results, prompt).process
     end
@@ -21,10 +19,7 @@ module Results
         filter = ResultFilter.new(result, @prompt, @target_configs)
         next unless filter.valid?
 
-        domain = extract_domain(result["url"])
-        next if domain.blank?
-
-        clean_url = normalize_url(result["url"], domain)
+        clean_url = Utils::UrlNormalizer.normalize(result["url"], target_configs: @target_configs)
         next if clean_url.blank?
 
         records << build_record(clean_url, result, filter.rank_result)
@@ -37,19 +32,12 @@ module Results
       Target.joins(:prompts)
             .where(prompts: { search_id: @search_id })
             .pluck(:domain, :allow_query_strings)
-            .to_h
-    end
+            .each_with_object({}) do |(domain, allow_query), configs|
+              next if domain.blank?
 
-    def extract_domain(url)
-      host = URI.parse(url).host
-      host&.start_with?(WWW_PREFIX) ? host.sub(WWW_PREFIX, "") : host
-    rescue URI::InvalidURIError
-      nil
-    end
-
-    def normalize_url(url, domain)
-      keep_query = @target_configs[domain] || false
-      Utils::UrlNormalizer.normalize(url, keep_query: keep_query)
+              clean_host = Utils::UrlNormalizer.clean_domain_string(domain)
+              configs[clean_host] = allow_query if clean_host.present?
+            end
     end
 
     def build_record(clean_url, result, rank_result)
