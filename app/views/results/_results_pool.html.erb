@@ -70,7 +70,7 @@
       </div>
 
       <div class="space-y-4" data-controller="results-stream">
-        <div id="results_pool_list" class="space-y-4" data-empty-state-target="list">
+        <div id="results_pool_list" class="space-y-4" data-results-stream-target="list">
           <% results.each do |result| %>
             <%= render "results/result_card", result: result %>
           <% end %>
@@ -78,7 +78,7 @@
 
         <div class="text-center py-20 text-breeze-muted border-2 border-dashed border-breeze-border/80 rounded-xl bg-breeze-bg/20 w-full <%= 'hidden' if results.any? %>"
              id="empty_state"
-             data-empty-state-target="emptyState">
+             data-results-stream-target="empty-state">
           <svg class="w-10 h-10 mx-auto text-breeze-muted/50 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <p class="text-sm font-semibold text-gray-300">No results found matching this filter</p>
           <p class="text-xs text-breeze-muted mt-1">Try selecting a different time window or clearing search keywords.</p>

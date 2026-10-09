@@ -5,11 +5,11 @@ require "rails_helper"
 RSpec.describe Results::ResultFilter, type: :service do
   let(:target) { instance_double("Target", domain: "example.com") }
   let(:prompt) { instance_double("Prompt", target: target, full_query_text: 'site:example.com (ruby OR "ruby on rails")') }
-  let(:target_configs) { { "example.com" => false } }
+  let(:target_configs) { { "example.com" => true } }
 
   let(:valid_result) do
     {
-      "url" => "https://example.com/jobs/dev",
+      "url" => "https://example.com/jobs/dev?jk=c632099926f119ae&src=search",
       "title" => "Senior Developer",
       "content" => "We are looking for an experienced software engineer."
     }
@@ -49,8 +49,10 @@ RSpec.describe Results::ResultFilter, type: :service do
       end
 
       it "delegates to RelevanceRanker and returns its validity status" do
+        expected_snippet = "https://example.com/jobs/dev?jk=c632099926f119ae&src=search Senior Developer We are looking for an experienced software engineer."
+
         expect(Results::RelevanceRanker).to receive(:call)
-          .with(valid_result, "https://example.com/jobs/dev Senior Developer We are looking for an experienced software engineer.", [%w[ruby]], valid_result["url"])
+          .with(valid_result, expected_snippet, [%w[ruby]], valid_result["url"])
           .and_return(rank_result)
 
         expect(subject.valid?).to be true
@@ -64,6 +66,28 @@ RSpec.describe Results::ResultFilter, type: :service do
           allow(Results::RelevanceRanker).to receive(:call).and_return(rank_result)
           expect(subject.valid?).to be false
         end
+      end
+    end
+
+    context "when URL is on a regional subdomain with query parameters" do
+      let(:target) { instance_double("Target", domain: "indeed.com") }
+      let(:target_configs) { { "indeed.com" => true } }
+      let(:valid_result) do
+        {
+          "url" => "https://pl.indeed.com/viewjob?jk=c632099926f119ae",
+          "title" => "Ruby Developer PL",
+          "content" => "Job description in Poland"
+        }
+      end
+
+      before do
+        allow(Results::UrlMatcher).to receive(:matches?).with(valid_result["url"], target).and_return(true)
+        allow(Results::DorkParser).to receive(:parse_groups).with(prompt.full_query_text).and_return([%w[ruby]])
+      end
+
+      it "successfully validates regional subdomain URLs with parameters" do
+        allow(Results::RelevanceRanker).to receive(:call).and_return(rank_result)
+        expect(subject.valid?).to be true
       end
     end
   end
@@ -92,15 +116,28 @@ RSpec.describe Results::ResultFilter, type: :service do
       end
     end
 
-    describe "Results::UrlMatcher" do
-      let(:target) { instance_double("Target", domain: "example.com/careers") }
+    describe "Results::UrlMatcher with query parameters and subdomains" do
+      let(:target) { instance_double("Target", domain: "indeed.com/viewjob") }
 
-      it "returns true for matched subpaths" do
-        expect(Results::UrlMatcher.matches?("https://example.com/careers/ruby-dev", target)).to be true
+      it "matches URLs with query parameters against target path" do
+        url = "https://www.indeed.com/viewjob?jk=c632099926f119ae&from=serp"
+        expect(Results::UrlMatcher.matches?(url, target)).to be true
       end
 
-      it "returns false for unmatched paths" do
-        expect(Results::UrlMatcher.matches?("https://example.com/about", target)).to be false
+      it "matches regional subdomains with query parameters against target domain and path" do
+        url = "https://pl.indeed.com/viewjob?jk=c632099926f119ae"
+        expect(Results::UrlMatcher.matches?(url, target)).to be true
+      end
+
+      it "returns false for invalid query parameters or non-matching paths on subdomains" do
+        url = "https://pl.indeed.com/account/login?next=/viewjob"
+        expect(Results::UrlMatcher.matches?(url, target)).to be false
+      end
+
+      it "handles malformed or complex query parameters without throwing errors" do
+        url = "https://pl.indeed.com/viewjob?jk=123&tags[]=ruby&tags[]=rails#section"
+        expect { Results::UrlMatcher.matches?(url, target) }.not_to raise_error
+        expect(Results::UrlMatcher.matches?(url, target)).to be true
       end
     end
   end

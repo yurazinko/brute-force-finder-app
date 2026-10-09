@@ -9,16 +9,17 @@ module Results
     def initialize(url, target)
       @url = url
       @target = target
+      @www_prefix = Utils::UrlNormalizer::WWW_PREFIX
     end
 
     def matches?
       return true if @target.blank? || @target.domain.blank?
 
-      target_str = @target.domain.to_s.sub(%r{\Ahttps?://}, "").sub(DataTransformer::WWW_PREFIX, "")
+      target_str = @target.domain.to_s.sub(%r{\Ahttps?://}, "").sub(@www_prefix, "")
       target_host, target_path = target_str.delete_suffix("/").split("/", 2)
 
       uri = URI.parse(@url)
-      result_host = uri.host&.sub(DataTransformer::WWW_PREFIX, "")
+      result_host = uri.host&.sub(@www_prefix, "")
 
       return false unless host_matches?(result_host, target_host)
 

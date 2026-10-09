@@ -1,31 +1,33 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["list", "emptyState"]
-
-  declare readonly listTarget: HTMLElement
-  declare readonly emptyStateTarget: HTMLElement
-  declare readonly hasListTarget: boolean
-  declare readonly hasEmptyStateTarget: boolean
-
   private mutationObserver?: MutationObserver
 
   connect(): void {
-    if (this.hasListTarget) {
-      this.mutationObserver = new MutationObserver(() => this.toggleEmptyState())
-      this.mutationObserver.observe(this.listTarget, { childList: true })
+    const listEl = document.getElementById("results_pool_list")
+    const emptyStateEl = document.getElementById("empty_state")
+
+    if (!listEl || !emptyStateEl) return
+
+    const checkState = () => {
+      const hasCards = listEl.querySelectorAll('[data-controller~="result-card"]').length > 0
+
+      if (hasCards) {
+        emptyStateEl.classList.add("hidden")
+        emptyStateEl.style.setProperty("display", "none", "important")
+      } else {
+        emptyStateEl.classList.remove("hidden")
+        emptyStateEl.style.setProperty("display", "block", "important")
+      }
     }
-    this.toggleEmptyState()
+
+    checkState()
+
+    this.mutationObserver = new MutationObserver(() => checkState())
+    this.mutationObserver.observe(listEl, { childList: true })
   }
 
   disconnect(): void {
     this.mutationObserver?.disconnect()
-  }
-
-  private toggleEmptyState(): void {
-    if (!this.hasListTarget || !this.hasEmptyStateTarget) return
-
-    const hasChildren = this.listTarget.children.length > 0
-    this.emptyStateTarget.classList.toggle("hidden", hasChildren)
   }
 }

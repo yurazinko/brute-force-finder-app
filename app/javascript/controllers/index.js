@@ -24,3 +24,6 @@ application.register("read-status", ReadStatusController)
 
 import TargetsSelectorController from "./targets_selector_controller"
 application.register("targets-selector", TargetsSelectorController)
+
+import ResultsStreamController from "./results_stream_controller"
+application.register("results-stream", ResultsStreamController)
