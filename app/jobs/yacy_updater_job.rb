@@ -14,13 +14,11 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
   end
 
   def before_recreate(info)
-    clean_cache_if_odd_day(info[:container_name])
+    clean_cache(info[:container_name])
   end
 
-  def clean_cache_if_odd_day(container_name)
-    return unless Date.current.day.odd?
-
-    logger.info "[#{self.class.name}] Today is an odd day (#{Date.current.day}). Cleaning YaCy cache..."
+  def clean_cache(container_name)
+    logger.info "[#{self.class.name}] Cleaning YaCy cache..."
     system("docker", "exec", container_name, "rm", "-rf", "/opt/yacy_search_server/DATA/INDEX")
   rescue StandardError => e
     logger.error "[#{self.class.name}] Failed to clean YaCy cache: #{e.message}"
