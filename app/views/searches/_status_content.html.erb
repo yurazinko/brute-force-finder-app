@@ -1,35 +1,47 @@
-<div class="sm:col-span-3 flex items-center gap-2.5 min-w-0 h-9 px-1">
-  <span class="text-breeze-muted font-semibold text-[11px] uppercase tracking-wider shrink-0 flex items-center gap-1">
-    <span>Status:</span>
-  </span>
-  <div class="flex items-center min-w-0 truncate">
-    <%= render "searches/status_badge", search: search %>
+<div class="col-span-1 sm:col-span-12 flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full min-w-0">
+  <!-- Status Badge with Fixed Width Wrapper -->
+  <div class="flex items-center gap-1.5 shrink-0 h-8 px-1">
+    <span class="text-breeze-muted font-semibold text-[10px] uppercase tracking-wider shrink-0">
+      Status:
+    </span>
+    <!-- w-28 гарантує однакову ширину для будь-яких слів (Completed, Processing, etc.) -->
+    <div class="flex items-center shrink-0 w-28 justify-start">
+      <%= render "searches/status_badge", search: search %>
+    </div>
   </div>
-</div>
 
-<div class="sm:col-span-9 w-full min-w-0">
-  <div id="search_live_tracker" class="flex items-center gap-2.5 bg-black/40 border border-breeze-border/60 rounded-lg h-9 px-3 font-mono text-xs text-gray-300 shadow-inner w-full min-w-0">
+  <!-- Live Tracker Box -->
+  <div class="flex-1 min-w-0 w-full">
+    <div id="search_live_tracker" class="flex items-center gap-2 bg-black/80 border border-emerald-500/30 rounded-md h-8 px-2.5 font-mono text-[11px] shadow-inner w-full min-w-0 overflow-hidden select-none">
 
-    <span class="flex h-2 w-2 relative shrink-0">
-      <% if search.status == 'processing' %>
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-      <% else %>
-        <span class="relative inline-flex rounded-full h-2 w-2 bg-gray-500"></span>
-      <% end %>
-    </span>
+      <!-- Indicator -->
+      <span class="flex h-1.5 w-1.5 relative shrink-0">
+        <% if search.status == 'processing' %>
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+        <% else %>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-gray-600"></span>
+        <% end %>
+      </span>
 
-    <span id="live_tracker_message" class="truncate flex-1 text-gray-300 text-[12px] font-sans">
-      <% case search.status %>
-      <% when "processing" %>
-        <span class="text-emerald-400 font-semibold">Active Discovery:</span> Scanning targeted web sources in real-time...
-      <% when "paused" %>
-        <span class="text-amber-400 font-semibold">Campaign Paused:</span> Automated web scans are temporarily suspended.
-      <% when "completed" %>
-        <span class="text-blue-400 font-semibold">Scan Complete:</span> All active sources have been successfully processed.
-      <% else %>
-        <span class="text-gray-400 font-semibold">Ready:</span> Waiting to start active web discovery.
-      <% end %>
-    </span>
+      <!-- Console Text Wrapper -->
+      <div class="relative flex-1 min-w-0 h-full flex items-center overflow-hidden">
+        <div class="absolute inset-0 flex items-center overflow-hidden">
+          <div id="live_tracker_message" class="whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-emerald-400/90 tracking-tight after:content-['█'] after:animate-ping after:ml-1 after:text-emerald-500">
+            <% case search.status %>
+            <% when "processing" %>
+              Scanning targeted web sources in real-time stream...
+            <% when "paused" %>
+              Automated web scans are temporarily suspended.
+            <% when "completed" %>
+              All active sources processed. Waiting for next cycle...
+            <% else %>
+              Awaiting discovery signal to begin...
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>

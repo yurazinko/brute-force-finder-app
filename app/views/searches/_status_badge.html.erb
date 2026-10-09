@@ -1,15 +1,15 @@
 <%
   badge_classes = case search.status
-                  when 'completed'  then 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  when 'processing' then 'bg-blue-500/10 text-blue-400 border border-blue-500/30 animate-pulse font-bold'
-                  when 'pending'    then 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/30'
-                  when 'paused'     then 'bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold'
-                  when 'failed'     then 'bg-red-500/10 text-red-400 border border-red-500/30'
-                  else                   'bg-breeze-bg text-breeze-text border border-breeze-border'
+                  when 'completed'  then 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  when 'processing' then 'bg-blue-500/10 text-blue-400 border-blue-500/30 animate-pulse font-bold'
+                  when 'pending'    then 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                  when 'paused'     then 'bg-amber-500/10 text-amber-400 border-amber-500/30 font-bold'
+                  when 'failed'     then 'bg-red-500/10 text-red-400 border-red-500/30'
+                  else                   'bg-breeze-bg text-breeze-text border-breeze-border'
                   end
 %>
 
 <span id="<%= dom_id(search) %>_badge"
-      class="px-2.5 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded-full tracking-wider uppercase <%= badge_classes %> shadow-xs">
-  <%= search.status == "completed" ? "Activated" : search.status %>
+      class="w-full justify-center inline-flex items-center px-2 py-0.5 text-[10px] leading-5 font-bold rounded-full tracking-wider uppercase border shadow-xs transition-colors duration-200 <%= badge_classes %>">
+  <%= search.status == "completed" ? "Enabled" : search.status.humanize %>
 </span>

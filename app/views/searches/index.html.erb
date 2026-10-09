@@ -91,9 +91,11 @@
               </td>
 
               <td class="px-0 md:px-6 py-1 md:py-4 align-middle block md:table-cell whitespace-nowrap">
-                <div class="flex items-center gap-2 md:inline-block">
-                  <span class="text-xs text-breeze-muted md:hidden font-medium">Status:</span>
-                  <%= render "searches/status_badge", search: search %>
+                <div class="flex items-center gap-2 md:inline-flex">
+                  <span class="text-xs text-breeze-muted md:hidden font-medium shrink-0">Status:</span>
+                  <div class="w-28 shrink-0 flex items-center justify-start">
+                    <%= render "searches/status_badge", search: search %>
+                  </div>
                 </div>
               </td>
 
