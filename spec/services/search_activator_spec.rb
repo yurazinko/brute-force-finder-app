@@ -93,6 +93,56 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
       end
     end
 
+    context "when search query conditions or targets are modified during re-activation" do
+      let(:target_ids) { [target_lever.id, target_greenhouse.id] }
+
+      before do
+        described_class.call(search, target_ids)
+      end
+
+      it "removes obsolete prompts when query_conditions or targets change" do
+        expect(search.prompts.count).to eq(2)
+
+        search.update!(query_conditions: "(golang OR rust)")
+
+        described_class.call(search, [target_lever.id])
+
+        expect(search.prompts.count).to eq(1)
+
+        surviving_prompt = search.prompts.first
+
+        expect(surviving_prompt.target_id).to eq(target_lever.id)
+        expect(surviving_prompt.full_query_text).to eq("site:lever.co (golang OR rust)")
+
+        expect(Prompt.exists?(target_id: target_greenhouse.id)).to be(false)
+      end
+    end
+
+    context "when global search query conditions are modified during re-activation" do
+      before do
+        described_class.call(search, [])
+      end
+
+      it "removes obsolete global prompts and keeps only the latest query conditions" do
+        expect(search.prompts.count).to eq(1)
+        old_prompt_id = search.prompts.first.id
+        expect(search.prompts.first.full_query_text).to eq(search.query_conditions)
+
+        search.update!(query_conditions: "(golang OR rust)")
+
+        described_class.call(search, [])
+
+        expect(search.prompts.count).to eq(1)
+
+        surviving_prompt = search.prompts.first
+
+        expect(surviving_prompt.target_id).to be_nil
+        expect(surviving_prompt.full_query_text).to eq("(golang OR rust)")
+
+        expect(Prompt.exists?(old_prompt_id)).to be(false)
+      end
+    end
+
     context "when edge-case parameters are passed" do
       context "when target_ids is empty" do
         it "triggers global search, creates 1 prompt without target and returns true" do

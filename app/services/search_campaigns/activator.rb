@@ -17,6 +17,8 @@ module SearchCampaigns
       ApplicationRecord.transaction do
         @search.update!(status: "processing")
 
+        cleanup_obsolete_prompts
+
         create_prompts
         schedule_prompt_jobs
       end
@@ -30,24 +32,14 @@ module SearchCampaigns
     private
 
     def create_prompts
-      Prompt.upsert_all(
-        prompt_records,
-        unique_by: unique_index_name,
-        update_only: %i[status]
-      )
+      Prompt.upsert_all(prompt_records, unique_by: unique_index_name, update_only: %i[status])
     end
 
     def unique_index_name
-      if @target_ids.blank?
-        :index_global_prompts_on_search_and_query
-      else
-        :index_prompts_on_search_target_and_query
-      end
+      @target_ids.blank? ? :index_global_prompts_on_search_and_query : :index_prompts_on_search_target_and_query
     end
 
-    def prompts_scope
-      @search.prompts.where(target_id: @target_ids.presence)
-    end
+    def prompts_scope = @search.prompts.where(target_id: @target_ids.presence)
 
     def schedule_prompt_jobs
       total_count = prompts_scope.count
@@ -87,11 +79,31 @@ module SearchCampaigns
       @prompt_records ||= @target_ids.blank? ? global_prompt_record : target_prompt_records
     end
 
-    def global_prompt_record
-      [
-        base_prompt_attributes(nil, @search.query_conditions)
-      ]
+    def cleanup_obsolete_prompts
+      @target_ids.blank? ? cleanup_global_prompts : cleanup_target_prompts
     end
+
+    def cleanup_global_prompts
+      @search.prompts.where.not(target_id: nil).delete_all
+      @search.prompts.where(target_id: nil).where.not(full_query_text: @search.query_conditions).destroy_all
+    end
+
+    def cleanup_target_prompts
+      active_targets = targets_data.to_h
+
+      @search.prompts.find_each do |prompt|
+        prompt.destroy if obsolete_target_prompt?(prompt, active_targets)
+      end
+    end
+
+    def obsolete_target_prompt?(prompt, active_targets)
+      return true if prompt.target_id.nil? || !active_targets.key?(prompt.target_id)
+
+      expected_query = "site:#{active_targets[prompt.target_id]} #{@search.query_conditions}"
+      prompt.full_query_text != expected_query
+    end
+
+    def global_prompt_record = [base_prompt_attributes(nil, @search.query_conditions)]
 
     def target_prompt_records
       targets_data.map do |target_id, domain|
