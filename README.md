@@ -94,7 +94,7 @@ The application environment runs fully isolated via Docker Compose, bridging the
 Due to PostgreSQL Row-Level Security (RLS) enforcement, console sessions requiring direct table access across tenants should run under the superuser account:
 
 ```console
-docker-compose run -e DATABASE_URL="postgres://postgres:password@db:5432/brute_force_finder_app_development" app bundle exec rails c
+docker-compose exec -e DATABASE_URL="postgres://postgres:password@db:5432/brute_force_finder_app_development" app bundle exec rails c
 ```
 ---
 
