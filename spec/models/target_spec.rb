@@ -2,6 +2,28 @@
 
 require "rails_helper"
 
+# == Schema Information
+#
+# Table name: targets
+#
+#  id                  :bigint           not null, primary key
+#  allow_query_strings :boolean          default(FALSE), not null
+#  domain              :string
+#  is_active           :boolean          default(TRUE)
+#  name                :string
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  category_id         :bigint           not null
+#
+# Indexes
+#
+#  index_targets_on_category_id  (category_id)
+#  index_targets_on_domain       (domain)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (category_id => categories.id)
+#
 RSpec.describe Target, type: :model do
   let(:category) { Category.create!(name: "Jobs") }
 
