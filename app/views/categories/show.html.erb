@@ -50,6 +50,20 @@
           </div>
         </div>
 
+        <% if current_user.searches.any? %>
+          <div class="space-y-2 pt-2 border-t border-breeze-border/60">
+            <label class="block text-xs font-semibold text-breeze-text">Attach to Active Searches:</label>
+            <div class="max-h-80 overflow-y-auto space-y-1.5 pr-1 [scrollbar-width:thin]">
+              <% current_user.searches.order(title: :asc).each do |search| %>
+                <label class="flex items-center gap-2.5 text-xs text-breeze-text cursor-pointer bg-breeze-bg/40 hover:bg-breeze-bg p-2 rounded-md border border-breeze-border/40 transition">
+                  <%= check_box_tag "target[search_ids][]", search.id, false, class: "h-3.5 w-3.5 rounded border-breeze-border bg-breeze-bg text-breeze-accent focus:ring-breeze-accent cursor-pointer" %>
+                  <span class="truncate"><%= search.title %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
         <%= f.submit "Add Site", class: "w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer border border-blue-400/20" %>
       <% end %>
     </div>

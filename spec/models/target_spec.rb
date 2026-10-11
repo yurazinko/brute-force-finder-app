@@ -79,4 +79,38 @@ RSpec.describe Target, type: :model do
       end
     end
   end
+
+  describe "callbacks / search assignment" do
+    let(:user) { create(:user) }
+    let!(:search1) { Search.create!(user: user, title: "Search 1", query_conditions: "ruby", status: "pending") }
+    let!(:search2) { Search.create!(user: user, title: "Search 2", query_conditions: "elixir", status: "pending") }
+
+    it "automatically assigns the new target to selected searches upon creation" do
+      target = described_class.new(
+        category: category,
+        name: "New Portal",
+        domain: "portal.com",
+        is_active: true
+      )
+      target.search_ids = [search1.id, search2.id]
+
+      expect(SearchCampaigns::Activator).to receive(:call).with(search1, kind_of(Array), false)
+      expect(SearchCampaigns::Activator).to receive(:call).with(search2, kind_of(Array), false)
+
+      target.save!
+    end
+
+    it "does not trigger search activation if search_ids is blank" do
+      target = described_class.new(
+        category: category,
+        name: "Unassigned Portal",
+        domain: "unassigned.com",
+        is_active: true
+      )
+
+      expect(SearchCampaigns::Activator).not_to receive(:call)
+
+      target.save!
+    end
+  end
 end

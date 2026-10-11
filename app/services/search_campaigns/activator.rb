@@ -5,21 +5,24 @@ module SearchCampaigns
     BATCH_SIZE = 500
     TOTAL_SCHEDULE_WINDOW = 6.hours
 
-    def self.call(search, target_ids) = new(search, target_ids).call
+    def self.call(search, target_ids, schedule_now) = new(search, target_ids, schedule_now).call
 
-    def initialize(search, target_ids)
+    def initialize(search, target_ids, schedule_now)
       @search = search
       @target_ids = target_ids
+      @schedule_now = schedule_now
       @now = Time.current
     end
 
     def call
       ApplicationRecord.transaction do
-        @search.update!(status: "processing")
-
         cleanup_obsolete_prompts
 
         create_prompts
+
+        return unless @schedule_now
+
+        @search.update!(status: "processing")
         schedule_prompt_jobs
       end
 
@@ -79,9 +82,7 @@ module SearchCampaigns
       @prompt_records ||= @target_ids.blank? ? global_prompt_record : target_prompt_records
     end
 
-    def cleanup_obsolete_prompts
-      @target_ids.blank? ? cleanup_global_prompts : cleanup_target_prompts
-    end
+    def cleanup_obsolete_prompts = @target_ids.blank? ? cleanup_global_prompts : cleanup_target_prompts
 
     def cleanup_global_prompts
       @search.prompts.where.not(target_id: nil).delete_all
@@ -112,14 +113,12 @@ module SearchCampaigns
     end
 
     def base_prompt_attributes(target_id, query_text)
-      {
-        search_id: @search.id,
+      { search_id: @search.id,
         target_id: target_id,
         full_query_text: query_text,
         status: "pending",
         created_at: @now,
-        updated_at: @now
-      }
+        updated_at: @now }
     end
 
     def broadcast_live_status(message)

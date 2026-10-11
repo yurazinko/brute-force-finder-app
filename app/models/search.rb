@@ -39,7 +39,15 @@ class Search < ApplicationRecord
   validates :time_frame, inclusion: { in: ALLOWED_TIME_FRAMES }, allow_nil: true
 
   def target_ids=(ids)
-    prompts.delete_all if will_save_change_to_query_conditions?
+    if persisted?
+      new_ids = Array(ids).compact_blank.map(&:to_i)
+      if new_ids.any?
+        prompts.where.not(target_id: new_ids).destroy_all
+      else
+        prompts.delete_all
+      end
+    end
+
     super
   end
 
@@ -59,7 +67,7 @@ class Search < ApplicationRecord
     update!(status: "completed")
   end
 
-  def activate_search!(target_ids)
-    SearchCampaigns::Activator.call(self, target_ids)
+  def activate_search!(target_ids, schedule_now: true)
+    SearchCampaigns::Activator.call(self, target_ids, schedule_now)
   end
 end
