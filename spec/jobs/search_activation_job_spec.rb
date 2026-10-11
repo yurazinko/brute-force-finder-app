@@ -26,7 +26,8 @@ RSpec.describe SearchActivationJob, type: :job do
 
         expect(SearchCampaigns::Activator).to have_received(:call).with(
           search,
-          [active_target.id]
+          [active_target.id],
+          true
         )
       end
     end

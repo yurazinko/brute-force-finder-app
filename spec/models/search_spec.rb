@@ -180,4 +180,41 @@ RSpec.describe Search, type: :model do
       end
     end
   end
+
+  describe "#target_ids=" do
+    let(:category) { Category.create!(name: "Tech Platforms") }
+    let!(:target_lever) { Target.create!(category: category, name: "Lever", domain: "lever.co", is_active: true) }
+    let!(:target_greenhouse) { Target.create!(category: category, name: "Greenhouse", domain: "greenhouse.io", is_active: true) }
+
+    let(:search) do
+      described_class.create!(
+        user: user,
+        title: "Ruby Backend",
+        query_conditions: "(ruby)",
+        status: "pending"
+      )
+    end
+
+    before do
+      search.prompts.create!(target: target_lever, full_query_text: "site:lever.co (ruby)", status: "pending")
+      search.prompts.create!(target: target_greenhouse, full_query_text: "site:greenhouse.io (ruby)", status: "pending")
+    end
+
+    it "destroys prompts for targets that are removed from the list" do
+      expect(search.prompts.count).to eq(2)
+
+      search.update!(target_ids: [target_lever.id])
+
+      expect(search.prompts.count).to eq(1)
+      expect(search.prompts.first.target_id).to eq(target_lever.id)
+      expect(Prompt.exists?(target_id: target_greenhouse.id)).to be(false)
+    end
+
+    it "destroys all target prompts when an empty list or blank values are passed (making it global)" do
+      expect(search.prompts.count).to eq(2)
+      search.update!(target_ids: [""])
+
+      expect(search.prompts.count).to eq(0)
+    end
+  end
 end

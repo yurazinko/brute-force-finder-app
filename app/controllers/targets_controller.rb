@@ -2,12 +2,15 @@
 
 class TargetsController < ApplicationController
   before_action :set_target, only: %i[edit update destroy]
+  before_action :set_category, only: %i[create]
 
   def edit; end
 
   def create
-    @category = current_user.categories.find(target_params[:category_id])
-    @target = @category.targets.build(target_params)
+    search_ids = params.dig(:target, :search_ids)
+
+    @target = @category.targets.build(target_params.except(:search_ids))
+    @target.search_ids = search_ids if search_ids.present?
 
     if @target.save
       redirect_to category_path(@category), notice: "Target #{@target.name} added!"
@@ -43,7 +46,11 @@ class TargetsController < ApplicationController
     @target = current_user.targets.find(params.expect(:id))
   end
 
+  def set_category
+    @category = current_user.categories.find(target_params[:category_id])
+  end
+
   def target_params
-    params.expect(target: %i[name domain is_active category_id allow_query_strings])
+    params.expect(target: [:name, :domain, :is_active, :category_id, :allow_query_strings, { search_ids: [] }])
   end
 end

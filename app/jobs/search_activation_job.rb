@@ -8,6 +8,6 @@ class SearchActivationJob < ApplicationJob
     return unless search
 
     target_ids = search.targets.active.pluck(:id)
-    SearchCampaigns::Activator.call(search, target_ids)
+    SearchCampaigns::Activator.call(search, target_ids, true)
   end
 end

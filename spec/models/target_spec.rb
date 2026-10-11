@@ -55,6 +55,18 @@ RSpec.describe Target, type: :model do
     end
   end
 
+  describe "normalization" do
+    it "strips http://, https:// and trailing slashes from domain" do
+      target1 = described_class.create!(category: category, name: "T1", domain: "https://workable.com/")
+      target2 = described_class.create!(category: category, name: "T2", domain: "http://lever.co")
+      target3 = described_class.create!(category: category, name: "T3", domain: "https://greenhouse.io")
+
+      expect(target1.domain).to eq("workable.com")
+      expect(target2.domain).to eq("lever.co")
+      expect(target3.domain).to eq("greenhouse.io")
+    end
+  end
+
   describe "associations" do
     it "belongs to category" do
       association = described_class.reflect_on_association(:category)
@@ -70,13 +82,55 @@ RSpec.describe Target, type: :model do
 
   describe "scopes" do
     describe ".active" do
-      let!(:active_target) { described_class.create!(category: category, name: "Active", domain: "active-#{SecureRandom.hex(4)}.com", is_active: true) }
-      let!(:inactive_target) { described_class.create!(category: category, name: "Inactive", domain: "inactive-#{SecureRandom.hex(4)}.com", is_active: false) }
+      let!(:active_target) do
+        described_class.create!(
+          category: category, name: "Active", domain: "active-#{SecureRandom.hex(4)}.com", is_active: true
+        )
+      end
+      let!(:inactive_target) do
+        described_class.create!(
+          category: category, name: "Inactive", domain: "inactive-#{SecureRandom.hex(4)}.com", is_active: false
+        )
+      end
 
       it "returns only targets where is_active is true" do
         expect(described_class.active).to include(active_target)
         expect(described_class.active).not_to include(inactive_target)
       end
+    end
+  end
+
+  describe "callbacks / search assignment" do
+    let(:user) { create(:user) }
+    let!(:search1) { Search.create!(user: user, title: "Search 1", query_conditions: "ruby", status: "pending") }
+    let!(:search2) { Search.create!(user: user, title: "Search 2", query_conditions: "elixir", status: "pending") }
+
+    it "automatically assigns the new target to selected searches upon creation" do
+      target = described_class.new(
+        category: category,
+        name: "New Portal",
+        domain: "portal.com",
+        is_active: true
+      )
+      target.search_ids = [search1.id, search2.id]
+
+      expect(SearchCampaigns::Activator).to receive(:call).with(search1, kind_of(Array), false)
+      expect(SearchCampaigns::Activator).to receive(:call).with(search2, kind_of(Array), false)
+
+      target.save!
+    end
+
+    it "does not trigger search activation if search_ids is blank" do
+      target = described_class.new(
+        category: category,
+        name: "Unassigned Portal",
+        domain: "unassigned.com",
+        is_active: true
+      )
+
+      expect(SearchCampaigns::Activator).not_to receive(:call)
+
+      target.save!
     end
   end
 end
