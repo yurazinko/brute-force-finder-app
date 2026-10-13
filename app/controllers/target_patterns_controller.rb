@@ -9,13 +9,17 @@ class TargetPatternsController < ApplicationController
   end
 
   def create
-    Targets::PatternConfigurationService.call(
+    target = Targets::PatternConfigurationService.call(
       current_user: current_user,
       search: @search,
       result: @result,
       matched_target: @matched_target,
       pattern_params: target_pattern_params
     )
+
+    path_pattern = target_pattern_params[:path_pattern]
+    @target_pattern = TargetPattern.find_by(target_id: target.id, path_pattern: path_pattern) ||
+                      TargetPattern.new(target_id: target.id, path_pattern: path_pattern)
 
     handle_successful_creation
   rescue ActiveRecord::RecordInvalid => e
@@ -62,7 +66,8 @@ class TargetPatternsController < ApplicationController
       end
       format.turbo_stream do
         render turbo_stream: [
-          turbo_stream.update("modal", ""),
+          turbo_stream.replace("modal_form_container", partial: "target_patterns/form_success_state",
+                                                       locals: { search: @search, target_pattern: @target_pattern }),
           turbo_stream.action(:visit, search_path(@search))
         ]
       end
