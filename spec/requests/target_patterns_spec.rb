@@ -78,14 +78,15 @@ RSpec.describe "TargetPatterns", type: :request do
       end
     end
 
-    context "when target does NOT exist globally (Auto-creation scenario)" do
-      it "auto-creates the target, assigns it to the selected category, creates a prompt, and saves the pattern" do
+    context "when target does NOT exist globally (Auto-creation scenario with category_id)" do
+      it "auto-creates the target, assigns it to the selected category, and saves the pattern with allow_query_strings" do
         expect do
           post target_patterns_path, params: {
             result_id: result.id,
             target_pattern: {
               category_id: category.id,
-              path_pattern: "/company/{id}"
+              path_pattern: "/company/{id}",
+              allow_query_strings: "1"
             }
           }
         end.to change(Target, :count).by(1)
@@ -94,10 +95,62 @@ RSpec.describe "TargetPatterns", type: :request do
         new_target = Target.last
         expect(new_target.domain).to eq("lever.co")
         expect(new_target.category_id).to eq(category.id)
+        expect(new_target.allow_query_strings).to be(true)
 
         pattern = TargetPattern.last
         expect(pattern.target_id).to eq(new_target.id)
         expect(pattern.path_pattern).to eq("/company/{id}")
+      end
+    end
+
+    context "when auto-creating target with a new category name" do
+      it "creates the new category and target successfully" do
+        expect do
+          post target_patterns_path, params: {
+            result_id: result.id,
+            target_pattern: {
+              category_name: "Remote Startups",
+              path_pattern: "/jobs/*"
+            }
+          }
+        end.to change(Category, :count).by(1)
+                                       .and change(Target, :count).by(1)
+
+        new_category = Category.find_by(name: "Remote Startups")
+        new_target = Target.last
+        expect(new_target.category_id).to eq(new_category.id)
+      end
+    end
+
+    context "when category is missing entirely" do
+      it "fails validation and handles the error gracefully" do
+        expect do
+          post target_patterns_path, params: {
+            result_id: result.id,
+            target_pattern: {
+              path_pattern: "/company/*"
+            }
+          }
+        end.not_to change(Target, :count)
+
+        expect(response).to have_http_status(:redirect)
+      end
+    end
+
+    context "when submitting from target edit page (without result_id)" do
+      let!(:existing_target) { Target.create!(name: "Lever", domain: "lever.co", category: category, is_active: true) }
+
+      it "successfully adds a pattern directly to an existing target" do
+        expect do
+          post target_patterns_path, params: {
+            target_pattern: {
+              target_id: existing_target.id,
+              path_pattern: "/direct-path/*"
+            }
+          }
+        end.to change(TargetPattern, :count).by(1)
+
+        expect(response).to have_http_status(:see_other)
       end
     end
   end
@@ -113,6 +166,18 @@ RSpec.describe "TargetPatterns", type: :request do
 
       expect(pattern.reload.is_active).to be(false)
       expect(response).to have_http_status(:redirect)
+    end
+
+    context "when update fails" do
+      it "redirects back with alert on failure" do
+        allow_any_instance_of(TargetPattern).to receive(:update).and_return(false)
+
+        patch target_pattern_path(pattern), params: {
+          target_pattern: { is_active: false }
+        }
+
+        expect(response).to have_http_status(:see_other)
+      end
     end
   end
 
