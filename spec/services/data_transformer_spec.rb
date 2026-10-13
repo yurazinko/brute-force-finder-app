@@ -11,7 +11,6 @@ RSpec.describe Results::DataTransformer, type: :model do
     let(:prompt) { instance_double("Prompt", target: target, full_query_text: "ruby") }
 
     before do
-      # Робимо так, щоб промпти та пошуки коректно зв'язувалися для fetch_target_configs
       if target.present?
         search = Search.find_or_create_by!(id: search_id, user: user) do |s|
           s.title = "Ruby Search"

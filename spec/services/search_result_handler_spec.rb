@@ -102,7 +102,6 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
     end
 
     context "when target has multiple active patterns and raw results contain mixed matching and non-matching URLs" do
-      # Використовуємо метод-хелпер, який гарантовано генерує нові унікальні сутності для кожного прикладу (`it`)
       let(:multi_domain) { "multipattern-#{SecureRandom.hex(6)}.org" }
 
       let(:multi_search) do

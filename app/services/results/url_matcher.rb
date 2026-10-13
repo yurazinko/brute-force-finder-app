@@ -10,6 +10,13 @@ module Results
       new(url, target).matched_pattern
     end
 
+    def self.match_pattern?(path, pattern_str)
+      return false if path.blank? || pattern_str.blank?
+
+      regex_str = pattern_str.gsub("*", ".*")
+      path.match?(/\A#{regex_str}\z/)
+    end
+
     def initialize(url, target)
       @url = url
       @target = target
@@ -19,7 +26,7 @@ module Results
     def matches?
       return true if @target.blank? || @target.domain.blank?
 
-      target_domain = @target.domain.to_s.sub(%r{\Ahttps?://}, "").sub(@www_prefix, "").delete_suffix("/")
+      target_domain = self.class.clean_domain(@target.domain, @www_prefix)
 
       uri = URI.parse(@url)
       result_host = uri.host&.sub(@www_prefix, "")
@@ -34,7 +41,7 @@ module Results
     def matched_pattern
       return nil if @target.blank? || @target.domain.blank?
 
-      target_domain = @target.domain.to_s.sub(%r{\Ahttps?://}, "").sub(@www_prefix, "").delete_suffix("/")
+      target_domain = self.class.clean_domain(@target.domain, @www_prefix)
 
       uri = URI.parse(@url)
       result_host = uri.host&.sub(@www_prefix, "")
@@ -46,6 +53,10 @@ module Results
       nil
     end
 
+    def self.clean_domain(domain, www_prefix = Utils::UrlNormalizer::WWW_PREFIX)
+      domain.to_s.sub(%r{\Ahttps?://}, "").sub(www_prefix, "").delete_suffix("/")
+    end
+
     private
 
     def host_matches?(result_host, target_host)
@@ -55,32 +66,23 @@ module Results
     end
 
     def path_matches?(result_path)
-      patterns = @target.target_patterns.active
-      return true if patterns.empty? # Якщо патернів немає, дозволяємо прохід за хостом
+      patterns = active_sorted_patterns
+      return true if patterns.empty?
 
       clean_result_path = result_path.to_s
-
-      patterns.any? do |pattern|
-        match_pattern?(clean_result_path, pattern.path_pattern)
-      end
+      patterns.any? { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
     end
 
     def find_matching_pattern(result_path)
-      patterns = @target.target_patterns.active
-      return nil if patterns.empty? # Якщо патернів немає, повертаємо nil (це нормально для таргетів без патернів)
+      patterns = active_sorted_patterns
+      return nil if patterns.empty?
 
       clean_result_path = result_path.to_s
-
-      patterns.find do |pattern|
-        match_pattern?(clean_result_path, pattern.path_pattern)
-      end
+      patterns.find { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
     end
 
-    def match_pattern?(path, pattern_str)
-      # Дозволяємо зірочці (*) матчити будь-які символи, включаючи слеші (для вкладених шляхів на кшталт /blog/*/comments)
-      regex_str = pattern_str.gsub("*", ".*")
-      regexp = /\A#{regex_str}\z/
-      path.match?(regexp)
+    def active_sorted_patterns
+      @target.target_patterns.active.sort_by { |p| -p.path_pattern.length }
     end
   end
 end

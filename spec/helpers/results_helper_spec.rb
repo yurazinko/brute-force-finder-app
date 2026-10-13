@@ -36,7 +36,6 @@ RSpec.describe ResultsHelper, type: :helper do
     end
 
     context "when URL is on a subdomain and matches target domain" do
-      # Використовуємо вже існуючий `target` з домом "github.com"
       let!(:result) { Result.create!(search: search, url: "https://api.github.com/v1", url_hash: "hash_sub") }
 
       it "only highlights the matching target domain part, leaving the subdomain unhighlighted" do

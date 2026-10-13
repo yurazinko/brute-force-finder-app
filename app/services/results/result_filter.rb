@@ -7,6 +7,7 @@ module Results
     def initialize(result, prompt, target_configs)
       @result = result
       @prompt = prompt
+      @target = prompt&.target
       @target_configs = target_configs
       @url = result["url"]
       @keyword_groups = DorkParser.parse_groups(prompt&.full_query_text)
@@ -17,14 +18,12 @@ module Results
     def valid?
       return false if @url.blank?
 
-      target = @prompt&.target
+      if @target.present? && @target.domain.present?
+        return false unless UrlMatcher.matches?(@url, @target)
 
-      if target.present? && target.domain.present?
-        return false unless UrlMatcher.matches?(@url, target)
+        @matched_pattern = UrlMatcher.matched_pattern(@url, @target)
 
-        @matched_pattern = UrlMatcher.matched_pattern(@url, target)
-
-        has_active_patterns = target.target_patterns.exists?(is_active: true)
+        has_active_patterns = @target.target_patterns.exists?(is_active: true)
         return false if has_active_patterns && @matched_pattern.nil?
       end
 

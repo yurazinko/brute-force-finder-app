@@ -9,59 +9,17 @@ class TargetPatternsController < ApplicationController
   end
 
   def create
-    target_id = params.dig(:target_pattern, :target_id) || @matched_target&.id
-    path_pattern = params[:target_pattern][:path_pattern]
+    Targets::PatternConfigurationService.call(
+      current_user: current_user,
+      search: @search,
+      result: @result,
+      matched_target: @matched_target,
+      pattern_params: target_pattern_params
+    )
 
-    if target_id.blank?
-      uri = URI.parse(@result.url)
-      domain = uri.host&.sub(Utils::UrlNormalizer::WWW_PREFIX, "")
-
-      category_id = params.dig(:target_pattern, :category_id)
-      category_name = params.dig(:target_pattern, :category_name)
-
-      category = if category_id.present?
-                   current_user.categories.find(category_id)
-                 elsif category_name.present?
-                   current_user.categories.find_or_create_by!(name: category_name.strip)
-                 else
-                   raise(ActiveRecord::RecordInvalid, Target.new.tap { |t| t.errors.add(:category, "can't be blank") })
-                 end
-
-      target = category.targets.find_or_create_by!(domain: domain) do |t|
-        t.name = domain.split(".").first.capitalize
-        t.is_active = true
-      end
-
-      target_id = target.id
-    else
-      target = Target.find(target_id)
-    end
-
-    Prompt.find_or_create_by!(search: @search, target: target) do |p|
-      p.full_query_text = "site:#{target.domain} #{@search.query_conditions}"
-      p.status = "pending"
-    end
-
-    if path_pattern.present? && path_pattern != "/"
-      @target_pattern = TargetPattern.find_or_initialize_by(target_id: target_id, path_pattern: path_pattern)
-      @target_pattern.is_active = true
-      @target_pattern.save!
-    end
-
-    respond_to do |format|
-      format.html do
-        redirect_to search_path(@search), notice: "Target and pattern successfully configured!", status: :see_other
-      end
-      format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.update("modal", ""),
-          turbo_stream.action(:visit, search_path(@search))
-        ]
-      end
-    end
+    handle_successful_creation
   rescue ActiveRecord::RecordInvalid => e
-    message = e.record.errors.full_messages.presence || ["Category is required"]
-    redirect_back_or_to(root_path, alert: "Error: #{message.join(', ')}", status: :see_other)
+    handle_validation_error(e)
   end
 
   def update
@@ -86,19 +44,34 @@ class TargetPatternsController < ApplicationController
     result_id = params[:result_id] || params.dig(:target_pattern, :result_id)
     return unless result_id
 
-    @result = Result.find(result_id)
-    uri = URI.parse(@result.url)
-    @default_path = uri.path.presence || "/"
-
-    clean_path = @default_path.sub(%r{\A/+}, "").chomp("/")
-    @path_segments = clean_path.split("/")
-
-    @search = @result.search
-    @available_targets = Target.joins(:category).where(categories: { user_id: current_user.id }).distinct
-
-    @matched_target = @available_targets.find { |t| Results::UrlMatcher.matches?(@result.url, t) }
+    context = Targets::ResultContextService.call(current_user: current_user, result_id: result_id)
+    @result = context.result
+    @default_path = context.default_path
+    @path_segments = context.path_segments
+    @search = context.search
+    @available_targets = context.available_targets
+    @matched_target = context.matched_target
   rescue ActiveRecord::RecordNotFound
     redirect_back_or_to(root_path, alert: "Result not found.", status: :see_other)
+  end
+
+  def handle_successful_creation
+    respond_to do |format|
+      format.html do
+        redirect_to search_path(@search), notice: "Target and pattern successfully configured!", status: :see_other
+      end
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.update("modal", ""),
+          turbo_stream.action(:visit, search_path(@search))
+        ]
+      end
+    end
+  end
+
+  def handle_validation_error(exception)
+    message = exception.record.errors.full_messages.presence || ["Category is required"]
+    redirect_back_or_to(root_path, alert: "Error: #{message.join(', ')}", status: :see_other)
   end
 
   def set_target_pattern
@@ -106,6 +79,6 @@ class TargetPatternsController < ApplicationController
   end
 
   def target_pattern_params
-    params.expect(target_pattern: %i[path_pattern is_active target_id])
+    params.expect(target_pattern: %i[path_pattern is_active target_id category_id category_name])
   end
 end

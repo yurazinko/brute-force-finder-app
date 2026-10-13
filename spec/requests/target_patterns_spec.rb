@@ -13,7 +13,6 @@ RSpec.describe "TargetPatterns", type: :request do
     if defined?(Devise)
       sign_in user
     else
-      # Фоллбек, якщо Devise не підключено як gem для тестів
       begin
         allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
       rescue StandardError
