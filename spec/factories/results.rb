@@ -11,6 +11,8 @@
 #  matched_keywords    :jsonb            not null
 #  relevance_score     :integer          default(0), not null
 #  status              :string           default("unread"), not null
+#  target_domain       :string
+#  target_pattern      :string
 #  title               :string
 #  url                 :string           not null
 #  url_hash            :string           not null
@@ -31,6 +33,7 @@
 #  index_results_on_search_id_and_relevance_score  (search_id,relevance_score)
 #  index_results_on_search_id_and_status           (search_id,status)
 #  index_results_on_search_id_and_url_hash         (search_id,url_hash) UNIQUE
+#  index_results_on_target_domain                  (target_domain)
 #  index_results_on_url_hash                       (url_hash)
 #  index_results_on_verification_status            (verification_status)
 #

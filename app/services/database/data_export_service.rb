@@ -4,7 +4,7 @@ module Database
   class DataExportService
     attr_reader :user, :output_path, :requested_tables
 
-    ALL_TABLES = %w[categories targets searches prompts results].freeze
+    ALL_TABLES = %w[categories targets target_patterns searches prompts results].freeze
 
     def initialize(user, output_path: nil, tables: nil)
       @user = user

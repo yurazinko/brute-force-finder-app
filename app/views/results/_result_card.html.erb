@@ -38,18 +38,27 @@
       <%= result.title.presence || "Untitled Result" %>
     </a>
 
-    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border <%= score_badge_class %> shadow-2xs" title="Relevance Score based on matched keyword groups">
+    <!-- Relevance Score:-->
+    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Relevance Score based on matched keyword groups">
       <span>🎯</span>
       <span><%= score %></span>
     </div>
   </div>
 
-  <div class="text-xs text-breeze-muted font-mono flex items-center gap-1.5 w-full min-w-0 bg-breeze-view/60 px-2.5 py-1 rounded-md border border-breeze-border/40">
-    <svg class="w-3.5 h-3.5 text-breeze-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 005.656-5.656l-1.1 1.1"></path>
-    </svg>
-    <span class="truncate block w-full text-breeze-muted/80 hover:text-breeze-text transition-colors" title="<%= result.url %>"><%= result.url %></span>
-  </div>
+  <div class="text-xs text-breeze-muted font-mono flex items-stretch justify-between w-full min-w-0 bg-breeze-view/60 rounded-md border border-breeze-border/40 group overflow-hidden">
+      <div class="truncate flex items-center gap-1.5 min-w-0 flex-1 px-2.5 py-1.5">
+        <span class="truncate block w-full text-breeze-muted/80 hover:text-breeze-text transition-colors" title="<%= result.url %>">
+          <%= highlight_target_domain(result) %>
+        </span>
+      </div>
+
+      <%= link_to new_target_pattern_path(result_id: result.id),
+          data: { turbo_frame: "modal" },
+          class: "shrink-0 self-stretch opacity-85 hover:opacity-100 text-[11px] font-sans font-semibold bg-breeze-accent/10 hover:bg-breeze-accent/20 text-breeze-accent px-3 border-l border-breeze-accent/30 transition flex items-center gap-1.5 cursor-pointer rounded-r-md" do %>
+        <span>✨</span>
+        <span>Configure link</span>
+      <% end %>
+    </div>
 
   <div class="bg-breeze-view p-3 sm:p-3.5 rounded-lg border border-breeze-border/60 shadow-inner h-20 sm:h-24 overflow-hidden">
     <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3 leading-relaxed">

@@ -6,6 +6,17 @@ module Results
       new(url, target).matches?
     end
 
+    def self.matched_pattern(url, target)
+      new(url, target).matched_pattern
+    end
+
+    def self.match_pattern?(path, pattern_str)
+      return false if path.blank? || pattern_str.blank?
+
+      regex_str = pattern_str.gsub("*", ".*")
+      path.match?(/\A#{regex_str}\z/)
+    end
+
     def initialize(url, target)
       @url = url
       @target = target
@@ -15,17 +26,35 @@ module Results
     def matches?
       return true if @target.blank? || @target.domain.blank?
 
-      target_str = @target.domain.to_s.sub(%r{\Ahttps?://}, "").sub(@www_prefix, "")
-      target_host, target_path = target_str.delete_suffix("/").split("/", 2)
+      target_domain = self.class.clean_domain(@target.domain, @www_prefix)
 
       uri = URI.parse(@url)
       result_host = uri.host&.sub(@www_prefix, "")
 
-      return false unless host_matches?(result_host, target_host)
+      return false unless host_matches?(result_host, target_domain)
 
-      path_matches?(uri.path, target_path)
+      path_matches?(uri.path)
     rescue URI::InvalidURIError
       false
+    end
+
+    def matched_pattern
+      return nil if @target.blank? || @target.domain.blank?
+
+      target_domain = self.class.clean_domain(@target.domain, @www_prefix)
+
+      uri = URI.parse(@url)
+      result_host = uri.host&.sub(@www_prefix, "")
+
+      return nil unless host_matches?(result_host, target_domain)
+
+      find_matching_pattern(uri.path)
+    rescue URI::InvalidURIError
+      nil
+    end
+
+    def self.clean_domain(domain, www_prefix = Utils::UrlNormalizer::WWW_PREFIX)
+      domain.to_s.sub(%r{\Ahttps?://}, "").sub(www_prefix, "").delete_suffix("/")
     end
 
     private
@@ -36,13 +65,24 @@ module Results
       result_host == target_host || result_host.end_with?(".#{target_host}")
     end
 
-    def path_matches?(result_path, target_path)
-      return true if target_path.blank?
+    def path_matches?(result_path)
+      patterns = active_sorted_patterns
+      return true if patterns.empty?
 
-      clean_result_path = result_path.to_s.delete_prefix("/")
-      clean_target_path = target_path.delete_prefix("/")
+      clean_result_path = result_path.to_s
+      patterns.any? { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
+    end
 
-      clean_result_path.start_with?(clean_target_path)
+    def find_matching_pattern(result_path)
+      patterns = active_sorted_patterns
+      return nil if patterns.empty?
+
+      clean_result_path = result_path.to_s
+      patterns.find { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
+    end
+
+    def active_sorted_patterns
+      @target.target_patterns.active.sort_by { |p| -p.path_pattern.length }
     end
   end
 end

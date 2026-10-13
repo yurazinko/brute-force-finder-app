@@ -44,7 +44,7 @@
               </summary>
 
               <div class="p-3.5 pt-1 border-t border-breeze-border/40 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <% %w[categories targets searches prompts results].each do |table| %>
+                <% %w[categories targets target_patterns searches prompts results].each do |table| %>
                   <label class="flex items-center gap-2 p-2 rounded-lg bg-breeze-bg/80 border border-breeze-border/40 hover:border-breeze-border cursor-pointer transition text-xs">
                     <%= check_box_tag "tables[]", table, true, class: "rounded border-breeze-border bg-breeze-view text-breeze-accent focus:ring-breeze-accent cursor-pointer h-3.5 w-3.5" %>
                     <span class="capitalize text-breeze-text font-medium truncate"><%= table %></span>

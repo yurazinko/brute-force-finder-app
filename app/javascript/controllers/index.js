@@ -7,11 +7,20 @@ import { application } from "./application"
 import BulkSelectorController from "./bulk_selector_controller"
 application.register("bulk-selector", BulkSelectorController)
 
+import DropdownController from "./dropdown_controller"
+application.register("dropdown", DropdownController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
 import InfiniteScrollController from "./infinite_scroll_controller"
 application.register("infinite-scroll", InfiniteScrollController)
+
+import ModalController from "./modal_controller"
+application.register("modal", ModalController)
+
+import PathBuilderController from "./path_builder_controller"
+application.register("path-builder", PathBuilderController)
 
 import PipelineSelectorController from "./pipeline_selector_controller"
 application.register("pipeline-selector", PipelineSelectorController)
@@ -22,8 +31,11 @@ application.register("react-portal", ReactPortalController)
 import ReadStatusController from "./read_status_controller"
 application.register("read-status", ReadStatusController)
 
-import TargetsSelectorController from "./targets_selector_controller"
-application.register("targets-selector", TargetsSelectorController)
+import ResultCardController from "./result_card_controller"
+application.register("result-card", ResultCardController)
 
 import ResultsStreamController from "./results_stream_controller"
 application.register("results-stream", ResultsStreamController)
+
+import TargetsSelectorController from "./targets_selector_controller"
+application.register("targets-selector", TargetsSelectorController)

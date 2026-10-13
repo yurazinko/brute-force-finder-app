@@ -97,6 +97,7 @@ module Results
         "relevance_score" => record["relevance_score"] || 0,
         "matched_keywords" => record["matched_keywords"] || [],
         "verification_status" => record["verification_status"] || "pending",
+        "target_pattern" => record["target_pattern"],
         "created_at" => record["created_at"] || current_time,
         "updated_at" => record["updated_at"] || current_time
       }
