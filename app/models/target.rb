@@ -25,6 +25,7 @@
 class Target < ApplicationRecord
   belongs_to :category
   has_many :prompts, dependent: :destroy
+  has_many :target_patterns, dependent: :destroy
 
   attr_writer :search_ids
 

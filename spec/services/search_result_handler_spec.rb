@@ -101,6 +101,102 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
       end
     end
 
+    context "when target has multiple active patterns and raw results contain mixed matching and non-matching URLs" do
+      # Використовуємо метод-хелпер, який гарантовано генерує нові унікальні сутності для кожного прикладу (`it`)
+      let(:multi_domain) { "multipattern-#{SecureRandom.hex(6)}.org" }
+
+      let(:multi_search) do
+        Search.create!(
+          user: user,
+          title: "Multi Pattern Search #{SecureRandom.hex(4)}",
+          query_conditions: "ruby",
+          status: "pending"
+        )
+      end
+
+      let(:multi_target) do
+        Target.create!(category: category, name: "MultiPattern Target", domain: multi_domain)
+      end
+
+      let!(:multi_prompt) do
+        Prompt.create!(
+          search: multi_search,
+          target: multi_target,
+          full_query_text: "site:#{multi_domain} ruby",
+          status: "active"
+        )
+      end
+
+      let!(:pattern_blog) do
+        TargetPattern.create!(
+          target: multi_target,
+          path_pattern: "/blog/*",
+          is_active: true
+        )
+      end
+
+      let!(:pattern_careers) do
+        TargetPattern.create!(
+          target: multi_target,
+          path_pattern: "/careers/ruby-*",
+          is_active: true
+        )
+      end
+
+      let(:mixed_raw_results) do
+        { data: [
+          {
+            "url" => "https://#{multi_domain}/blog/ruby-on-rails-guide",
+            "title" => "Ruby Blog Post",
+            "content" => "Learn ruby development easily."
+          },
+          {
+            "url" => "https://#{multi_domain}/about-us",
+            "title" => "About Us",
+            "content" => "Ruby company info"
+          },
+          {
+            "url" => "https://#{multi_domain}/careers/ruby-engineer",
+            "title" => "Ruby Job Openings",
+            "content" => "We are hiring ruby engineers."
+          },
+          {
+            "url" => "https://#{multi_domain}/news/python-and-java",
+            "title" => "Pure Python Guide",
+            "content" => "Nothing about the other language here."
+          },
+          {
+            "url" => "https://unrelated-site.com/blog/ruby-post",
+            "title" => "External blog",
+            "content" => "Ruby developer blog."
+          }
+        ] }
+      end
+
+      it "persists only results that match both the target host/patterns and pass keyword relevance checks" do
+        expect do
+          described_class.call(multi_prompt, mixed_raw_results)
+        end.to change(Result, :count).by(2)
+
+        persisted_urls = Result.where(search_id: multi_search.id).pluck(:url)
+
+        expect(persisted_urls).to match_array([
+                                                "https://#{multi_domain}/blog/ruby-on-rails-guide",
+                                                "https://#{multi_domain}/careers/ruby-engineer"
+                                              ])
+      end
+
+      it "correctly assigns the matching target_pattern attribute to the persisted records" do
+        described_class.call(multi_prompt, mixed_raw_results)
+
+        blog_result = Result.find_by(search_id: multi_search.id, url: "https://#{multi_domain}/blog/ruby-on-rails-guide")
+        career_result = Result.find_by(search_id: multi_search.id, url: "https://#{multi_domain}/careers/ruby-engineer")
+
+        expect(blog_result.target_pattern).to eq("/blog/*")
+        expect(career_result.target_pattern).to eq("/careers/ruby-*")
+      end
+    end
+
     context "when raw results are blank (empty array or nil)" do
       it "does not create any result records" do
         expect do

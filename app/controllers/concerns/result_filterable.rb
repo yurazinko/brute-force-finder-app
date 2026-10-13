@@ -17,9 +17,9 @@ module ResultFilterable
   end
 
   def fetch_filtered_results(base_scope, filter_options)
-    @counts = Results::Counters.calculate_filtered(base_scope, filter_options, @search)
-    @pagy, @results = pagy(
-      Results::Query.call(base_scope, filter_options, search: @search)
-    )
+    optimized_scope = base_scope.includes(search: :targets)
+
+    @counts = Results::Counters.calculate_filtered(optimized_scope, filter_options, @search)
+    @pagy, @results = pagy(Results::Query.call(optimized_scope, filter_options, search: @search))
   end
 end

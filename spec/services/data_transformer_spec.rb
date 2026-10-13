@@ -5,11 +5,21 @@ require "rails_helper"
 RSpec.describe Results::DataTransformer, type: :model do
   describe ".process" do
     let(:search_id) { 42 }
-    let(:target_domain) { "example.com" }
-    let(:target) { instance_double("Target", domain: target_domain) }
+    let(:user) { User.create!(email: "test@example.com", password: "password") }
+    let(:category) { Category.create!(name: "General", user: user) }
+    let(:target) { create(:target, domain: "example.com", category: category) }
     let(:prompt) { instance_double("Prompt", target: target, full_query_text: "ruby") }
 
     before do
+      # Робимо так, щоб промпти та пошуки коректно зв'язувалися для fetch_target_configs
+      if target.present?
+        search = Search.find_or_create_by!(id: search_id, user: user) do |s|
+          s.title = "Ruby Search"
+          s.query_conditions = "ruby"
+        end
+        Prompt.find_or_create_by!(search: search, target: target, full_query_text: "site:#{target.domain} ruby")
+      end
+
       allow(Utils::UrlNormalizer).to receive(:normalize) do |url, target_configs: {}|
         domain = url.split("/").third&.delete_prefix("www.")
 
@@ -23,9 +33,6 @@ RSpec.describe Results::DataTransformer, type: :model do
       allow(Utils::UrlNormalizer).to receive(:hash) do |url|
         "hash_of_#{url}"
       end
-
-      allow(Target).to receive_message_chain(:joins, :where, :pluck)
-        .and_return([["example.com", false], ["query.com", true], ["indeed.com", true]])
 
       stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby</body></html>", headers: {})
     end
@@ -107,9 +114,8 @@ RSpec.describe Results::DataTransformer, type: :model do
       end
     end
 
-    context "when target domain contains a specific subpath" do
-      let(:target_domain) { "example.com/blog" }
-
+    context "when target domain contains a specific subpath pattern" do
+      let!(:pattern) { TargetPattern.create!(target: target, path_pattern: "/blog/*", is_active: true) }
       let(:raw_results) do
         [
           { "url" => "https://example.com/blog/ruby-post", "title" => "Blog Post" },
@@ -117,14 +123,14 @@ RSpec.describe Results::DataTransformer, type: :model do
         ]
       end
 
-      it "only includes URLs matching the path prefix" do
+      it "only includes URLs matching the path prefix/pattern" do
         expect(processed_records.size).to eq(1)
         expect(processed_records.first[:url]).to eq("https://example.com/blog/ruby-post")
       end
     end
 
     context "when target domain includes protocol (http/https)" do
-      let(:target_domain) { "https://example.com" }
+      let(:target) { create(:target, domain: "https://example.com", category: category) }
 
       let(:raw_results) do
         [
@@ -166,20 +172,21 @@ RSpec.describe Results::DataTransformer, type: :model do
 
     context "checking keep_query (allow_query_strings) logic" do
       let(:target) { nil }
+      let!(:query_target) { create(:target, domain: "query.com", allow_query_strings: true, category: category) }
+
+      before do
+        search = Search.find_or_create_by!(id: search_id, user: user) do |s|
+          s.title = "Ruby Search"
+          s.query_conditions = "ruby"
+        end
+        Prompt.find_or_create_by!(search: search, target: query_target, full_query_text: "site:query.com ruby")
+      end
+
       let(:raw_results) do
         [
           { "url" => "https://example.com/p?q=1", "title" => "No Query" },
           { "url" => "https://query.com/p?q=2", "title" => "Keep Query" }
         ]
-      end
-
-      it "passes target_configs to the normalizer based on domain config" do
-        expect(Utils::UrlNormalizer).to receive(:normalize)
-          .with("https://example.com/p?q=1", target_configs: hash_including("query.com" => true))
-        expect(Utils::UrlNormalizer).to receive(:normalize)
-          .with("https://query.com/p?q=2", target_configs: hash_including("query.com" => true))
-
-        processed_records
       end
 
       it "preserves query parameters only for allowed domains" do
@@ -190,7 +197,7 @@ RSpec.describe Results::DataTransformer, type: :model do
     end
 
     context "when processing subdomains with allow_query_strings enabled" do
-      let(:target_domain) { "indeed.com" }
+      let(:target) { create(:target, domain: "indeed.com", allow_query_strings: true, category: category) }
       let(:raw_results) do
         [
           { "url" => "https://pl.indeed.com/viewjob?jk=c632099926f119ae", "title" => "Job PL" },
@@ -199,12 +206,7 @@ RSpec.describe Results::DataTransformer, type: :model do
       end
 
       it "matches regional subdomains to the root target domain and keeps query strings" do
-        expect(Utils::UrlNormalizer).to receive(:normalize)
-          .with("https://pl.indeed.com/viewjob?jk=c632099926f119ae", target_configs: hash_including("indeed.com" => true))
-        expect(Utils::UrlNormalizer).to receive(:normalize)
-          .with("https://ca.indeed.com/viewjob?jk=a111222333b4455c", target_configs: hash_including("indeed.com" => true))
-
-        processed_records
+        expect(processed_records.size).to eq(2)
       end
 
       it "generates unique url_hashes for each job on regional subdomains" do

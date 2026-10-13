@@ -139,7 +139,9 @@ CREATE TABLE public.results (
     engine character varying,
     relevance_score integer DEFAULT 0 NOT NULL,
     matched_keywords jsonb DEFAULT '[]'::jsonb NOT NULL,
-    verification_status character varying DEFAULT 'pending'::character varying NOT NULL
+    verification_status character varying DEFAULT 'pending'::character varying NOT NULL,
+    target_domain character varying,
+    target_pattern character varying
 );
 
 ALTER TABLE ONLY public.results FORCE ROW LEVEL SECURITY;
@@ -209,6 +211,39 @@ CREATE SEQUENCE public.searches_id_seq
 --
 
 ALTER SEQUENCE public.searches_id_seq OWNED BY public.searches.id;
+
+
+--
+-- Name: target_patterns; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.target_patterns (
+    id bigint NOT NULL,
+    target_id bigint NOT NULL,
+    path_pattern character varying NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: target_patterns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.target_patterns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: target_patterns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.target_patterns_id_seq OWNED BY public.target_patterns.id;
 
 
 --
@@ -310,6 +345,13 @@ ALTER TABLE ONLY public.searches ALTER COLUMN id SET DEFAULT nextval('public.sea
 
 
 --
+-- Name: target_patterns id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.target_patterns ALTER COLUMN id SET DEFAULT nextval('public.target_patterns_id_seq'::regclass);
+
+
+--
 -- Name: targets id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -369,6 +411,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY public.searches
     ADD CONSTRAINT searches_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: target_patterns target_patterns_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.target_patterns
+    ADD CONSTRAINT target_patterns_pkey PRIMARY KEY (id);
 
 
 --
@@ -493,6 +543,13 @@ CREATE UNIQUE INDEX index_results_on_search_id_and_url_hash ON public.results US
 
 
 --
+-- Name: index_results_on_target_domain; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_target_domain ON public.results USING btree (target_domain);
+
+
+--
 -- Name: index_results_on_url_hash; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -511,6 +568,20 @@ CREATE INDEX index_results_on_verification_status ON public.results USING btree 
 --
 
 CREATE INDEX index_searches_on_user_id ON public.searches USING btree (user_id);
+
+
+--
+-- Name: index_target_patterns_on_target_and_pattern; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_target_patterns_on_target_and_pattern ON public.target_patterns USING btree (target_id, path_pattern);
+
+
+--
+-- Name: index_target_patterns_on_target_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_target_patterns_on_target_id ON public.target_patterns USING btree (target_id);
 
 
 --
@@ -590,6 +661,14 @@ ALTER TABLE ONLY public.searches
 
 
 --
+-- Name: target_patterns fk_rails_f6a6520d1a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.target_patterns
+    ADD CONSTRAINT fk_rails_f6a6520d1a FOREIGN KEY (target_id) REFERENCES public.targets(id);
+
+
+--
 -- Name: prompts prompt_user_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -639,6 +718,8 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261012092642'),
+('20261011184530'),
 ('20260920090827'),
 ('20260918180156'),
 ('20260917113344'),

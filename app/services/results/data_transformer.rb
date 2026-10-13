@@ -10,6 +10,7 @@ module Results
       @search_id = search_id
       @raw_results = raw_results || []
       @prompt = prompt
+      @target = prompt&.target
       @now = Time.current
       @target_configs = fetch_target_configs
     end
@@ -22,7 +23,7 @@ module Results
         clean_url = Utils::UrlNormalizer.normalize(result["url"], target_configs: @target_configs)
         next if clean_url.blank?
 
-        records << build_record(clean_url, result, filter.rank_result)
+        records << build_record(clean_url, result, filter.rank_result, filter.matched_pattern)
       end
     end
 
@@ -40,7 +41,7 @@ module Results
             end
     end
 
-    def build_record(clean_url, result, rank_result)
+    def build_record(clean_url, result, rank_result, matched_pattern)
       {
         search_id: @search_id,
         url: clean_url,
@@ -51,6 +52,8 @@ module Results
         relevance_score: rank_result.relevance_score,
         matched_keywords: rank_result.matched_keywords,
         verification_status: rank_result.verification_status,
+        target_domain: @target&.domain,
+        target_pattern: matched_pattern&.path_pattern,
         created_at: @now,
         updated_at: @now
       }

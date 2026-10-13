@@ -32,6 +32,8 @@ Rails.application.routes.draw do
 
   resources :targets, only: %i[create destroy edit update]
 
+  resources :target_patterns, only: %i[new create update destroy]
+
   resources :results, only: %i[index update]
 
   resources :data_transfers, only: [:index] do

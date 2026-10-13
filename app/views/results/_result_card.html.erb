@@ -44,12 +44,23 @@
     </div>
   </div>
 
-  <div class="text-xs text-breeze-muted font-mono flex items-center gap-1.5 w-full min-w-0 bg-breeze-view/60 px-2.5 py-1 rounded-md border border-breeze-border/40">
-    <svg class="w-3.5 h-3.5 text-breeze-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 005.656-5.656l-1.1 1.1"></path>
-    </svg>
-    <span class="truncate block w-full text-breeze-muted/80 hover:text-breeze-text transition-colors" title="<%= result.url %>"><%= result.url %></span>
-  </div>
+  <div class="text-xs text-breeze-muted font-mono flex items-center justify-between gap-1.5 w-full min-w-0 bg-breeze-view/60 px-2.5 py-1 rounded-md border border-breeze-border/40 group">
+      <div class="truncate flex items-center gap-1.5 min-w-0 flex-1">
+        <svg class="w-3.5 h-3.5 text-breeze-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 005.656-5.656l-1.1 1.1"></path>
+        </svg>
+        <span class="truncate block w-full text-breeze-muted/80 hover:text-breeze-text transition-colors" title="<%= result.url %>">
+          <%= highlight_target_domain(result) %>
+        </span>
+      </div>
+
+      <%= link_to new_target_pattern_path(result_id: result.id),
+          data: { turbo_frame: "modal" },
+          class: "shrink-0 opacity-85 hover:opacity-100 text-[11px] font-sans font-semibold bg-breeze-accent/10 hover:bg-breeze-accent/20 text-breeze-accent px-2 py-0.5 rounded border border-breeze-accent/30 transition shadow-2xs flex items-center gap-1 cursor-pointer" do %>
+        <span>✨</span>
+        <span>Configure URL</span>
+      <% end %>
+    </div>
 
   <div class="bg-breeze-view p-3 sm:p-3.5 rounded-lg border border-breeze-border/60 shadow-inner h-20 sm:h-24 overflow-hidden">
     <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3 leading-relaxed">
