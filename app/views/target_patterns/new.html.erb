@@ -16,7 +16,7 @@
 
       <!-- Modal Form Container -->
       <div id="modal_form_container">
-        <%= form_with model: @target_pattern, url: target_patterns_path, method: :post, class: "p-6 space-y-5" do |f| %>
+        <%= form_with model: @target_pattern, url: target_patterns_path, method: :post, class: "p-6 space-y-5", data: { controller: "path-builder", action: "submit->path-builder#validate" } do |f| %>
           <%= hidden_field_tag :result_id, @result.id %>
 
           <%
@@ -42,6 +42,12 @@
             </div>
           <% end %>
 
+          <!-- Frontend Error Banner -->
+          <div data-path-builder-target="error" class="hidden p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400 font-semibold animate-fade-in flex items-center gap-2">
+            <span>⚠️</span>
+            <span>Category can't be blank</span>
+          </div>
+
           <!-- Target Info / Category Selection -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-breeze-bg rounded-lg border border-breeze-border/60">
             <div class="flex items-center gap-2 truncate">
@@ -63,16 +69,19 @@
                     <%= select_tag "target_pattern[category_id]",
                         options_from_collection_for_select(current_user.categories.order(:name), :id, :name),
                         prompt: "Select category...",
+                        data: { path_builder_target: "categorySelect" },
                         class: "text-xs font-sans bg-breeze-view text-breeze-text rounded-md border border-breeze-border px-2.5 py-1.5 focus:border-breeze-accent focus:ring-1 focus:ring-breeze-accent outline-none transition cursor-pointer" %>
 
                     <span class="text-[11px] text-breeze-muted">or</span>
                     <%= text_field_tag "target_pattern[category_name]", nil,
                         placeholder: "New category name...",
+                        data: { path_builder_target: "categoryInput" },
                         class: "text-xs font-sans bg-breeze-view text-breeze-text rounded-md border border-breeze-border px-2.5 py-1.5 focus:border-breeze-accent outline-none w-36" %>
                   </div>
                 <% else %>
                   <%= text_field_tag "target_pattern[category_name]", nil,
                       placeholder: "Enter category name...",
+                      data: { path_builder_target: "categoryInput" },
                       class: "text-xs font-sans bg-breeze-view text-breeze-text rounded-md border border-breeze-border px-2.5 py-1.5 focus:border-breeze-accent outline-none w-44" %>
                 <% end %>
               </div>
@@ -88,16 +97,16 @@
           </div>
 
           <!-- Interactive Path Segment Builder -->
-          <div class="space-y-2" data-controller="path-builder">
-            <label class="block text-xs font-semibold text-breeze-text">Path Segments (Interactive Builder):</label>
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-breeze-text">Path Segments:</label>
             <p class="text-[11px] text-breeze-muted">
               Click on any segment to keep it exact, turn it into <code class="text-breeze-accent bg-breeze-bg px-1 py-0.5 rounded border border-breeze-border">{anything}</code>, or cut off the URL path from that point.
             </p>
 
             <div class="flex flex-wrap items-center gap-1.5 p-3.5 bg-breeze-bg rounded-lg border border-breeze-border font-mono text-xs">
-              <span class="text-breeze-muted shrink-0">/</span>
               <% @path_segments.each_with_index do |segment, _index| %>
                 <% next if segment.blank? %>
+                <span class="text-breeze-muted shrink-0">/</span>
                 <div class="relative inline-block segment-container min-w-[90px] max-w-[200px]" data-controller="dropdown">
                   <button type="button"
                           data-action="click->dropdown#toggle click@window->dropdown#hide"
@@ -119,7 +128,7 @@
                     <button type="button"
                             data-action="click->path-builder#setAnything"
                             class="w-full text-left px-3 py-2 hover:bg-breeze-accent/20 text-breeze-accent transition truncate">
-                      ✨ Skip (mark as {anything})
+                      ✨ Mark as {anything}
                     </button>
                     <button type="button"
                             data-action="click->path-builder#removeSegment"
@@ -128,17 +137,21 @@
                     </button>
                   </div>
                 </div>
-                <span class="text-breeze-muted shrink-0 separator-slash">/</span>
               <% end %>
             </div>
 
             <%= f.hidden_field :path_pattern, data: { path_builder_target: "input" }, value: @default_path %>
           </div>
 
-          <!-- Hint -->
-          <div class="p-3 bg-breeze-bg/50 rounded-lg border border-breeze-border/50 text-[11px] text-breeze-muted flex items-center gap-2">
-            <span>💡</span>
-            <span>Parameters after <code class="text-breeze-text">?</code> are handled automatically if <strong class="text-breeze-text">Keep URL Parameters</strong> is enabled.</span>
+          <!-- Allow Query Strings Checkbox -->
+          <div class="p-3 bg-breeze-bg/50 rounded-lg border border-breeze-border/50 text-[11px] text-breeze-muted flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <%= check_box_tag "target_pattern[allow_query_strings]", "1", @matched_target&.allow_query_strings, id: "allow_query_strings_checkbox", class: "h-4 w-4 rounded border-breeze-border bg-breeze-bg text-breeze-accent focus:ring-breeze-accent cursor-pointer" %>
+              <label for="allow_query_strings_checkbox" class="text-xs font-semibold text-breeze-text cursor-pointer select-none">Keep URL Parameters</label>
+            </div>
+            <p class="text-[10px] text-breeze-muted pl-6">
+              Prevents the system from stripping tracking or pagination parameters (e.g., <code>?jk=...</code>) for this site.
+            </p>
           </div>
 
           <!-- Footer Actions -->

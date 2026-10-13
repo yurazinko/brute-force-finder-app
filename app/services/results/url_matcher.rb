@@ -6,6 +6,10 @@ module Results
       new(url, target).matches?
     end
 
+    def self.domain_matches?(url, target)
+      new(url, target).domain_matches?
+    end
+
     def self.matched_pattern(url, target)
       new(url, target).matched_pattern
     end
@@ -23,31 +27,32 @@ module Results
       @www_prefix = Utils::UrlNormalizer::WWW_PREFIX
     end
 
-    def matches?
-      return true if @target.blank? || @target.domain.blank?
+    def domain_matches?
+      return false if @target.blank? || @target.domain.blank?
 
       target_domain = self.class.clean_domain(@target.domain, @www_prefix)
 
       uri = URI.parse(@url)
       result_host = uri.host&.sub(@www_prefix, "")
 
-      return false unless host_matches?(result_host, target_domain)
+      host_matches?(result_host, target_domain)
+    rescue URI::InvalidURIError
+      false
+    end
 
+    def matches?
+      return false unless domain_matches?
+
+      uri = URI.parse(@url)
       path_matches?(uri.path)
     rescue URI::InvalidURIError
       false
     end
 
     def matched_pattern
-      return nil if @target.blank? || @target.domain.blank?
-
-      target_domain = self.class.clean_domain(@target.domain, @www_prefix)
+      return nil unless domain_matches?
 
       uri = URI.parse(@url)
-      result_host = uri.host&.sub(@www_prefix, "")
-
-      return nil unless host_matches?(result_host, target_domain)
-
       find_matching_pattern(uri.path)
     rescue URI::InvalidURIError
       nil

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TargetPatternsController < ApplicationController
-  before_action :load_result_context, only: %i[new create]
+  before_action :load_result_context, only: %i[new create], if: -> { params[:result_id].present? }
   before_action :set_target_pattern, only: %i[update destroy]
 
   def new
@@ -9,19 +9,8 @@ class TargetPatternsController < ApplicationController
   end
 
   def create
-    target = Targets::PatternConfigurationService.call(
-      current_user: current_user,
-      search: @search,
-      result: @result,
-      matched_target: @matched_target,
-      pattern_params: target_pattern_params
-    )
-
-    path_pattern = target_pattern_params[:path_pattern]
-    @target_pattern = TargetPattern.find_by(target_id: target.id, path_pattern: path_pattern) ||
-                      TargetPattern.new(target_id: target.id, path_pattern: path_pattern)
-
-    handle_successful_creation
+    target = resolve_target_configuration
+    handle_post_creation(target)
   rescue ActiveRecord::RecordInvalid => e
     handle_validation_error(e)
   end
@@ -45,10 +34,9 @@ class TargetPatternsController < ApplicationController
   private
 
   def load_result_context
-    result_id = params[:result_id] || params.dig(:target_pattern, :result_id)
-    return unless result_id
+    return unless params[:result_id]
 
-    context = Targets::ResultContextService.call(current_user: current_user, result_id: result_id)
+    context = Targets::ResultContextService.call(current_user: current_user, result_id: params[:result_id])
     @result = context.result
     @default_path = context.default_path
     @path_segments = context.path_segments
@@ -57,6 +45,30 @@ class TargetPatternsController < ApplicationController
     @matched_target = context.matched_target
   rescue ActiveRecord::RecordNotFound
     redirect_back_or_to(root_path, alert: "Result not found.", status: :see_other)
+  end
+
+  def resolve_target_configuration
+    if params[:result_id].present?
+      Targets::PatternConfigurationService.call(
+        current_user: current_user,
+        search: @search,
+        result: @result,
+        matched_target: @matched_target,
+        pattern_params: target_pattern_params
+      )
+    else
+      Targets::PatternConfigurationService.call_direct(pattern_params: target_pattern_params)
+    end
+  end
+
+  def handle_post_creation(target)
+    if @search.present?
+      path_pattern = target_pattern_params[:path_pattern]
+      @target_pattern = TargetPattern.find_or_create_by(target_id: target.id, path_pattern: path_pattern)
+      handle_successful_creation
+    else
+      redirect_to edit_target_path(target), notice: "Path pattern added successfully.", status: :see_other
+    end
   end
 
   def handle_successful_creation
@@ -84,6 +96,6 @@ class TargetPatternsController < ApplicationController
   end
 
   def target_pattern_params
-    params.expect(target_pattern: %i[path_pattern is_active target_id category_id category_name])
+    params.expect(target_pattern: %i[path_pattern is_active target_id category_id category_name allow_query_strings])
   end
 end

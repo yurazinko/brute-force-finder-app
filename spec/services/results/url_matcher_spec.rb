@@ -140,14 +140,14 @@ RSpec.describe Results::UrlMatcher, type: :service do
       context "when target or target domain is blank/nil" do
         let(:target_domain) { nil }
 
-        it "returns true when target domain is nil" do
+        it "returns false when target domain is nil" do
           url = "https://indeed.com/viewjob"
-          expect(described_class.matches?(url, target)).to be true
+          expect(described_class.matches?(url, target)).to be false
         end
 
-        it "returns true when target itself is nil" do
+        it "returns false when target itself is nil" do
           url = "https://indeed.com/viewjob"
-          expect(described_class.matches?(url, nil)).to be true
+          expect(described_class.matches?(url, nil)).to be false
         end
       end
 
