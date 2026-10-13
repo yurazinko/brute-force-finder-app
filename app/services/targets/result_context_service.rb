@@ -41,7 +41,7 @@ module Targets
     end
 
     def match_target
-      @matched_target = @available_targets.find { |t| Results::UrlMatcher.matches?(@result.url, t) }
+      @matched_target = @available_targets.find { |t| Results::UrlMatcher.domain_matches?(@result.url, t) }
     end
   end
 end

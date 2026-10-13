@@ -62,7 +62,7 @@ module Results
       return nil unless search&.user
 
       user_targets = Target.joins(:category).where(categories: { user_id: search.user_id }).distinct
-      user_targets.find { |target| Results::UrlMatcher.matches?(@result.url, target) }
+      user_targets.find { |target| Results::UrlMatcher.domain_matches?(@result.url, target) }
     end
 
     def find_active_matched_pattern(target, path)

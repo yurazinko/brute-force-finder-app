@@ -4,8 +4,14 @@ export default class extends Controller {
   declare readonly segmentTargets: HTMLElement[]
   declare readonly inputTarget: HTMLInputElement
   declare readonly hasInputTarget: boolean
+  declare readonly hasCategorySelectTarget: boolean
+  declare readonly categorySelectTarget: HTMLSelectElement
+  declare readonly hasCategoryInputTarget: boolean
+  declare readonly categoryInputTarget: HTMLInputElement
+  declare readonly hasErrorTarget: boolean
+  declare readonly errorTarget: HTMLElement
 
-  static targets = ["segment", "label", "input"]
+  static targets = ["segment", "label", "input", "categorySelect", "categoryInput", "error"]
 
   connect(): void {
     this.updateInput()
@@ -103,7 +109,36 @@ export default class extends Controller {
     })
 
     if (this.hasInputTarget) {
-      this.inputTarget.value = "/" + parts.join("/")
+      let result = "/" + parts.join("/")
+
+      if (result.endsWith("/*")) {
+        result = result.slice(0, -2) + "*"
+      }
+
+      this.inputTarget.value = result
+    }
+  }
+
+  validate(event: Event): void {
+    const targetIdInput = this.element.closest("form")?.querySelector("input[name='target_pattern[target_id]']")
+    if (targetIdInput && (targetIdInput as HTMLInputElement).value) {
+      return
+    }
+
+    const selectVal = this.hasCategorySelectTarget ? this.categorySelectTarget.value.trim() : ""
+    const inputVal = this.hasCategoryInputTarget ? this.categoryInputTarget.value.trim() : ""
+
+    if (!selectVal && !inputVal) {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (this.hasErrorTarget) {
+        this.errorTarget.classList.remove("hidden")
+      }
+    } else {
+      if (this.hasErrorTarget) {
+        this.errorTarget.classList.add("hidden")
+      }
     }
   }
 }

@@ -4,7 +4,7 @@ module Targets
   class PatternConfigurationService
     def self.call(...) = new(...).call
 
-    def initialize(current_user:, search:, result:, matched_target:, pattern_params:)
+    def initialize(current_user:, pattern_params:, search: nil, result: nil, matched_target: nil)
       @user = current_user
       @search = search
       @result = result
@@ -15,6 +15,22 @@ module Targets
     def call
       target = resolve_target
       save_target_pattern(target)
+      target
+    end
+
+    def self.call_direct(pattern_params:)
+      new(current_user: nil, pattern_params: pattern_params).direct_call
+    end
+
+    def direct_call
+      target = Target.find(@params[:target_id])
+      path_pattern = @params[:path_pattern]
+
+      if path_pattern.present? && path_pattern != "/"
+        target.target_patterns.find_or_create_by!(path_pattern: path_pattern) do |tp|
+          tp.is_active = true
+        end
+      end
       target
     end
 
@@ -31,13 +47,14 @@ module Targets
     end
 
     def create_target_from_result
-      uri = URI.parse(@result.url)
-      domain = uri.host&.sub(Utils::UrlNormalizer::WWW_PREFIX, "")
+      domain = URI.parse(@result.url).host&.sub(Utils::UrlNormalizer::WWW_PREFIX, "")
 
       category = resolve_category
+
       category.targets.find_or_create_by!(domain: domain) do |t|
         t.name = domain.split(".").first.capitalize
         t.is_active = true
+        t.allow_query_strings = ActiveModel::Type::Boolean.new.cast(@params[:allow_query_strings].to_i)
       end
     end
 
