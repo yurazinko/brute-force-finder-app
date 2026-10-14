@@ -16,19 +16,29 @@ class TargetPatternsController < ApplicationController
   end
 
   def update
-    if @target_pattern.update(target_pattern_params)
-      redirect_back_or_to(edit_target_path(@target_pattern.target), notice: "Pattern updated successfully.",
-                                                                    status: :see_other)
+    success = @target_pattern.update(target_pattern_params)
+    flash_key = success ? :notice : :alert
+    message = success ? "Pattern updated successfully." : "Failed to update pattern."
+
+    if params[:result_id].present?
+      redirect_to new_target_pattern_path(result_id: params[:result_id], redirect_to: params[:redirect_to]),
+                  flash_key => message, status: :see_other
     else
-      redirect_back_or_to(edit_target_path(@target_pattern.target), alert: "Failed to update pattern.",
-                                                                    status: :see_other)
+      redirect_back_or_to edit_target_path(@target_pattern.target),
+                          flash_key => message, status: :see_other
     end
   end
 
   def destroy
     target = @target_pattern.target
     @target_pattern.destroy
-    redirect_back_or_to(edit_target_path(target), notice: "Pattern removed.", status: :see_other)
+
+    if params[:result_id].present?
+      redirect_to new_target_pattern_path(result_id: params[:result_id], redirect_to: params[:redirect_to]),
+                  notice: "Pattern removed.", status: :see_other
+    else
+      redirect_back_or_to(edit_target_path(target), notice: "Pattern removed.", status: :see_other)
+    end
   end
 
   private
@@ -62,25 +72,32 @@ class TargetPatternsController < ApplicationController
   end
 
   def handle_post_creation(target)
-    if @search.present?
+    redirect_url = params[:redirect_to].presence || (
+      @search.present? ? search_path(@search) : edit_target_path(target)
+    )
+
+    if @search.present? && params[:result_id].present?
       path_pattern = target_pattern_params[:path_pattern]
       @target_pattern = TargetPattern.find_or_create_by(target_id: target.id, path_pattern: path_pattern)
-      handle_successful_creation
+      handle_successful_creation(redirect_url)
     else
-      redirect_to edit_target_path(target), notice: "Path pattern added successfully.", status: :see_other
+      redirect_to redirect_url, notice: "Path pattern added successfully.", status: :see_other
     end
   end
 
-  def handle_successful_creation
+  def handle_successful_creation(redirect_url)
     respond_to do |format|
       format.html do
-        redirect_to search_path(@search), notice: "Target and pattern successfully configured!", status: :see_other
+        redirect_to redirect_url, notice: "Target and pattern successfully configured!", status: :see_other
       end
+
       format.turbo_stream do
+        partial_locals = { search: @search, target_pattern: @target_pattern, redirect_url: redirect_url }
         render turbo_stream: [
-          turbo_stream.replace("modal_form_container", partial: "target_patterns/form_success_state",
-                                                       locals: { search: @search, target_pattern: @target_pattern }),
-          turbo_stream.action(:visit, search_path(@search))
+          turbo_stream.replace(
+            "modal_form_container", partial: "target_patterns/form_success_state", locals: partial_locals
+          ),
+          turbo_stream.action(:visit, redirect_url)
         ]
       end
     end

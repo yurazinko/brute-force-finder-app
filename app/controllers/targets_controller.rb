@@ -22,7 +22,7 @@ class TargetsController < ApplicationController
   def update
     if @target.update(target_params)
       respond_to do |format|
-        format.html { redirect_to category_path(@target.category_id) }
+        format.html { redirect_to edit_target_path(@target.id), notice: "Target #{@target.name} updated" }
         format.json { head :no_content }
         format.js   { head :no_content }
       end

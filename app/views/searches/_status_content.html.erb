@@ -27,7 +27,7 @@
       <!-- Console Text Wrapper -->
       <div class="relative flex-1 min-w-0 h-full flex items-center overflow-hidden">
         <div class="absolute inset-0 flex items-center overflow-hidden">
-          <div id="live_tracker_message" class="whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-emerald-400/90 tracking-tight after:content-['█'] after:animate-ping after:ml-1 after:text-emerald-500">
+          <div id="live_tracker_message" class="whitespace-nowrap animate-marquee hover:[animation-play-state:paused] text-emerald-400/90 tracking-tight <%= search.status == 'processing' ? "after:content-['█'] after:animate-ping after:ml-1 after:text-emerald-500" : "" %>">
             <% case search.status %>
             <% when "processing" %>
               Scanning targeted web sources in real-time stream...
