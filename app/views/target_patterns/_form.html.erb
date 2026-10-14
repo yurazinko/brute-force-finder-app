@@ -19,7 +19,6 @@
       </span>
     </div>
 
-    <!-- Список існуючих паттернів -->
     <div class="space-y-2">
       <% if matched_target.target_patterns.any? %>
         <% matched_target.target_patterns.each do |pattern| %>
@@ -57,7 +56,6 @@
   </div>
 <% end %>
 
-<!-- Головна форма створення нового патерну -->
 <%= form_with model: target_pattern, url: target_patterns_path, method: :post, class: "space-y-5", data: { controller: "path-builder", action: "submit->path-builder#validate" } do |f| %>
   <%= hidden_field_tag :result_id, result&.id if result %>
   <%= hidden_field_tag :redirect_to, redirect_path if redirect_path %>
@@ -155,7 +153,7 @@
             🔒 Exact match
           </button>
           <button type="button" data-action="click->path-builder#setWildcardFolder" class="w-full text-left px-3 py-2 hover:bg-breeze-accent/20 text-breeze-accent truncate">
-            📁 Any subfolders
+            ✨ Any value
           </button>
           <button type="button" data-action="click->path-builder#setWildcardSuffix" data-path-builder-target="suffixWildcardButton" class="w-full text-left px-3 py-2 hover:bg-breeze-accent/20 text-breeze-accent truncate">
             🔤 Starts with this text

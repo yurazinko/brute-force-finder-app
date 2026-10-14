@@ -82,7 +82,6 @@ export default class extends Controller {
         input.value = ""
         return
       } catch (e) {
-        // Якщо це не URL, обробляємо як звичайний текст
       }
     }
 
