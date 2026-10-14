@@ -27,7 +27,7 @@ class NightlyScrapingCronJob < ApplicationJob
     ActiveRecord::Base.connection.select_rows(<<~SQL.squish)
       SELECT id, user_id
       FROM searches
-      WHERE status IN ('completed', 'pending', 'failed')
+      WHERE status IN ('completed', 'processing', 'pending', 'failed')
     SQL
   end
 

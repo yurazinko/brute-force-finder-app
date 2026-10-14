@@ -10,6 +10,7 @@ RSpec.describe NightlyScrapingCronJob, type: :job do
     let!(:completed_search)  { create(:search, user: user, status: "completed") }
     let!(:failed_search)     { create(:search, user: user, status: "failed") }
     let!(:processing_search) { create(:search, user: user, status: "processing") }
+    let!(:paused_search)     { create(:search, user: user, status: "paused") }
 
     before do
       Sidekiq::Testing.fake!
@@ -17,14 +18,14 @@ RSpec.describe NightlyScrapingCronJob, type: :job do
       allow(Rails.env).to receive(:development?).and_return(false)
     end
 
-    it "triggers SearchActivationJob only for completed and failed searches" do
+    it "triggers SearchActivationJob only for completed, processing and failed searches" do
       expect do
         described_class.new.perform
-      end.to change(SearchActivationJob.jobs, :size).by(2)
+      end.to change(SearchActivationJob.jobs, :size).by(3)
 
       enqueued_ids = SearchActivationJob.jobs.map { |j| j["args"].first }
-      expect(enqueued_ids).to include(completed_search.id, failed_search.id)
-      expect(enqueued_ids).not_to include(processing_search.id)
+      expect(enqueued_ids).to include(completed_search.id, processing_search.id, failed_search.id)
+      expect(enqueued_ids).not_to include(paused_search.id)
     end
 
     it "calculates delayed scheduling correctly" do
