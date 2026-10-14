@@ -11,7 +11,7 @@
           <span>✨</span>
           <span>Configure Link Pattern and Target</span>
         </h3>
-        <%= link_to "✕", params[:redirect_to].presence || search_path(@search), data: { turbo_frame: "_top" }, class: "text-breeze-muted hover:text-breeze-text transition text-xs font-bold px-2 py-1 rounded-md bg-breeze-bg border border-breeze-border/60" %>
+        <%= link_to "✕", safe_redirect_path(params[:redirect_to], fallback: search_path(@search)), data: { turbo_frame: "_top" }, class: "text-breeze-muted hover:text-breeze-text transition text-xs font-bold px-2 py-1 rounded-md bg-breeze-bg border border-breeze-border/60" %>
       </div>
 
       <!-- Form Container -->
@@ -21,7 +21,7 @@
                    result: @result,
                    matched_target: @matched_target,
                    search: @search,
-                   redirect_path: params[:redirect_to].presence || search_path(@search),
+                   redirect_path: safe_redirect_path(params[:redirect_to], fallback: search_path(@search)),
                    path_segments: @path_segments,
                    default_path: @default_path %>
       </div>
