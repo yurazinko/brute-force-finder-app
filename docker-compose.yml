@@ -8,6 +8,9 @@ x-app: &app
     - .:/app:cached
     - /app/node_modules
     - /var/run/docker.sock:/var/run/docker.sock
+  dns:
+    - 8.8.8.8
+    - 1.1.1.1
   environment:
     RAILS_ENV: development
     REDIS_URL: redis://redis:6379/1
@@ -23,6 +26,10 @@ x-app: &app
     COMPOSE_PROJECT_NAME: "brute-force-finder-app"
     FOURGET_URLS: "http://fourget:80"
     DEGOOG_URLS: "http://degoog:4444"
+  deploy:
+    resources:
+      limits:
+        memory: 1500M
   networks:
     - finder_network
 
@@ -32,8 +39,12 @@ x-tor-base: &tor-base
   command: >
     tor -f /etc/tor/torrc
     --SocksPort "0.0.0.0:9050 IsolateDestAddr IsolateDestPort"
-    --MaxCircuitDirtiness 60
-    --NewCircuitPeriod 30
+    --MaxCircuitDirtiness 300
+    --NewCircuitPeriod 60
+  deploy:
+    resources:
+      limits:
+        memory: 256M
   healthcheck:
     test: ["CMD", "nc", "-z", "127.0.0.1", "9050"]
     interval: 5s
@@ -45,6 +56,10 @@ x-tor-base: &tor-base
 x-searxng-base: &searxng-base
   image: searxng/searxng:latest
   restart: unless-stopped
+  deploy:
+    resources:
+      limits:
+        memory: 512M
   networks:
     - finder_network
   healthcheck:
@@ -152,6 +167,10 @@ services:
       - FOURGET_PROXY_YANDEX_W=onion
       - FOURGET_PROXY_YANDEX_I=onion
       - FOURGET_PROXY_YANDEX_V=onion
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     volumes:
       - ./data/fourget/proxies/:/var/www/html/4get/data/proxies/
     depends_on:
@@ -173,6 +192,10 @@ services:
       DEGOOG_PUBLIC_INSTANCE: "false"
       DEGOOG_DISTRUST_PROXY: "0"
       PROXY_URL: "socks5://tor_2:9050"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
       tor_1:
         condition: service_healthy
