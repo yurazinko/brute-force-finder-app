@@ -19,36 +19,27 @@ module Targets
     end
 
     def self.call_direct(pattern_params:)
-      new(current_user: nil, pattern_params: pattern_params).direct_call
-    end
-
-    def direct_call
-      target = Target.find(@params[:target_id])
-      path_pattern = @params[:path_pattern]
-
-      if path_pattern.present? && path_pattern != "/"
-        target.target_patterns.find_or_create_by!(path_pattern: path_pattern) do |tp|
-          tp.is_active = true
-        end
-      end
-      target
+      new(current_user: nil, pattern_params: pattern_params).call
     end
 
     private
 
     def resolve_target
-      target_id = @params[:target_id] || @matched_target&.id
+      target_id = @params[:target_id].presence || @matched_target&.id
 
-      if target_id.blank?
+      if target_id.present?
+        Target.find(target_id)
+      elsif @result.present? && @result.url.present?
         create_target_from_result
       else
-        Target.find(target_id)
+        raise(ActiveRecord::RecordInvalid, Target.new.tap do |t|
+          t.errors.add(:base, "Target ID, Domain, or Result context is required.")
+        end)
       end
     end
 
     def create_target_from_result
       domain = URI.parse(@result.url).host&.sub(Utils::UrlNormalizer::WWW_PREFIX, "")
-
       category = resolve_category
 
       category.targets.find_or_create_by!(domain: domain) do |t|
