@@ -87,15 +87,19 @@ class Result < ApplicationRecord
         Arel.sql("SUM(results.relevance_score)"),
         Arel.sql("AVG(results.relevance_score)")
       )
-      .map do |domain, count, total_score, average_score|
-        {
-          domain: domain,
-          relevant_results_count: count.to_i,
-          total_relevance_score: total_score.to_i,
-          average_relevance_score: average_score.to_f.round(1)
-        }
-      end
+      .map { |row| map_efficiency_row(row) }
   end
+
+  def self.map_efficiency_row(row)
+    {
+      domain: row[0],
+      relevant_results_count: row[1].to_i,
+      total_relevance_score: row[2].to_i,
+      average_relevance_score: row[3].to_f.round(1)
+    }
+  end
+
+  private_class_method :map_efficiency_row
 
   private
 

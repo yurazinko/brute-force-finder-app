@@ -168,16 +168,66 @@ RSpec.describe Result, type: :model do
 
   describe ".top_domains_efficiency" do
     before do
-      described_class.create!(search: search, status: "unread", url: "https://rubyonrails.org/1", url_hash: "hash_rails_1")
-      described_class.create!(search: search, status: "unread", url: "https://rubyonrails.org/2", url_hash: "hash_rails_2")
-      described_class.create!(search: search, status: "unread", url: "http://github.com/1", url_hash: "hash_github_1")
+      described_class.create!(
+        search: search,
+        status: "unread",
+        relevance_score: 5,
+        url: "https://rubyonrails.org/1",
+        url_hash: "hash_rails_1",
+        created_at: 2.days.ago
+      )
+      described_class.create!(
+        search: search,
+        status: "unread",
+        relevance_score: 3,
+        url: "https://rubyonrails.org/2",
+        url_hash: "hash_rails_2",
+        created_at: 3.days.ago
+      )
+
+      described_class.create!(
+        search: search,
+        status: "unread",
+        relevance_score: 0,
+        url: "https://rubyonrails.org/zero",
+        url_hash: "hash_rails_zero",
+        created_at: 1.day.ago
+      )
+      described_class.create!(
+        search: search,
+        status: "garbage",
+        relevance_score: 2,
+        url: "http://github.com/1",
+        url_hash: "hash_github_1",
+        created_at: 5.days.ago
+      )
+
+      described_class.create!(
+        search: search,
+        status: "unread",
+        relevance_score: 10,
+        url: "https://old-domain.com/1",
+        url_hash: "hash_old_1",
+        created_at: 40.days.ago
+      )
     end
 
-    it "extracts domain from URL, aggregates, and limits to top 5" do
+    it "extracts domain from URL, filters by relevance and time frame, and aggregates metrics correctly" do
       result = described_class.top_domains_efficiency
 
-      expect(result["rubyonrails.org"]).to eq(2)
-      expect(result["github.com"]).to eq(1)
+      rails_stat = result.find { |r| r[:domain] == "rubyonrails.org" }
+      github_stat = result.find { |r| r[:domain] == "github.com" }
+      old_stat = result.find { |r| r[:domain] == "old-domain.com" }
+
+      expect(rails_stat[:relevant_results_count]).to eq(2)
+      expect(rails_stat[:total_relevance_score]).to eq(8)
+      expect(rails_stat[:average_relevance_score]).to eq(4.0)
+
+      expect(github_stat[:relevant_results_count]).to eq(1)
+      expect(github_stat[:total_relevance_score]).to eq(2)
+      expect(github_stat[:average_relevance_score]).to eq(2.0)
+
+      expect(old_stat).to be_nil
     end
   end
 

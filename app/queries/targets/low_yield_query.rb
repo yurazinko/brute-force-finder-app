@@ -42,46 +42,67 @@ module Targets
     end
 
     def call
-      prompts_by_target = Prompt.where(created_at: @since..Time.current)
-                                .where.not(target_id: nil)
-                                .group(:target_id)
-                                .count
-
-      candidate_ids = prompts_by_target.filter_map do |target_id, count|
-        target_id if count >= MIN_PROMPTS
-      end
+      prompts_by_target = fetch_prompts_by_target
+      candidate_ids = select_candidate_ids(prompts_by_target)
       return [] if candidate_ids.empty?
 
-      relevant_results_by_domain = Result.where(created_at: @since..Time.current)
-                                         .where('results.relevance_score > 0')
-                                         .group(Arel.sql(RESULT_DOMAIN_SQL))
-                                         .count
+      relevant_results = fetch_relevant_results_by_domain
 
-      Target.active.where(id: candidate_ids).filter_map do |target|
-        next if target.domain.blank?
+      stats = Target.active.where(id: candidate_ids).filter_map do |target|
+        build_stat_for_target(target, prompts_by_target, relevant_results)
+      end
 
-        prompts_count = prompts_by_target.fetch(target.id)
-        domain = normalize_domain(target.domain)
-        relevant_count = relevant_results_by_domain.fetch(domain, 0)
-        yield_ratio = relevant_count.to_f / prompts_count
-
-        next unless low_yield?(relevant_count, yield_ratio)
-
-        Stat.new(
-          target:,
-          prompts_count:,
-          relevant_results_count: relevant_count,
-          yield_percentage: (yield_ratio * 100).round(2)
-        )
-      end.sort_by do |stat|
-        [stat.relevant_results_count, stat.yield_percentage, -stat.prompts_count]
-      end.first(@limit)
+      sort_and_limit_stats(stats)
     end
 
     private
 
+    def fetch_prompts_by_target
+      Prompt.where(created_at: @since..Time.current)
+            .where.not(target_id: nil)
+            .group(:target_id)
+            .count
+    end
+
+    def select_candidate_ids(prompts_by_target)
+      prompts_by_target.filter_map do |target_id, count|
+        target_id if count >= MIN_PROMPTS
+      end
+    end
+
+    def fetch_relevant_results_by_domain
+      Result.where(created_at: @since..Time.current)
+            .where("results.relevance_score > 0")
+            .group(Arel.sql(RESULT_DOMAIN_SQL))
+            .count
+    end
+
+    def build_stat_for_target(target, prompts_by_target, relevant_results)
+      return nil if target.domain.blank?
+
+      prompts_count = prompts_by_target.fetch(target.id)
+      domain = normalize_domain(target.domain)
+      relevant_count = relevant_results.fetch(domain, 0)
+      yield_ratio = relevant_count.to_f / prompts_count
+
+      return nil unless low_yield?(relevant_count, yield_ratio)
+
+      Stat.new(
+        target:,
+        prompts_count:,
+        relevant_results_count: relevant_count,
+        yield_percentage: (yield_ratio * 100).round(2)
+      )
+    end
+
+    def sort_and_limit_stats(stats)
+      stats.sort_by do |stat|
+        [stat.relevant_results_count, stat.yield_percentage, -stat.prompts_count]
+      end.first(@limit)
+    end
+
     def normalize_domain(value)
-      value.to_s.strip.downcase.sub(%r{\Ahttps?://}i, '').sub(%r{/+\z}, '')
+      value.to_s.strip.downcase.sub(%r{\Ahttps?://}i, "").sub(%r{/+\z}, "")
     end
 
     def low_yield?(relevant_count, yield_ratio)

@@ -27,7 +27,7 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
 
       before do
         stub_request(:get, target_url)
-          .to_return(body: [first_chunk, second_chunk])
+          .to_return(body: first_chunk + second_chunk)
       end
 
       it "triggers early exit after processing the first matching chunk" do
@@ -40,10 +40,8 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
 
     context "when ignored tags are present in stream" do
       let(:html_stream) do
-        [
-          "<html><head><script>var keyword = 'ruby';</script><style>.remote { color: red; }</style></head>",
+        "<html><head><script>var keyword = 'ruby';</script><style>.remote { color: red; }</style></head>" \
           "<body><p>We need a Rails engineer with Fulltime commitment.</p></body></html>"
-        ]
       end
 
       before do
@@ -63,7 +61,7 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
       let(:captcha_chunk) { "<html><head><title>Just a moment...</title></head><body>cf-turnstile</body></html>" }
 
       before do
-        stub_request(:get, target_url).to_return(body: [captcha_chunk])
+        stub_request(:get, target_url).to_return(body: captcha_chunk)
       end
 
       it "aborts stream and returns captcha FetchResult" do
@@ -75,10 +73,10 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
     end
 
     context "when response exceeds MAX_BYTES limit" do
-      let(:huge_chunk) { "a" * (described_class::MAX_BYTES + 500) }
+      let(:huge_chunk) { "<html><body>#{'a' * (described_class::MAX_BYTES + 500)}</body></html>" }
 
       before do
-        stub_request(:get, target_url).to_return(body: [huge_chunk])
+        stub_request(:get, target_url).to_return(body: huge_chunk)
       end
 
       it "aborts stream safely and returns partial normalized text" do
