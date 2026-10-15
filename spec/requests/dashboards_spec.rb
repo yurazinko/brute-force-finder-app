@@ -16,23 +16,32 @@ RSpec.describe "Dashboards", type: :request do
     subject(:send_request) { get dashboard_path }
 
     context "when user is authenticated and data is present" do
-      let(:user_search) { create(:search, user: user) }
-
       let(:target_one) { create(:target, category: category, name: "Alpha Target", domain: "alpha.com") }
       let(:target_two) { create(:target, category: category, name: "Beta Target", domain: "beta.com") }
 
+      let(:productive_domains) do
+        [
+          { domain: "example.com", relevant_results_count: 10, total_relevance_score: 50, average_relevance_score: 5.0 },
+          { domain: "test.com", relevant_results_count: 5, total_relevance_score: 12, average_relevance_score: 2.4 }
+        ]
+      end
+
+      let(:loser_targets) do
+        [
+          Targets::LowYieldQuery::Stat.new(
+            target: target_one, prompts_count: 50, relevant_results_count: 0, yield_percentage: 0.0
+          ),
+          Targets::LowYieldQuery::Stat.new(
+            target: target_two, prompts_count: 30, relevant_results_count: 1, yield_percentage: 3.33
+          )
+        ]
+      end
+
       before do
-        create_list(:prompt, 50, search: user_search, target: target_one)
-        create_list(:prompt, 30, search: user_search, target: target_two)
-
-        loser_targets = Target.top_by_prompts_count(5)
-
-        allow(Result).to receive(:top_domains_efficiency).and_return({ "example.com" => 10, "test.com" => 5 })
-        allow(Target).to receive(:top_by_prompts_count).with(5).and_return(loser_targets)
-        allow(Target).to receive(:prompts_distribution_map).and_return({ "Alpha Target" => 50, "Beta Target" => 30 })
-        allow(Targets::ResultCountsQuery).to receive(:call).with(loser_targets).and_return({ target_one.id => 0, target_two.id => 12 })
-        create(:prompt, search: user_search, error_message: "Connection Timeout")
-        create_list(:prompt, 2, search: user_search, error_message: "403 Forbidden")
+        allow(Result).to receive(:top_domains_efficiency)
+          .with(hash_including(limit: 10)).and_return(productive_domains)
+        allow(Targets::LowYieldQuery).to receive(:call)
+          .with(hash_including(limit: 10)).and_return(loser_targets)
       end
 
       it "returns http status success" do
@@ -44,51 +53,39 @@ RSpec.describe "Dashboards", type: :request do
         send_request
         expect(response.body).to include("Most Productive Domains")
         expect(response.body).to include("example.com")
-        expect(response.body).to include("10 leads")
-        expect(response.body).to include("style=\"width: 100%\"")
-        expect(response.body).to include("style=\"width: 50%\"")
+        expect(response.body).to include("test.com")
+        expect(response.body).to include("Score total")
       end
 
-      it "renders dead weight targets section with zero-lead highlighting" do
+      it "renders low-yield targets section with zero-result highlighting" do
         send_request
-        expect(response.body).to include("Dead Weight Targets (Losers)")
+        expect(response.body).to include("Low-Yield Targets")
         expect(response.body).to include("Alpha Target")
-        expect(response.body).to include("0 leads found")
-        expect(response.body).to include("text-red-500 font-bold")
+        expect(response.body).to include("alpha.com")
+        expect(response.body).to include("text-red-600 font-bold")
+        expect(response.body).to include("Beta Target")
+        expect(response.body).to include("text-amber-600 font-semibold")
       end
 
-      it "renders engine load section with calculated progress bars" do
+      it "renders yield percentages" do
         send_request
-        expect(response.body).to include("Engine Load (Prompts per Target)")
-        expect(response.body).to include("Alpha Target")
-        expect(response.body).to include("50 requests")
-        expect(response.body).to include("style=\"width: 100%\"")
-        expect(response.body).to include("style=\"width: 60%\"")
-      end
-
-      it "renders pipeline failures grouped and ordered by count" do
-        send_request
-        expect(response.body).to include("Top Pipeline Failures")
-        expect(response.body).to include("403 Forbidden")
-        expect(response.body).to include("Connection Timeout")
+        expect(response.body).to include("0%")
+        expect(response.body).to include("3.33%")
       end
     end
 
     context "when dashboard data is empty" do
       before do
-        allow(Result).to receive(:top_domains_efficiency).and_return({})
-        allow(Target).to receive(:top_by_prompts_count).with(5).and_return([])
-        allow(Target).to receive(:prompts_distribution_map).and_return({})
-        allow(Targets::ResultCountsQuery).to receive(:call).and_return({})
+        allow(Result).to receive(:top_domains_efficiency).and_return([])
+        allow(Targets::LowYieldQuery).to receive(:call).and_return([])
       end
 
-      it "renders empty states cleanly without division by zero errors" do
+      it "renders empty states cleanly" do
         send_request
 
         expect(response).to have_http_status(:success)
-        expect(response.body).to include("No data available")
-        expect(response.body).to include("No targets queried yet.")
-        expect(response.body).to include("No errors tracked. Pipeline is clean! 🚀")
+        expect(response.body).to include("No relevant results found in the last 30 days.")
+        expect(response.body).to include("No low-yield targets found for the last 30 days.")
       end
     end
 

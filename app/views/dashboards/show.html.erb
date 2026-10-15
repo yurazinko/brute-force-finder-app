@@ -1,100 +1,101 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
   <div class="mb-8">
-    <h1 class="text-3xl font-bold text-breeze-text">Scraper Engine Dashboard</h1>
-    <p class="text-sm text-breeze-muted mt-1">Analytics for target domains, loads, and pipeline errors.</p>
+    <h1 class="text-3xl font-bold text-breeze-text">Scraper Statistics</h1>
+    <p class="text-sm text-breeze-muted mt-1">
+      Relevant results and target yield over the last 30 days.
+    </p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-    <div class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
-      <h2 class="text-sm font-bold text-breeze-muted uppercase tracking-wider mb-4">🔥 Most Productive Domains</h2>
-      <div class="space-y-4">
-        <% if @target_efficiency.any? %>
-          <% @target_efficiency.each do |domain, count| %>
-            <% percentage = (count.to_f / @efficiency_max * 100).round %>
-            <div>
-              <div class="flex justify-between text-xs font-medium text-breeze-text mb-1">
-                <span class="truncate max-w-[70%]"><%= domain %></span>
-                <span class="font-bold text-breeze-text"><%= count %> leads</span>
-              </div>
-              <div class="w-full bg-breeze-bg rounded-full h-3 overflow-hidden">
-                <div class="bg-breeze-accent h-3 rounded-full" style="width: <%= percentage %>%"></div>
-              </div>
-            </div>
-          <% end %>
-        <% else %>
-          <p class="text-breeze-muted text-sm text-center py-6">No data available</p>
-        <% end %>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <section class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
+      <div class="mb-4">
+        <h2 class="text-sm font-bold text-breeze-muted uppercase tracking-wider">
+          Most Productive Domains
+        </h2>
+        <p class="text-xs text-breeze-muted mt-1">
+          Ranked by the sum of positive relevance scores; only results with <code>relevance_score &gt; 0</code> count.
+        </p>
       </div>
-    </div>
 
-    <div class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm flex flex-col justify-between">
-      <div>
-        <h2 class="text-sm font-bold text-amber-500 uppercase tracking-wider mb-4">💀 Dead Weight Targets (Losers)</h2>
-        <div class="space-y-3">
-          <% if @loser_targets.any? %>
-            <% @loser_targets.each do |target| %>
-                <div class="p-3 bg-amber-50/40 rounded-lg border border-amber-100 flex justify-between items-center">
-                <div>
-                  <div class="text-xs font-bold text-breeze-text"><%= target.name %></div>
-                  <div class="text-[10px] text-breeze-muted font-mono"><%= target.domain %></div>
-                </div>
-                <div class="text-right">
-                  <span class="block text-xs font-semibold text-breeze-text"><%= target.prompts_count %> requests</span>
-                  <span class="block text-[10px] <%= @target_result_counts.fetch(target.id, 0).zero? ? 'text-red-500 font-bold' : 'text-breeze-muted' %>">
-                    <%= @target_result_counts.fetch(target.id, 0) %> leads found
-                  </span>
-                </div>
-              </div>
-            <% end %>
-          <% else %>
-            <p class="text-breeze-muted text-sm text-center py-6">No targets queried yet.</p>
-          <% end %>
+      <% if @productive_domains.any? %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-breeze-muted border-b border-breeze-border">
+              <tr>
+                <th scope="col" class="py-3 pr-3">#</th>
+                <th scope="col" class="py-3 pr-3">Domain</th>
+                <th scope="col" class="py-3 pr-3 text-right">Relevant results</th>
+                <th scope="col" class="py-3 pr-3 text-right">Score total</th>
+                <th scope="col" class="py-3 text-right">Avg. score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @productive_domains.each_with_index do |stat, index| %>
+                <tr class="border-b border-breeze-border last:border-0">
+                  <td class="py-3 pr-3 text-breeze-muted"><%= index + 1 %></td>
+                  <td class="py-3 pr-3 font-medium text-breeze-text break-all"><%= stat[:domain] %></td>
+                  <td class="py-3 pr-3 text-right font-bold text-breeze-text"><%= stat[:relevant_results_count] %></td>
+                  <td class="py-3 pr-3 text-right font-semibold"><%= stat[:total_relevance_score] %></td>
+                  <td class="py-3 text-right"><%= number_with_precision(stat[:average_relevance_score], precision: 1) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
-      </div>
-      <p class="text-[11px] text-amber-600 mt-4 border-t border-amber-100 pt-2">These sites take up a lot of prompt cycles but return almost zero results. Turn them off to save bandwidth.</p>
-    </div>
+      <% else %>
+        <p class="text-sm text-breeze-muted text-center py-8">
+          No relevant results found in the last 30 days.
+        </p>
+      <% end %>
+    </section>
 
-    <div class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
-      <h2 class="text-sm font-bold text-breeze-muted uppercase tracking-wider mb-4">⏳ Engine Load (Prompts per Target)</h2>
-      <div class="space-y-4">
-        <% if @target_prompts.any? %>
-          <% @target_prompts.each do |name, count| %>
-            <% percentage = (count.to_f / @prompts_max * 100).round %>
-            <div>
-              <div class="flex justify-between text-xs font-medium text-breeze-text mb-1">
-                <span class="truncate"><%= name %></span>
-                <span class="font-bold"><%= count %> requests</span>
-              </div>
-              <div class="w-full bg-breeze-bg rounded-full h-3 overflow-hidden">
-                <div class="bg-blue-600 h-3 rounded-full" style="width: <%= percentage %>%"></div>
-              </div>
-            </div>
-          <% end %>
-        <% else %>
-          <p class="text-breeze-muted text-sm text-center py-6">No data available</p>
-        <% end %>
+    <section class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
+      <div class="mb-4">
+        <h2 class="text-sm font-bold text-amber-600 uppercase tracking-wider">
+          Low-Yield Targets
+        </h2>
+        <p class="text-xs text-breeze-muted mt-1">
+          Active targets with at least 10 prompts and zero or unusually few relevant results.
+        </p>
       </div>
-    </div>
 
-    <div class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm flex flex-col justify-between">
-      <div>
-        <h2 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-4">⚠️ Top Pipeline Failures</h2>
-        <div class="space-y-3">
-          <% if @prompt_failures.any? %>
-            <% @prompt_failures.each do |error, count| %>
-              <div class="bg-red-50 p-3 rounded-lg border border-red-100 flex justify-between items-center">
-                <span class="text-xs font-mono text-red-700 truncate max-w-[80%]" title="<%= error %>"><%= error %></span>
-                <span class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full font-bold"><%= count %></span>
-              </div>
-            <% end %>
-          <% else %>
-            <p class="text-breeze-muted text-sm text-center py-8">No errors tracked. Pipeline is clean! 🚀</p>
-          <% end %>
+      <% if @loser_targets.any? %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase text-breeze-muted border-b border-breeze-border">
+              <tr>
+                <th scope="col" class="py-3 pr-3">Target</th>
+                <th scope="col" class="py-3 pr-3 text-right">Prompts</th>
+                <th scope="col" class="py-3 pr-3 text-right">Relevant results</th>
+                <th scope="col" class="py-3 text-right">Yield</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @loser_targets.each do |stat| %>
+                <tr class="border-b border-breeze-border last:border-0">
+                  <td class="py-3 pr-3">
+                    <div class="font-medium text-breeze-text"><%= stat.target.name %></div>
+                    <div class="text-xs text-breeze-muted font-mono break-all"><%= stat.target.domain %></div>
+                  </td>
+                  <td class="py-3 pr-3 text-right"><%= stat.prompts_count %></td>
+                  <td class="py-3 pr-3 text-right <%= stat.relevant_results_count.zero? ? 'text-red-600 font-bold' : 'text-amber-600 font-semibold' %>">
+                    <%= stat.relevant_results_count %>
+                  </td>
+                  <td class="py-3 text-right font-semibold"><%= number_to_percentage(stat.yield_percentage, precision: 2, strip_insignificant_zeros: true) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
         </div>
-      </div>
-      <p class="text-[11px] text-breeze-muted mt-4 border-t pt-2">If errors dominate, adjust delays or rotate Tor nodes.</p>
-    </div>
+      <% else %>
+        <p class="text-sm text-breeze-muted text-center py-8">
+          No low-yield targets found for the last 30 days.
+        </p>
+      <% end %>
 
+      <p class="text-xs text-breeze-muted mt-4 border-t border-breeze-border pt-3">
+        Review these targets before disabling them: a low yield can also indicate overly strict relevance scoring or a target that recently changed its pages.
+      </p>
+    </section>
   </div>
 </div>

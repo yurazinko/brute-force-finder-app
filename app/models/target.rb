@@ -51,6 +51,26 @@ class Target < ApplicationRecord
     joins(:prompts).group("targets.name").order(count_all: :desc).limit(5).count
   end
 
+  # TODO: Move to query objects
+  def self.dead_weight_targets_last_30_days(limit_number = 5)
+    results_subquery = Result.where(created_at: 30.days.ago..)
+                             .where("results.target_domain = targets.domain OR " \
+                                    "results.url ILIKE '%' || targets.domain || '%'")
+                             .select("COUNT(results.id)")
+
+    active_prompts_subquery = Prompt.joins(search: :results)
+                                    .where(results: { created_at: 30.days.ago.. })
+                                    .where("prompts.target_id = targets.id")
+                                    .select("COUNT(DISTINCT prompts.id)")
+
+    active
+      .select("targets.id, targets.name, targets.domain, " \
+              "COALESCE((#{active_prompts_subquery.to_sql}), 0) as prompts_count, " \
+              "COALESCE((#{results_subquery.to_sql}), 0) as results_count")
+      .order(Arel.sql("results_count ASC, prompts_count DESC"))
+      .limit(limit_number)
+  end
+
   private
 
   def assign_to_selected_searches

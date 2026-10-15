@@ -72,13 +72,34 @@ class Result < ApplicationRecord
     end
   }
 
-  def self.top_domains_efficiency
-    group("SUBSTRING(url FROM 'https?://([^/]+)')")
-      .order(count_all: :desc)
-      .limit(5)
-      .count
-      .transform_keys { |k| k.nil? ? "Unknown" : k.to_s }
+  def self.top_domains_efficiency(since: 30.days.ago, limit: 5)
+    domain_sql = "SUBSTRING(LOWER(results.url) FROM 'https?://([^/]+)')"
+
+    where(created_at: since..Time.current)
+      .where("results.relevance_score > 0")
+      .where("results.url ~* '^https?://'")
+      .group(Arel.sql(domain_sql))
+      .order(Arel.sql("SUM(results.relevance_score) DESC, COUNT(*) DESC, AVG(results.relevance_score) DESC"))
+      .limit(limit)
+      .pluck(
+        Arel.sql(domain_sql),
+        Arel.sql("COUNT(*)"),
+        Arel.sql("SUM(results.relevance_score)"),
+        Arel.sql("AVG(results.relevance_score)")
+      )
+      .map { |row| map_efficiency_row(row) }
   end
+
+  def self.map_efficiency_row(row)
+    {
+      domain: row[0],
+      relevant_results_count: row[1].to_i,
+      total_relevance_score: row[2].to_i,
+      average_relevance_score: row[3].to_f.round(1)
+    }
+  end
+
+  private_class_method :map_efficiency_row
 
   private
 

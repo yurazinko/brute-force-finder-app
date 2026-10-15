@@ -85,7 +85,7 @@ module Results
     end
 
     def handle_abort_stream(exception, extracted_text)
-      if exception.message == :captcha
+      if exception.message.to_s == "captcha"
         Results::PageFetcher::FetchResult.new(text: "", status: :captcha)
       else
         build_result(extracted_text, status: :verified)
