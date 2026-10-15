@@ -13,7 +13,8 @@
      data-path-builder-categories-value="<%= categories_data.to_json %>"
      data-path-builder-result-url-value="<%= result&.url %>"
      data-path-builder-matched-target-id-value="<%= matched_target&.id %>"
+     data-path-builder-result-id-value="<%= params[:result_id] %>"
      data-path-builder-authenticity-token-value="<%= form_authenticity_token %>"
-     data-path-builder-create-endpoint-value="<%= target_patterns_path %>"
+     data-path-builder-create-endpoint-value="<%= target_patterns_path(result_id: params[:result_id]) %>"
      data-path-builder-redirect-path-value="<%= redirect_path %>">
 </div>

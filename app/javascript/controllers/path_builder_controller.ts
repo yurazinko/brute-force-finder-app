@@ -10,6 +10,7 @@ export default class extends Controller {
     categories: Array,
     resultUrl: String,
     matchedTargetId: Number,
+    resultId: Number,
     authenticityToken: String,
     createEndpoint: String,
     redirectPath: String
@@ -20,6 +21,7 @@ export default class extends Controller {
   declare readonly categoriesValue: any[]
   declare readonly resultUrlValue: string
   declare readonly matchedTargetIdValue: number
+  declare readonly resultIdValue: number | string
   declare readonly authenticityTokenValue: string
   declare readonly createEndpointValue: string
   declare readonly redirectPathValue: string
@@ -35,6 +37,7 @@ export default class extends Controller {
         categories: this.categoriesValue,
         resultUrl: this.resultUrlValue,
         matchedTargetId: this.matchedTargetIdValue,
+        resultId: this.resultIdValue,
         authenticityToken: this.authenticityTokenValue,
         createEndpoint: this.createEndpointValue,
         redirectPath: this.redirectPathValue

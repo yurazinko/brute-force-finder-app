@@ -17,6 +17,7 @@ interface PathBuilderProps {
   categories: Category[]
   resultUrl?: string
   matchedTargetId?: number
+  resultId?: number | string
   authenticityToken: string
   createEndpoint: string
   redirectPath: string
@@ -35,6 +36,7 @@ export const PathBuilder: React.FC<PathBuilderProps> = ({
   categories,
   resultUrl,
   matchedTargetId,
+  resultId,
   authenticityToken,
   createEndpoint,
 }) => {
@@ -153,36 +155,55 @@ export const PathBuilder: React.FC<PathBuilderProps> = ({
     setIsSubmitting(true)
 
     try {
+      const payload: Record<string, any> = {
+        path_pattern: currentPatternString,
+        allow_query_strings: allowQueryStrings ? "1" : "0"
+      }
+
+      if (matchedTargetId) {
+        payload.target_id = matchedTargetId
+      } else {
+        payload.domain = targetDomain
+        if (selectedCategory) {
+          payload.category_id = selectedCategory
+        } else if (newCategoryName.trim()) {
+          payload.category_name = newCategoryName.trim()
+        }
+      }
+
+      if (resultId) {
+        payload.result_id = resultId
+      }
+
       const response = await fetch(createEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRF-Token": authenticityToken,
-          "Accept": "application/json"
+          "Accept": "application/json, text/vnd.turbo-stream.html"
         },
         body: JSON.stringify({
-          target_pattern: {
-            target_id: matchedTargetId,
-            path_pattern: currentPatternString,
-            category_id: selectedCategory || null,
-            category_name: newCategoryName || null,
-            allow_query_strings: allowQueryStrings ? "1" : "0"
-          }
+          target_pattern: payload
         })
       })
 
       if (response.ok) {
-        const data = await response.json()
-        const savedPattern: Pattern = data.pattern || {
-          id: data.id || Date.now(),
-          path_pattern: currentPatternString,
-          is_active: true
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json()
+          const savedPattern: Pattern = data.pattern || {
+            id: data.id || Date.now(),
+            path_pattern: currentPatternString,
+            is_active: true
+          }
+          setPatterns([...patterns, savedPattern])
+          setIsAccordionOpen(false)
+          setSegments([{ mode: "exact", value: "" }])
+          setNewCategoryName("")
+          setSelectedCategory("")
+        } else {
+          window.location.reload()
         }
-        setPatterns([...patterns, savedPattern])
-        setIsAccordionOpen(false)
-        setSegments([{ mode: "exact", value: "" }])
-        setNewCategoryName("")
-        setSelectedCategory("")
       } else {
         setError(true)
       }
@@ -424,16 +445,6 @@ export const PathBuilder: React.FC<PathBuilderProps> = ({
               )}
             </div>
 
-            {/* URL Preview */}
-            {/* {resultUrl && (
-              <div>
-                <label className="block text-xs font-semibold text-breeze-muted mb-1">Full URL Sample:</label>
-                <div className="p-2.5 bg-breeze-bg rounded-lg border border-breeze-border text-xs font-mono text-gray-400 break-all select-all">
-                  {resultUrl}
-                </div>
-              </div>
-            )} */}
-
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-breeze-text">Add New Path Pattern:</label>
               <p className="text-[11px] text-breeze-muted">
@@ -562,25 +573,6 @@ export const PathBuilder: React.FC<PathBuilderProps> = ({
                 </div>
               </div>
             </div>
-
-            {/* Allow Query Strings */}
-            {/* <div className="p-3 bg-breeze-bg/50 rounded-lg border border-breeze-border/50 text-[11px] text-breeze-muted flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="query_strings_checkbox"
-                  checked={allowQueryStrings}
-                  onChange={(e) => setAllowQueryStrings(e.target.checked)}
-                  className="h-4 w-4 rounded border-breeze-border bg-breeze-bg text-breeze-accent cursor-pointer"
-                />
-                <label htmlFor="query_strings_checkbox" className="text-xs font-semibold text-breeze-text cursor-pointer select-none">
-                  Keep URL Parameters
-                </label>
-              </div>
-              <p className="text-[10px] text-breeze-muted pl-6">
-                Prevents the system from stripping tracking or pagination parameters for this site.
-              </p>
-            </div> */}
 
             {/* Footer Actions */}
             <div className="pt-4 border-t border-breeze-border flex items-center justify-end gap-3 py-3">
