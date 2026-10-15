@@ -34,9 +34,7 @@ module SearchCampaigns
 
     private
 
-    def create_prompts
-      Prompt.upsert_all(prompt_records, unique_by: unique_index_name, update_only: %i[status])
-    end
+    def create_prompts = Prompt.upsert_all(prompt_records, unique_by: unique_index_name, update_only: %i[status])
 
     def unique_index_name
       @target_ids.blank? ? :index_global_prompts_on_search_and_query : :index_prompts_on_search_target_and_query
@@ -76,7 +74,12 @@ module SearchCampaigns
       [base_time + jitter, @now].max
     end
 
-    def targets_data = @targets_data ||= Target.active.where(id: @target_ids).pluck(:id, :domain)
+    def targets_data
+      @targets_data ||= Target.joins(:category)
+                              .where(categories: { user_id: @search.user_id })
+                              .where(id: @target_ids, is_active: true)
+                              .pluck(:id, :domain)
+    end
 
     def prompt_records
       @prompt_records ||= @target_ids.blank? ? global_prompt_record : target_prompt_records

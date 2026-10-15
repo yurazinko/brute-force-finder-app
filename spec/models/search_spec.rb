@@ -98,7 +98,7 @@ RSpec.describe Search, type: :model do
   end
 
   describe "#activate_search!" do
-    let(:category) { Category.create!(name: "Tech Platforms") }
+    let(:category) { Category.create!(name: "Tech Platforms", user: user) }
     let!(:target_lever) { Target.create!(category: category, name: "Lever", domain: "lever.co", is_active: true) }
     let!(:target_greenhouse) { Target.create!(category: category, name: "Greenhouse", domain: "greenhouse.io", is_active: true) }
     let!(:target_inactive) { Target.create!(category: category, name: "Broken Site", domain: "broken.com", is_active: false) }

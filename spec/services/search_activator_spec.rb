@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe SearchCampaigns::Activator, type: :service do
   let(:user) { User.create!(email: "test@example.com", password: "password123") }
 
-  let(:category) { Category.create!(name: "SaaS Platforms") }
+  let(:category) { Category.create!(name: "SaaS Platforms", user: user) }
   let!(:target_lever) { Target.create!(category: category, name: "Lever", domain: "lever.co", is_active: true) }
   let!(:target_greenhouse) { Target.create!(category: category, name: "Greenhouse", domain: "greenhouse.io", is_active: true) }
   let!(:target_inactive) { Target.create!(category: category, name: "Broken Board", domain: "broken.com", is_active: false) }
