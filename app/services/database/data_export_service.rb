@@ -2,33 +2,28 @@
 
 module Database
   class DataExportService
-    attr_reader :user, :output_path, :requested_tables
+    attr_reader :user, :requested_tables
 
     ALL_TABLES = %w[categories targets target_patterns searches prompts results].freeze
 
-    def initialize(user, output_path: nil, tables: nil)
+    def initialize(user, tables: nil)
       @user = user
-      @output_path = output_path || default_output_path
       @requested_tables = tables.present? ? (tables & ALL_TABLES) : ALL_TABLES
     end
 
     def call(&)
-      collect_records(&)
+      datasets = scoped_datasets
+      json_string = generate_export_json(datasets, &)
+      attach_export_file(json_string)
+      notify_completion(&) if block_given?
 
-      if block_given?
-        url = "/#{@output_path.basename}"
-        html = "Done! Click <a href='%s' download class='text-breeze-accent " \
-               "underline font-semibold'>here</a> to download."
-        yield(100, format(html, url))
-      end
       true
     end
 
     private
 
-    def collect_records(&)
+    def generate_export_json(datasets, &)
       export_data = {}
-      datasets = scoped_datasets
       total_steps = datasets.size
 
       datasets.each_with_index do |(table_name, scope), index|
@@ -36,7 +31,30 @@ module Database
         export_data[table_name] = scope.as_json
       end
 
-      @output_path.write(JSON.pretty_generate(export_data))
+      JSON.pretty_generate(export_data)
+    end
+
+    def attach_export_file(json_string)
+      filename = "export-user-#{user.id}-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.json"
+
+      user.data_export.attach(
+        io: StringIO.new(json_string),
+        filename: filename,
+        content_type: "application/json"
+      )
+    end
+
+    def notify_completion(&)
+      download_url = Rails.application.routes.url_helpers.rails_blob_path(
+        user.data_export.blob,
+        expires_in: 1.hour,
+        disposition: "attachment",
+        only_path: true
+      )
+
+      html = "Done! Click <a href='#{download_url}' download class='text-breeze-accent " \
+             "underline font-semibold'>here</a> to download (link expires in 1 hour)."
+      yield(100, html)
     end
 
     def scoped_datasets
@@ -54,14 +72,9 @@ module Database
       all_datasets.slice(*requested_tables).to_a
     end
 
-    def notify_progress(index, total_steps, table_name)
+    def notify_progress(index, total_steps, table_name, &)
       progress = ((index.to_f / total_steps) * 100).to_i
       yield(progress, "Exporting #{table_name}...")
-    end
-
-    def default_output_path
-      timestamp = Time.current.strftime("%Y-%m-%d-%H%M%S")
-      Rails.public_path.join("export-user-#{user.id}-#{timestamp}.json")
     end
   end
 end
