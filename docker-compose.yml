@@ -26,6 +26,8 @@ x-app: &app
     COMPOSE_PROJECT_NAME: "brute-force-finder-app"
     FOURGET_URLS: "http://fourget:80"
     DEGOOG_URLS: "http://degoog:4444"
+    TOR_PROXY_HOSTS: "tor_1,tor_2,tor_3"
+    TOR_PROXY_PORT: "9050"
   deploy:
     resources:
       limits:
