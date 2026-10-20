@@ -48,6 +48,8 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
 
   before do
     stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby dev</body></html>", headers: {})
+
+    allow(Resolv).to receive(:getaddress).and_return("8.8.8.8")
   end
 
   describe ".call" do

@@ -134,5 +134,64 @@ RSpec.describe Results::PageFetcher, type: :service do
         expect(result.text).to be_empty
       end
     end
+
+    context "when SSRF security and IP validations apply" do
+      let(:unsafe_urls) do
+        [
+          "http://127.0.0.1/admin",
+          "http://localhost:3000/secret",
+          "http://10.0.0.1/internal",
+          "http://192.168.1.100/dashboard",
+          "http://169.254.169.254/latest/meta-data/",
+          "ftp://example.com/file"
+        ]
+      end
+
+      it "blocks unsafe or private IP destinations and logs warning as error status" do
+        unsafe_urls.each do |bad_url|
+          fetcher = described_class.new(bad_url)
+          result = fetcher.fetch
+
+          expect(result).to be_error
+          expect(result.text).to be_empty
+        end
+      end
+    end
+
+    context "when handling safe HTTP redirects" do
+      let(:redirect_url) { "https://example.com/redirected_page" }
+
+      before do
+        stub_request(:get, target_url)
+          .to_return(status: 302, headers: { "Location" => redirect_url })
+
+        stub_request(:get, redirect_url)
+          .to_return(status: 200, body: "<html><body>Redirected Success Content</body></html>", headers: default_headers)
+      end
+
+      it "follows redirect chain safely up to the limit and fetches final content" do
+        result = fetch
+        expect(result).to be_verified
+        expect(result.text).to include("redirected success content")
+      end
+    end
+
+    context "when redirect chain exceeds maximum limit" do
+      before do
+        stub_request(:get, "https://example.com/job_offer")
+          .to_return(status: 302, headers: { "Location" => "https://example.com/loop1" })
+        stub_request(:get, "https://example.com/loop1")
+          .to_return(status: 302, headers: { "Location" => "https://example.com/loop2" })
+        stub_request(:get, "https://example.com/loop2")
+          .to_return(status: 302, headers: { "Location" => "https://example.com/loop3" })
+        stub_request(:get, "https://example.com/loop3")
+          .to_return(status: 302, headers: { "Location" => "https://example.com/loop4" })
+      end
+
+      it "halts and returns error status" do
+        result = fetch
+        expect(result).to be_error
+      end
+    end
   end
 end

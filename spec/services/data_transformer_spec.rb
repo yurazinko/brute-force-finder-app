@@ -34,6 +34,8 @@ RSpec.describe Results::DataTransformer, type: :model do
       end
 
       stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby</body></html>", headers: {})
+
+      allow(Resolv).to receive(:getaddress).and_return("8.8.8.8")
     end
 
     subject(:processed_records) { described_class.process(search_id, raw_results, prompt) }

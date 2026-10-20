@@ -1,16 +1,20 @@
 # frozen_string_literal: true
 
 require "httparty"
+require "resolv"
+require "ipaddr"
 
 module Results
   class PageFetcher
     include HTTParty
 
+    connection_adapter Results::TorSocksConnectionAdapter
+
     MAX_BODY_SIZE = 2 * 1024 * 1024
 
     CAPTCHA_INDICATORS = [
       "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha", "enable javascript", "cloudflare", "captcha",
-      "ray id:", "just a moment...", "attention required!", "enable cookies", "performing security verification",
+      "ray id:", "just a moment...", "attention required!",
       "are you a human?", "verify you are a human", "please complete the security check",
       "security check required", "access denied", "you are being redirected"
     ].freeze
@@ -28,17 +32,9 @@ module Results
     ].freeze
 
     FetchResult = Struct.new(:text, :status, keyword_init: true) do
-      def captcha_detected?
-        status == :captcha
-      end
-
-      def error?
-        status == :error
-      end
-
-      def verified?
-        status == :verified
-      end
+      def captcha_detected? = status == :captcha
+      def error? = status == :error
+      def verified? = status == :verified
     end
 
     def self.fetch(url, keyword_groups: [])
@@ -54,7 +50,7 @@ module Results
     end
 
     def fetch
-      response = HTTParty.get(@url, headers: headers, timeout: 8, follow_redirects: true, max_redirects: 3)
+      response = fetch_with_safe_redirects(@url)
       body_text = response.body.to_s
 
       if captcha_detected?(response, body_text)
@@ -69,6 +65,43 @@ module Results
     end
 
     private
+
+    def safe_url?(url_string)
+      uri = URI.parse(url_string)
+      return false unless %w[http https].include?(uri.scheme)
+      return false if uri.host.blank?
+
+      ip_address = Resolv.getaddress(uri.host)
+      !private_or_restricted_ip?(IPAddr.new(ip_address))
+    rescue StandardError
+      false
+    end
+
+    def private_or_restricted_ip?(ip)
+      ip.loopback? || ip.private? || ip.link_local? || ip == IPAddr.new("169.254.169.254")
+    end
+
+    def fetch_with_safe_redirects(current_url, limit = 3)
+      raise "Too many HTTP redirects or unsafe redirect chain" if limit <= 0
+      raise "SSRF blocked: unsafe URL destination (#{current_url})" unless safe_url?(current_url)
+
+      uri = URI.parse(current_url)
+
+      options = {
+        headers: headers,
+        timeout: 8,
+        follow_redirects: false
+      }
+
+      response = self.class.get(uri, options)
+
+      if response.code.in?([301, 302, 303, 307, 308]) && response.headers["location"]
+        redirect_url = URI.join(uri, response.headers["location"]).to_s
+        return fetch_with_safe_redirects(redirect_url, limit - 1)
+      end
+
+      response
+    end
 
     def headers
       {
