@@ -9,7 +9,11 @@ module Rls
         return yield unless worker.is_a?(Rls::Sidekiq)
 
         user_id = extract_user_id(worker, job["args"])
-        with_rls_user(user_id, &)
+        if user_id.present?
+          with_rls_user(user_id, &)
+        else
+          yield
+        end
       end
 
       private
@@ -26,7 +30,8 @@ module Rls
       end
 
       def extract_by_param_name(worker, args)
-        index = worker.method(:perform).parameters.index { |_, name| name.to_s.end_with?("user_id") }
+        perform_method = worker.respond_to?(:perform) ? worker.method(:perform) : worker.class.instance_method(:perform)
+        index = perform_method.parameters.index { |_, name| name.to_s.end_with?("user_id") }
         args[index] if index
       end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
-require "rls/sidekiq/server_middleware" # Примусове завантаження для SimpleCov
+require "rls/sidekiq/server_middleware"
 
 class DummyRlsWorker
   include Rls::Sidekiq if defined?(Rls::Sidekiq)
@@ -96,16 +96,20 @@ RSpec.describe Rls::Sidekiq::ServerMiddleware do
           middleware.call(worker, job, queue) { true }
         end
       end
-
       context "when no user_id can be extracted" do
         let(:worker) { DummyUnknownParamWorker.new }
 
-        it "calls with_rls_user with nil" do
+        it "yields without wrapping in with_rls_user" do
           job = { "args" => %w[not_a_number some_string] }
 
-          expect(middleware).to receive(:with_rls_user).with(nil).and_yield
+          expect(middleware).not_to receive(:with_rls_user)
 
-          middleware.call(worker, job, queue) { true }
+          executed = false
+          middleware.call(worker, job, queue) do
+            executed = true
+          end
+
+          expect(executed).to be true
         end
       end
 
@@ -113,9 +117,13 @@ RSpec.describe Rls::Sidekiq::ServerMiddleware do
         let(:worker) { DummyRlsWorker.new }
         let(:job) { { "args" => [123] } }
 
-        it "executes the block inside SQL transaction setting RLS user_id" do
+        it "executes session SQL setting RLS user_id and resetting it afterwards" do
           expect(ActiveRecord::Base.connection).to receive(:execute)
-            .with("SET LOCAL app.current_user_id = '123'")
+            .with("SET app.current_user_id = '123'")
+            .and_call_original
+
+          expect(ActiveRecord::Base.connection).to receive(:execute)
+            .with("RESET app.current_user_id;")
             .and_call_original
 
           yielded = false

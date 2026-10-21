@@ -9,7 +9,9 @@ class PromptProcessorJob < ApplicationJob
 
     execute_pipeline(Prompt.find(prompt_id))
   rescue StandardError => e
-    Prompt.where(id: prompt_id).update_all(status: "pending")
+    ActiveRecord::Base.transaction(requires_new: true) do
+      Prompt.where(id: prompt_id).update_all(status: "pending")
+    end
     raise e
   end
 
