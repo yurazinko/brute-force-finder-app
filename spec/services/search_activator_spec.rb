@@ -143,6 +143,59 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
       end
     end
 
+    context "when schedule_now is set to false" do
+      let(:target_ids) { [target_lever.id] }
+
+      it "creates prompts and updates search status, but does not trigger Sidekiq jobs" do
+        expect do
+          described_class.call(search, target_ids, false)
+        end.to change(Prompt, :count).by(1)
+
+        expect(search.reload.status).to eq("pending") # статус залишається pending
+        expect(PromptProcessorJob).not_to have_received(:perform_at)
+      end
+    end
+
+    context "when handling large batches of targets exceeding BATCH_SIZE" do
+      let(:massive_target_ids) { [] }
+
+      before do
+        massive_target_ids << target_lever.id << target_greenhouse.id
+
+        stub_const("SearchCampaigns::Activator::BATCH_SIZE", 1)
+      end
+
+      it "successfully schedules prompts across multiple batches" do
+        expect do
+          described_class.call(search, massive_target_ids, true)
+        end.to change(Prompt, :count).by(2)
+
+        expect(PromptProcessorJob).to have_received(:perform_at).twice
+      end
+    end
+
+    context "when transaction commit safety rules apply" do
+      let(:target_ids) { [target_lever.id] }
+
+      it "guarantees Sidekiq jobs are queued only after database writes complete" do
+        execution_sequence = []
+
+        original_upsert = Prompt.method(:upsert_all)
+        allow(Prompt).to receive(:upsert_all) do |*args, **kwargs|
+          execution_sequence << :database_write
+          original_upsert.call(*args, **kwargs)
+        end
+
+        allow(PromptProcessorJob).to receive(:perform_at) do
+          execution_sequence << :sidekiq_enqueue
+        end
+
+        described_class.call(search, target_ids, true)
+
+        expect(execution_sequence).to eq(%i[database_write sidekiq_enqueue])
+      end
+    end
+
     context "when edge-case parameters are passed" do
       context "when target_ids is empty" do
         it "triggers global search, creates 1 prompt without target and returns true" do

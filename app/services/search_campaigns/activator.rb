@@ -15,17 +15,19 @@ module SearchCampaigns
     end
 
     def call
+      prompts_to_schedule = []
+
       ApplicationRecord.transaction do
         cleanup_obsolete_prompts
-
         create_prompts
 
-        return unless @schedule_now
-
-        @search.update!(status: "processing")
-        schedule_prompt_jobs
+        if @schedule_now
+          @search.update!(status: "processing")
+          prompts_to_schedule = collect_prompts_to_schedule
+        end
       end
 
+      schedule_prompt_jobs(prompts_to_schedule) if prompts_to_schedule.any?
       true
     rescue StandardError => e
       Rails.logger.error("[SearchCampaigns::Activator] Critical failure for Search##{@search.id}: #{e.message}")
@@ -42,29 +44,31 @@ module SearchCampaigns
 
     def prompts_scope = @search.prompts.where(target_id: @target_ids.presence)
 
-    def schedule_prompt_jobs
-      total_count = prompts_scope.count
-      return if total_count.zero?
+    def collect_prompts_to_schedule
+      scope = prompts_scope
+      total_count = scope.count
+      return [] if total_count.zero?
 
       broadcast_live_status("Initializing #{total_count} parallel scraping streams...")
-
-      step = TOTAL_SCHEDULE_WINDOW / total_count
-      user_id = @search.user_id
-      offset = 0
-
-      prompts_scope.in_batches(of: BATCH_SIZE) do |batch|
-        offset = schedule_batch(batch, step, user_id, offset)
-      end
+      build_scheduled_payloads(scope, TOTAL_SCHEDULE_WINDOW / total_count)
     end
 
-    def schedule_batch(batch, step, user_id, offset)
-      batch.pluck(:id).each_with_index do |prompt_id, local_index|
-        global_index = offset + local_index
-        scheduled_time = calculate_scheduled_time(global_index, step)
-        PromptProcessorJob.perform_at(scheduled_time, prompt_id, user_id)
+    def build_scheduled_payloads(scope, step)
+      payloads = []
+      offset = 0
+
+      scope.in_batches(of: BATCH_SIZE) do |batch|
+        batch.pluck(:id).each_with_index do |prompt_id, idx|
+          payloads << [prompt_id, calculate_scheduled_time(offset + idx, step)]
+        end
+        offset += batch.size
       end
 
-      offset + batch.size
+      payloads
+    end
+
+    def schedule_prompt_jobs(payloads)
+      payloads.each { |prompt_id, time| PromptProcessorJob.perform_at(time, prompt_id, @search.user_id) }
     end
 
     def calculate_scheduled_time(index, step)
@@ -81,9 +85,7 @@ module SearchCampaigns
                               .pluck(:id, :domain)
     end
 
-    def prompt_records
-      @prompt_records ||= @target_ids.blank? ? global_prompt_record : target_prompt_records
-    end
+    def prompt_records = @target_ids.blank? ? global_prompt_record : target_prompt_records
 
     def cleanup_obsolete_prompts = @target_ids.blank? ? cleanup_global_prompts : cleanup_target_prompts
 
@@ -94,41 +96,29 @@ module SearchCampaigns
 
     def cleanup_target_prompts
       active_targets = targets_data.to_h
-
-      @search.prompts.find_each do |prompt|
-        prompt.destroy if obsolete_target_prompt?(prompt, active_targets)
-      end
+      @search.prompts.find_each { |p| p.destroy if obsolete_target_prompt?(p, active_targets) }
     end
 
     def obsolete_target_prompt?(prompt, active_targets)
       return true if prompt.target_id.nil? || !active_targets.key?(prompt.target_id)
 
-      expected_query = "site:#{active_targets[prompt.target_id]} #{@search.query_conditions}"
-      prompt.full_query_text != expected_query
+      prompt.full_query_text != "site:#{active_targets[prompt.target_id]} #{@search.query_conditions}"
     end
 
     def global_prompt_record = [base_prompt_attributes(nil, @search.query_conditions)]
 
     def target_prompt_records
-      targets_data.map do |target_id, domain|
-        base_prompt_attributes(target_id, "site:#{domain} #{@search.query_conditions}")
-      end
+      targets_data.map { |id, domain| base_prompt_attributes(id, "site:#{domain} #{@search.query_conditions}") }
     end
 
     def base_prompt_attributes(target_id, query_text)
-      { search_id: @search.id,
-        target_id: target_id,
-        full_query_text: query_text,
-        status: "pending",
-        created_at: @now,
-        updated_at: @now }
+      { search_id: @search.id, target_id: target_id, full_query_text: query_text,
+        status: "pending", created_at: @now, updated_at: @now }
     end
 
     def broadcast_live_status(message)
       Turbo::StreamsChannel.broadcast_render_to(
-        @search, :results,
-        template: "searches/update_status",
-        assigns: { message: message }
+        @search, :results, template: "searches/update_status", assigns: { message: message }
       )
     rescue StandardError => e
       Rails.logger.error("[SearchCampaigns::Activator] Live status broadcast failed: #{e.message}")

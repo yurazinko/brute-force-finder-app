@@ -7,7 +7,7 @@ class ResultsController < ApplicationController
 
   def index
     @selected_search_ids = params[:search_ids] || []
-    @available_searches = Search.order(created_at: :desc)
+    @available_searches = current_user.searches.order(created_at: :desc)
 
     fetch_filtered_results(@base_scope, @filter_options)
 
@@ -32,7 +32,7 @@ class ResultsController < ApplicationController
   private
 
   def set_scopes_and_options
-    @search = Search.find_by(id: params[:search_id])
+    @search = current_user.searches.find_by(id: params[:search_id])
 
     @base_scope = if @search
                     @search.results
