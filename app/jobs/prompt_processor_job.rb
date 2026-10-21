@@ -1,7 +1,19 @@
 # frozen_string_literal: true
 
 class PromptProcessorJob < ApplicationJob
-  sidekiq_options queue: :scraping, retry: false
+  sidekiq_options queue: :scraping, retry: 5
+
+  sidekiq_retry_in { |count, _| [30.seconds, 2.minutes, 10.minutes, 30.minutes][count] || 1.hour }
+
+  sidekiq_retries_exhausted do |msg, error|
+    prompt_id = msg["args"].first
+    prompt = Prompt.find_by(id: prompt_id)
+    next unless prompt
+
+    Rails.logger.error("[PromptProcessorJob] Retries exhausted for Prompt##{prompt_id}: #{error.message}")
+    coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    coordinator.fail!("Retries exhausted: #{error.message}")
+  end
 
   def perform(prompt_id, _user_id = nil)
     prompt = fetch_and_lock_prompt(prompt_id)

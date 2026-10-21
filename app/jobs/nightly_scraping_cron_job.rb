@@ -3,7 +3,11 @@
 class NightlyScrapingCronJob < ApplicationJob
   include Rls::Context
 
-  sidekiq_options queue: :default, retry: false
+  sidekiq_options queue: :default, retry: 3
+
+  sidekiq_retry_in do |count, _exception|
+    (count + 1) * 2.minutes
+  end
 
   BASE_DELAY_MINUTES = 3
 
@@ -14,7 +18,7 @@ class NightlyScrapingCronJob < ApplicationJob
 
     User.find_each(batch_size: 100) do |user|
       with_rls_user(user.id) do
-        fetch_user_eligible_searches(user.id).each do |search_id|
+        fetch_user_eligible_searches.each do |search_id|
           schedule_search(search_id, user.id, index)
           index += 1
         end
@@ -26,8 +30,8 @@ class NightlyScrapingCronJob < ApplicationJob
 
   private
 
-  def fetch_user_eligible_searches(_user_id)
-    Search.where(status: %w[completed pending processing failed]).pluck(:id)
+  def fetch_user_eligible_searches
+    Search.where(status: %w[completed processing pending failed]).pluck(:id)
   end
 
   def schedule_search(search_id, user_id, index)
