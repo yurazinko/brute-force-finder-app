@@ -4,21 +4,13 @@ require "rails_helper"
 
 RSpec.describe PromptProcessorJob, type: :job do
   let(:job) { described_class.new }
-  let(:prompt_id) { 42 }
-  let(:user_id) { 1 }
-  let(:full_query) { "site:lever.co \"ruby\"" }
-
-  let(:search_mock) { instance_double("Search", time_frame: "month") }
-  let(:target_mock) { instance_double("Target", allow_query_strings: true) }
-  let(:prompt_mock) do
-    instance_double(
-      "Prompt",
-      id: prompt_id,
-      full_query_text: full_query,
-      search: search_mock,
-      target: target_mock
-    )
-  end
+  let(:user) { User.create!(email: "test@example.com", password: "password123") }
+  let(:search) { Search.create!(user: user, title: "Test Search", query_conditions: "ruby", time_frame: "month") }
+  let(:category) { Category.create!(name: "Technology") } # Створюємо категорію для таргета
+  let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co", allow_query_strings: true, is_active: true) }
+  let(:prompt) { Prompt.create!(search: search, target: target, full_query_text: 'site:lever.co "ruby"', status: "pending") }
+  let(:prompt_id) { prompt.id }
+  let(:user_id) { user.id }
 
   let(:randomized_query) { "site:lever.co intitle:\"ruby\"" }
   let(:batch_data) { [{ "url" => "https://lever.co/1" }] }
@@ -26,44 +18,35 @@ RSpec.describe PromptProcessorJob, type: :job do
 
   before do
     allow(Turbo::StreamsChannel).to receive(:broadcast_render_to)
-    allow(SearchCampaigns::DorkRandomizer).to receive(:perform).with(full_query).and_return(randomized_query)
+    allow(SearchCampaigns::LifecycleNotifier).to receive(:broadcast_status)
+    allow(SearchCampaigns::DorkRandomizer).to receive(:perform).with(prompt.full_query_text).and_return(randomized_query)
 
     allow(SearchEngines::ResultsCollector).to receive(:call)
       .and_yield(batch_data, "SearchEngines::Yacy::RawResultsCollector")
       .and_return(collector_summary)
 
     allow(SearchCampaigns::ResultHandler).to receive(:call).and_return({ raw_count: 1, new_count: 1 })
-    allow(Prompt).to receive(:find).with(prompt_id).and_return(prompt_mock)
     allow(Rails.logger).to receive(:error)
   end
 
   describe "#perform" do
     context "when prompt is not in pending status" do
       before do
-        allow(Prompt).to receive(:where).with(id: prompt_id, status: "pending").and_return(
-          double(update_all: 0)
-        )
+        prompt.update!(status: "active")
       end
 
       it "returns early and does not process the prompt" do
         job.perform(prompt_id, user_id)
 
-        expect(Prompt).not_to have_received(:find)
         expect(SearchEngines::ResultsCollector).not_to have_received(:call)
       end
     end
 
     context "when prompt is successfully locked to active" do
-      before do
-        allow(Prompt).to receive(:where).with(id: prompt_id, status: "pending").and_return(
-          double(update_all: 1)
-        )
-      end
-
       it "fetches the prompt, randomizes the query, and triggers collector" do
         job.perform(prompt_id, user_id)
 
-        expect(SearchCampaigns::DorkRandomizer).to have_received(:perform).with(full_query)
+        expect(SearchCampaigns::DorkRandomizer).to have_received(:perform).with(prompt.full_query_text)
         expect(SearchEngines::ResultsCollector).to have_received(:call).with(
           randomized_query,
           time_range: "month",
@@ -75,7 +58,7 @@ RSpec.describe PromptProcessorJob, type: :job do
         job.perform(prompt_id, user_id)
 
         expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
-          search_mock, :results,
+          search, :results,
           template: "searches/update_status",
           assigns: { message: "[lever.co] Requesting data from Search Pipeline..." }
         )
@@ -88,7 +71,7 @@ RSpec.describe PromptProcessorJob, type: :job do
           job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
-            search_mock, :results,
+            search, :results,
             template: "searches/update_status",
             assigns: { message: "[lever.co] Extracted 5 links. Imported 2 NEW leads!" }
           )
@@ -100,7 +83,7 @@ RSpec.describe PromptProcessorJob, type: :job do
           job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
-            search_mock, :results,
+            search, :results,
             template: "searches/update_status",
             assigns: { message: "[lever.co] Extracted 5 links, but all of them are already processed." }
           )
@@ -112,7 +95,7 @@ RSpec.describe PromptProcessorJob, type: :job do
           job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
-            search_mock, :results,
+            search, :results,
             template: "searches/update_status",
             assigns: { message: "[lever.co] Engine error: Timeout" }
           )
@@ -124,7 +107,7 @@ RSpec.describe PromptProcessorJob, type: :job do
           job.perform(prompt_id, user_id)
 
           expect(Turbo::StreamsChannel).to have_received(:broadcast_render_to).with(
-            search_mock, :results,
+            search, :results,
             template: "searches/update_status",
             assigns: { message: "[lever.co] 0 valid URLs extracted (no matches or engines temporary blocked)." }
           )
@@ -132,18 +115,13 @@ RSpec.describe PromptProcessorJob, type: :job do
       end
 
       context "when an exception occurs during processing" do
-        let(:prompt_relation_mock) { double }
-
         before do
-          allow(Prompt).to receive(:where).with(id: prompt_id).and_return(prompt_relation_mock)
-          allow(prompt_relation_mock).to receive(:update_all)
-
           allow(SearchEngines::ResultsCollector).to receive(:call).and_raise(StandardError.new("Redis down"))
         end
 
         it "reverts the prompt status back to pending and reraises the exception" do
           expect { job.perform(prompt_id, user_id) }.to raise_error(StandardError, "Redis down")
-          expect(prompt_relation_mock).to have_received(:update_all).with(status: "pending")
+          expect(prompt.reload.status).to eq("pending")
         end
       end
 
