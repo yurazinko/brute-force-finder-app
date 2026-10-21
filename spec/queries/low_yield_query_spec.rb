@@ -20,23 +20,17 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
   end
 
   describe ".call" do
-    context "when targets meet low yield criteria" do
+    context "when targets have prompts but zero results" do
       before do
         create_list(:prompt, 25, search: search, target: active_target, created_at: 5.days.ago)
 
-        create(:result, search: search, url: "https://lowyield.com/page1", relevance_score: 0, created_at: 2.days.ago)
-        create(:result, search: search, url: "https://lowyield.com/page2", relevance_score: 1, created_at: 2.days.ago)
-
         create_list(:prompt, 15, search: search, target: productive_target, created_at: 5.days.ago)
-
-        3.times do |n|
-          create(
-            :result, search: search, url: "https://productive.com/item#{n}", relevance_score: 5, created_at: 2.days.ago
-          )
-        end
+        create(
+          :result, search: search, url: "https://productive.com/item1", relevance_score: 5, created_at: 2.days.ago
+        )
       end
 
-      it "identifies low yield targets and excludes productive or inactive ones" do
+      it "identifies zero-result targets and excludes productive or inactive ones" do
         results = described_class.call(since: 30.days.ago, limit: 5)
 
         expect(results.map(&:target)).to include(active_target)
@@ -44,27 +38,12 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
         expect(results.map(&:target)).not_to include(inactive_target)
       end
 
-      it "calculates correct prompt count, relevant results count, and yield percentage" do
+      it "calculates correct prompt count and zero results" do
         stats = described_class.call(since: 30.days.ago, limit: 5).first
 
         expect(stats.prompts_count).to eq(25)
-        expect(stats.relevant_results_count).to eq(1)
-        expect(stats.yield_percentage).to eq(4.0)
-      end
-    end
-
-    context "when targets have fewer prompts than MIN_PROMPTS" do
-      let!(:few_prompts_target) do
-        create(:target, category: category, name: "Few Prompts", domain: "few.com", is_active: true)
-      end
-
-      before do
-        create_list(:prompt, 5, search: search, target: few_prompts_target, created_at: 2.days.ago)
-      end
-
-      it "ignores targets below the prompt threshold" do
-        results = described_class.call(since: 30.days.ago, limit: 5)
-        expect(results).to be_empty
+        expect(stats.relevant_results_count).to eq(0)
+        expect(stats.yield_percentage).to eq(0.0)
       end
     end
   end

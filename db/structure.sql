@@ -240,7 +240,8 @@ CREATE TABLE public.results (
     matched_keywords jsonb DEFAULT '[]'::jsonb NOT NULL,
     verification_status character varying DEFAULT 'pending'::character varying NOT NULL,
     target_domain character varying,
-    target_pattern character varying
+    target_pattern character varying,
+    target_id bigint
 );
 
 ALTER TABLE ONLY public.results FORCE ROW LEVEL SECURITY;
@@ -708,6 +709,13 @@ CREATE INDEX index_results_on_search_id_and_status ON public.results USING btree
 
 
 --
+-- Name: index_results_on_search_id_and_target_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_search_id_and_target_id ON public.results USING btree (search_id, target_id);
+
+
+--
 -- Name: index_results_on_search_id_and_url_hash; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -719,6 +727,13 @@ CREATE UNIQUE INDEX index_results_on_search_id_and_url_hash ON public.results US
 --
 
 CREATE INDEX index_results_on_target_domain ON public.results USING btree (target_domain);
+
+
+--
+-- Name: index_results_on_target_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_target_id ON public.results USING btree (target_id);
 
 
 --
@@ -782,6 +797,14 @@ CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 --
 
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING btree (reset_password_token);
+
+
+--
+-- Name: results fk_rails_166ffd61a8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.results
+    ADD CONSTRAINT fk_rails_166ffd61a8 FOREIGN KEY (target_id) REFERENCES public.targets(id);
 
 
 --
@@ -906,6 +929,7 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261021120241'),
 ('20261016081234'),
 ('20261012092642'),
 ('20261011184530'),

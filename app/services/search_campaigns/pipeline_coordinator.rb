@@ -17,7 +17,6 @@ module SearchCampaigns
     end
 
     def evaluate_completion!
-      # Використовуємо left_joins, щоб глобальні промпти (target_id IS NULL) і активні таргети коректно рахувалися
       remaining_prompts_count = @search.prompts
                                        .left_joins(:target)
                                        .where(status: %w[pending active])

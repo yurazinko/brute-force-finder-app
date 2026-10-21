@@ -7,11 +7,13 @@ module Results
     UI_ATTRIBUTES = %i[id search_id url url_hash title content engine status acknowledged relevance_score
                        verification_status matched_keywords created_at].freeze
 
-    def self.call(search, result_records) = new(search, result_records).call
+    def self.call(search, prompt, result_records) = new(search, prompt, result_records).call
 
-    def initialize(search, result_records)
+    def initialize(search, prompt, result_records)
       @search = search
       @search_id = search.id
+      @prompt =  prompt
+      @target_id = prompt&.target_id
       @result_records = result_records
     end
 
@@ -97,6 +99,7 @@ module Results
         "relevance_score" => record["relevance_score"] || 0,
         "matched_keywords" => record["matched_keywords"] || [],
         "verification_status" => record["verification_status"] || "pending",
+        "target_id" => @target_id,
         "target_pattern" => record["target_pattern"],
         "created_at" => record["created_at"] || current_time,
         "updated_at" => record["updated_at"] || current_time

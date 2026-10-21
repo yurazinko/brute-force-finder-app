@@ -25,7 +25,7 @@ module SearchCampaigns
 
     def process_and_persist_batch
       result_records = Results::DataTransformer.process(@search.id, @scraped_data, @prompt)
-      metrics = Results::BatchPersister.call(@search, result_records)
+      metrics = Results::BatchPersister.call(@search, @prompt, result_records)
       @search.results.reset
       counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
       [metrics, counts]
