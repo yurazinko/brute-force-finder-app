@@ -7,7 +7,7 @@ class SearchesController < ApplicationController # rubocop:disable Metrics/Class
   before_action :set_categories_for_form, only: %i[new show edit create update]
 
   def index
-    @searches = Search.order(created_at: :desc)
+    @searches = current_user.searches.order(created_at: :desc)
     filters = parse_filter_options
     @bulk_counts = Results::Counters.bulk_calculate(@searches, filters)
   end
@@ -26,7 +26,7 @@ class SearchesController < ApplicationController # rubocop:disable Metrics/Class
 
   def new
     if params[:clone_from].present?
-      donor = Search.find_by(id: params[:clone_from])
+      donor = current_user.searches.find_by(id: params[:clone_from])
       @search = donor ? build_clone_search(donor) : Search.new
     else
       @search = Search.new
@@ -94,7 +94,7 @@ class SearchesController < ApplicationController # rubocop:disable Metrics/Class
 
   private
 
-  def set_search = @search = Search.find(params.expect(:id))
+  def set_search = @search = current_user.searches.find(params.expect(:id))
 
   def search_params
     params.expect(search: [:title, :query_conditions, :time_frame, :show_acknowledged, { target_ids: [] }])

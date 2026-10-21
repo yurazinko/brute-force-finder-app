@@ -7,49 +7,49 @@ module SearchCampaigns
     def initialize(prompt, raw_results)
       @prompt = prompt
       @search = prompt.search
-      @target = prompt.target
       @raw_results = raw_results
       @scraped_data = raw_results.try(:[], :data) || []
-      @coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
     end
 
     def call
-      if @scraped_data.blank?
-        @coordinator.fail!("No results found")
-        return { error: "No results found", raw_count: 0, new_count: 0 }
-      end
+      return { raw_count: 0, new_count: 0 } if @scraped_data.blank?
 
-      process_records
+      metrics, counts = process_and_persist_batch
+      broadcast_metrics(metrics, counts)
+      build_response(metrics, counts)
     rescue StandardError => e
-      Rails.logger.error("[Search::ResultHandler] Failed for Prompt##{@prompt.id}: #{e.message}")
-      @coordinator.fail!(e.message)
-      { error: e.message, raw_count: 0, new_count: 0 }
-    ensure
-      safely_evaluate_completion
+      log_and_return_error(e)
     end
 
     private
 
-    def process_records
+    def process_and_persist_batch
       result_records = Results::DataTransformer.process(@search.id, @scraped_data, @prompt)
-      metrics = Results::BatchPersister.call(@search, result_records)
-
+      metrics = Results::BatchPersister.call(@search, @prompt, result_records)
       @search.results.reset
-      @coordinator.success!
-
       counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
+      [metrics, counts]
+    end
 
+    def broadcast_metrics(metrics, counts)
       SearchCampaigns::LifecycleNotifier.broadcast_metrics(
         @search,
         counts,
         new_results: metrics[:persisted_results]
       )
+    end
 
+    def build_response(metrics, counts)
       {
         raw_count: metrics[:raw_count],
         new_count: metrics[:new_count],
         total: counts.total
       }
+    end
+
+    def log_and_return_error(error)
+      Rails.logger.error("[Search::ResultHandler] Failed for Prompt##{@prompt.id}: #{error.message}")
+      { error: error.message, raw_count: 0, new_count: 0 }
     end
 
     def filter_options
@@ -60,13 +60,6 @@ module SearchCampaigns
         show_acknowledged: @search.show_acknowledged,
         show_less_relevant: false
       }
-    end
-
-    def safely_evaluate_completion
-      @coordinator.evaluate_completion!
-      SearchCampaigns::LifecycleNotifier.broadcast_status(@search)
-    rescue StandardError => e
-      Rails.logger.error("[Search::ResultHandler] Ensure broadcast failed: #{e.message}")
     end
   end
 end

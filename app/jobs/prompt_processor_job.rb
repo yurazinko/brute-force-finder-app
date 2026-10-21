@@ -1,32 +1,80 @@
 # frozen_string_literal: true
 
 class PromptProcessorJob < ApplicationJob
-  sidekiq_options queue: :scraping, retry: false
+  sidekiq_options queue: :scraping, retry: 5
+
+  sidekiq_retry_in { |count, _| [30.seconds, 2.minutes, 10.minutes, 30.minutes][count] || 1.hour }
+
+  sidekiq_retries_exhausted do |msg, error|
+    prompt_id = msg["args"].first
+    prompt = Prompt.find_by(id: prompt_id)
+    next unless prompt
+
+    Rails.logger.error("[PromptProcessorJob] Retries exhausted for Prompt##{prompt_id}: #{error.message}")
+    coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    coordinator.fail!("Retries exhausted: #{error.message}")
+  end
 
   def perform(prompt_id, _user_id = nil)
-    updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")
-    return if updated_count.zero?
+    prompt = fetch_and_lock_prompt(prompt_id)
+    return unless prompt
 
-    execute_pipeline(Prompt.find(prompt_id))
+    coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    execute_pipeline(prompt, coordinator)
+
+    coordinator.success!
   rescue StandardError => e
-    Prompt.where(id: prompt_id).update_all(status: "pending")
+    handle_failure(prompt_id, prompt, e)
     raise e
+  ensure
+    ensure_completion(prompt) if prompt
   end
 
   private
 
-  def execute_pipeline(prompt)
+  def fetch_and_lock_prompt(prompt_id)
+    prompt = Prompt.find_by(id: prompt_id)
+    return unless prompt
+
+    updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")
+    updated_count.positive? ? prompt : nil
+  end
+
+  def handle_failure(prompt_id, prompt, error)
+    Rails.logger.error("[PromptProcessorJob] Failed for Prompt##{prompt_id}: #{error.message}")
+    if prompt
+      coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+      coordinator.fail!(error.message)
+    end
+
+    ActiveRecord::Base.transaction(requires_new: true) do
+      Prompt.where(id: prompt_id).update_all(status: "pending")
+    end
+  end
+
+  def ensure_completion(prompt)
+    ensure_coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    ensure_coordinator.evaluate_completion!
+    SearchCampaigns::LifecycleNotifier.broadcast_status(prompt.search)
+  rescue StandardError
+    nil
+  end
+
+  def execute_pipeline(prompt, coordinator)
     search = prompt.search
     domain = extract_domain(prompt.full_query_text)
     query_text = SearchCampaigns::DorkRandomizer.perform(prompt.full_query_text)
 
     broadcast_live_status(search, "[#{domain}] Requesting data from Search Pipeline...")
 
-    total_metrics = process_search_stream(prompt, search, query_text)
+    total_metrics = fetch_search_results(prompt, search, query_text)
+
+    coordinator.fail!(total_metrics[:error]) if total_metrics[:error].present? && total_metrics[:raw_count].zero?
+
     broadcast_handler_result(search, domain, total_metrics)
   end
 
-  def process_search_stream(prompt, search, query_text)
+  def fetch_search_results(prompt, search, query_text)
     total_metrics = { raw_count: 0, new_count: 0 }
     handler_errors = []
 

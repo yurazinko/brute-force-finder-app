@@ -8,11 +8,15 @@ module Rls
       def with_rls_user(user_id)
         formatted_id = user_id.presence.to_s
 
-        ActiveRecord::Base.transaction do
-          ActiveRecord::Base.connection.execute(
-            ActiveRecord::Base.sanitize_sql_array(["SET LOCAL app.current_user_id = ?", formatted_id])
-          )
-          yield
+        ActiveRecord::Base.connection.execute(
+          ActiveRecord::Base.sanitize_sql_array(["SET app.current_user_id = ?", formatted_id])
+        )
+        yield
+      ensure
+        begin
+          ActiveRecord::Base.connection.execute("RESET app.current_user_id;")
+        rescue StandardError
+          nil
         end
       end
 

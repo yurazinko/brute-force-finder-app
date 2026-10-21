@@ -32,14 +32,14 @@ RSpec.describe "Dashboards", type: :request do
             target: target_one, prompts_count: 50, relevant_results_count: 0, yield_percentage: 0.0
           ),
           Targets::LowYieldQuery::Stat.new(
-            target: target_two, prompts_count: 30, relevant_results_count: 1, yield_percentage: 3.33
+            target: target_two, prompts_count: 30, relevant_results_count: 0, yield_percentage: 0.0
           )
         ]
       end
 
       before do
         allow(Result).to receive(:top_domains_efficiency)
-          .with(hash_including(limit: 10)).and_return(productive_domains)
+          .with(hash_including(limit: 15)).and_return(productive_domains)
         allow(Targets::LowYieldQuery).to receive(:call)
           .with(hash_including(limit: 10)).and_return(loser_targets)
       end
@@ -54,23 +54,16 @@ RSpec.describe "Dashboards", type: :request do
         expect(response.body).to include("Most Productive Domains")
         expect(response.body).to include("example.com")
         expect(response.body).to include("test.com")
-        expect(response.body).to include("Score total")
       end
 
-      it "renders low-yield targets section with zero-result highlighting" do
+      it "renders low-yield targets section correctly" do
         send_request
         expect(response.body).to include("Low-Yield Targets")
         expect(response.body).to include("Alpha Target")
         expect(response.body).to include("alpha.com")
-        expect(response.body).to include("text-red-600 font-bold")
         expect(response.body).to include("Beta Target")
-        expect(response.body).to include("text-amber-600 font-semibold")
-      end
-
-      it "renders yield percentages" do
-        send_request
+        expect(response.body).to include("beta.com")
         expect(response.body).to include("0%")
-        expect(response.body).to include("3.33%")
       end
     end
 

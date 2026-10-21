@@ -13,6 +13,8 @@ RSpec.describe Results::BatchPersister, type: :service do
     )
   end
 
+  let(:prompt) { Prompt.create!(search: search, full_query_text: "site:github.com ruby", status: "active") }
+
   let(:url1) { "https://example.com/jobs/1" }
   let(:hash1) { Digest::SHA256.hexdigest(url1) }
 
@@ -41,7 +43,7 @@ RSpec.describe Results::BatchPersister, type: :service do
   end
 
   describe ".call" do
-    subject { described_class.call(search, result_records) }
+    subject { described_class.call(search, prompt, result_records) }
 
     context "when input records are blank or nil" do
       let(:result_records) { [] }

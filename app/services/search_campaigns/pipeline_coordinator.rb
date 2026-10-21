@@ -7,26 +7,25 @@ module SearchCampaigns
       @search = prompt.search
     end
 
-    def activate!
-      @prompt.update!(status: "active")
-      LifecycleNotifier.broadcast_status(@search)
-    end
-
     def success!
       @prompt.update!(status: "success")
     end
 
-    def fail!(message)
-      @prompt.update!(status: "failed", error_message: message)
+    def fail!(reason)
+      @prompt.update!(status: "failed")
+      Rails.logger.error("[PipelineCoordinator] Prompt##{@prompt.id} failed: #{reason}")
     end
 
     def evaluate_completion!
-      @search.with_lock do
-        return if @search.prompts.active.where(status: %w[active pending]).any?
+      remaining_prompts_count = @search.prompts
+                                       .left_joins(:target)
+                                       .where(status: %w[pending active])
+                                       .where("prompts.target_id IS NULL OR targets.is_active = ?", true)
+                                       .count
 
-        @search.update!(status: "completed") unless @search.status == "completed"
-        LifecycleNotifier.broadcast_status(@search, "Pipeline finished. All parallel streams synced.")
-      end
+      return unless remaining_prompts_count.zero?
+
+      @search.update!(status: "completed")
     end
   end
 end
