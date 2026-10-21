@@ -2,7 +2,7 @@
 
 class ApplicationJob
   include Sidekiq::Job
-  include Rls::Sidekiq
+  include Rls::SidekiqSupport
 
   private
 

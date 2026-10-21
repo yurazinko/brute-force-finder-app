@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 module Rls
-  module Sidekiq
+  module SidekiqSupport
     class ServerMiddleware
       include Rls::Context
 
       def call(worker, job, _queue, &)
-        return yield unless worker.is_a?(Rls::Sidekiq)
+        return yield unless worker.is_a?(Rls::SidekiqSupport)
 
         user_id = extract_user_id(worker, job["args"])
         if user_id.present?

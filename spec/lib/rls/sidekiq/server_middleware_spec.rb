@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 require "rails_helper"
-require "rls/sidekiq/server_middleware"
+require "rls/sidekiq_support/server_middleware"
 
 class DummyRlsWorker
-  include Rls::Sidekiq if defined?(Rls::Sidekiq)
+  include Rls::SidekiqSupport if defined?(Rls::SidekiqSupport)
 
   def perform(user_id, account_id); end
 end
 
 class DummyNamedParamWorker
-  include Rls::Sidekiq if defined?(Rls::Sidekiq)
+  include Rls::SidekiqSupport if defined?(Rls::SidekiqSupport)
 
   def perform(target_id, current_user_id, options = {}); end
 end
 
 class DummyUnknownParamWorker
-  include Rls::Sidekiq if defined?(Rls::Sidekiq)
+  include Rls::SidekiqSupport if defined?(Rls::SidekiqSupport)
 
   def perform(foo, bar); end
 end
@@ -25,13 +25,13 @@ class DummyNonRlsWorker
   def perform(user_id); end
 end
 
-RSpec.describe Rls::Sidekiq::ServerMiddleware do
+RSpec.describe Rls::SidekiqSupport::ServerMiddleware do
   subject(:middleware) { described_class.new }
 
   let(:queue) { "default" }
 
   describe "#call" do
-    context "when worker is NOT an instance of Rls::Sidekiq" do
+    context "when worker is NOT an instance of Rls::SidekiqSupport" do
       let(:worker) { DummyNonRlsWorker.new }
 
       it "yields without wrapping in with_rls_user" do
@@ -46,11 +46,11 @@ RSpec.describe Rls::Sidekiq::ServerMiddleware do
       end
     end
 
-    context "when worker IS an instance of Rls::Sidekiq" do
+    context "when worker IS an instance of Rls::SidekiqSupport" do
       before do
-        DummyRlsWorker.include(Rls::Sidekiq)
-        DummyNamedParamWorker.include(Rls::Sidekiq)
-        DummyUnknownParamWorker.include(Rls::Sidekiq)
+        DummyRlsWorker.include(Rls::SidekiqSupport)
+        DummyNamedParamWorker.include(Rls::SidekiqSupport)
+        DummyUnknownParamWorker.include(Rls::SidekiqSupport)
       end
 
       context "and user_id is extracted from a Hash parameter" do
