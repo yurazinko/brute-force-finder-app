@@ -5,43 +5,6 @@ require "httparty"
 module Results
   class StreamingPageFetcher
     MAX_BYTES = 1_048_576
-    CHUNK_SIZE = 16_384
-
-    class AbortStream < StandardError; end
-
-    class TextExtractor < Nokogiri::XML::SAX::Document
-      attr_reader :extracted_text
-
-      def initialize
-        super
-        @extracted_text = +""
-        @inside_ignored_tag = false
-        @ignored_depth = 0
-      end
-
-      def start_element(name, _attrs = [])
-        case name.downcase
-        when "script", "style", "noscript", "svg", "header", "footer", "nav"
-          @ignored_depth += 1
-          @inside_ignored_tag = true
-        end
-      end
-
-      def end_element(name)
-        case name.downcase
-        when "script", "style", "noscript", "svg", "header", "footer", "nav"
-          @ignored_depth -= 1
-          @inside_ignored_tag = false if @ignored_depth <= 0
-        end
-      end
-
-      def characters(string)
-        return if @inside_ignored_tag
-
-        @extracted_text << string
-        @extracted_text << " "
-      end
-    end
 
     def self.fetch_and_match(url, keyword_groups: [])
       new(url, keyword_groups: keyword_groups).fetch
@@ -54,14 +17,11 @@ module Results
     end
 
     def fetch
-      handler = TextExtractor.new
-      parser = Nokogiri::HTML::SAX::PushParser.new(handler)
+      html_content, captcha = stream_page_content
+      return Results::PageFetcher::FetchResult.new(text: "", status: :captcha) if captcha
 
-      process_stream(parser, handler)
-      parser.finish
-      build_result(handler.extracted_text, status: :verified)
-    rescue AbortStream => e
-      handle_abort_stream(e, handler.extracted_text)
+      parsed_text = extract_text_safely(html_content)
+      Results::PageFetcher::FetchResult.new(text: parsed_text, status: :verified)
     rescue StandardError => e
       Rails.logger.warn("[StreamingPageFetcher] Failed to fetch #{@url}: #{e.message}")
       Results::PageFetcher::FetchResult.new(text: "", status: :error)
@@ -69,49 +29,39 @@ module Results
 
     private
 
-    def process_stream(parser, handler)
+    def stream_page_content
+      html_content = +""
+      detected_captcha = false
+
       HTTParty.get(@url, headers: headers, timeout: 8, stream_body: true) do |chunk|
         @bytes_received += chunk.bytesize
-        parser << chunk
+        html_content << chunk
 
-        validate_chunk!(chunk, handler.extracted_text)
+        if @bytes_received <= 32_768 && chunk.match?(Results::PageFetcher::CAPTCHA_REGEX)
+          detected_captcha = true
+          break
+        end
+
+        break if early_exit_possible?(html_content) || @bytes_received >= MAX_BYTES
       end
-    end
 
-    def validate_chunk!(chunk, current_text)
-      raise AbortStream, :captcha if @bytes_received <= 32_768 && captcha_in_chunk?(chunk)
-      raise AbortStream, :verified if early_exit_possible?(current_text)
-      raise AbortStream, :limit_reached if @bytes_received >= MAX_BYTES
-    end
-
-    def handle_abort_stream(exception, extracted_text)
-      if exception.message.to_s == "captcha"
-        Results::PageFetcher::FetchResult.new(text: "", status: :captcha)
-      else
-        build_result(extracted_text, status: :verified)
-      end
-    end
-
-    def captcha_in_chunk?(chunk)
-      chunk.match?(Results::PageFetcher::CAPTCHA_REGEX)
+      [html_content, detected_captcha]
     end
 
     def early_exit_possible?(current_text)
       return false if @keyword_groups.empty?
 
-      normalized_text = current_text.downcase
-
+      downcased = current_text.downcase
       @keyword_groups.all? do |group|
-        group.any? { |kw| normalized_text.include?(kw) }
+        group.any? { |kw| downcased.include?(kw) }
       end
     end
 
-    def build_result(raw_text, status:)
-      raw_text.gsub!(/\s+/, " ")
-      raw_text.strip!
-      raw_text.downcase!
+    def extract_text_safely(html)
+      doc = Nokogiri::HTML5(html)
+      doc.search("script, style, noscript, svg, header, footer, nav").remove
 
-      Results::PageFetcher::FetchResult.new(text: raw_text, status: status)
+      doc.text.gsub(/\s+/, " ").strip.downcase
     end
 
     def headers

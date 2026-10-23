@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class YacyTriggerCrawlJob < ApplicationJob
+  sidekiq_options queue: :system, retry: 3
+
   CRAWL_LOCK_TTL = 6.hours.to_i
 
   def perform(target_site, collection = "default", options = {})

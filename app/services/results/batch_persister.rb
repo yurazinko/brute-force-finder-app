@@ -3,9 +3,8 @@
 module Results
   class BatchPersister
     BATCH_SIZE = 100
-
-    UI_ATTRIBUTES = %i[id search_id url url_hash title content engine status acknowledged relevance_score
-                       verification_status matched_keywords created_at].freeze
+    UI_ATTRIBUTES = %i[id search_id url url_hash title content engine status acknowledged
+                       relevance_score verification_status matched_keywords created_at].freeze
 
     def self.call(search, prompt, result_records) = new(search, prompt, result_records).call
 
@@ -20,22 +19,15 @@ module Results
     def call
       return { raw_count: 0, new_count: 0, persisted_results: [] } if @result_records.blank?
 
-      total_new_count = 0
-      all_persisted_results = []
-
-      deduplicated_records = prepare_and_deduplicate(@result_records)
-
-      deduplicated_records.each_slice(BATCH_SIZE) do |batch|
-        batch_new_count, batch_persisted = process_batch(batch)
-        total_new_count += batch_new_count
-        all_persisted_results.concat(batch_persisted)
+      total_new = 0
+      all_persisted = []
+      prepare_and_deduplicate(@result_records).each_slice(BATCH_SIZE) do |batch|
+        new_c, persisted = process_batch(batch)
+        total_new += new_c
+        all_persisted.concat(persisted)
       end
 
-      {
-        raw_count: @result_records.size,
-        new_count: total_new_count,
-        persisted_results: all_persisted_results
-      }
+      { raw_count: @result_records.size, new_count: total_new, persisted_results: all_persisted }
     end
 
     private
@@ -49,38 +41,24 @@ module Results
     end
 
     def process_batch(batch)
-      existing_db_records = fetch_existing_records(batch)
-      new_count = calculate_new_records(batch, existing_db_records)
-
-      inserted_records = persist_records!(batch, existing_db_records)
-      [new_count, inserted_records]
+      existing = fetch_existing_records(batch)
+      [calculate_new_records(batch, existing), persist_records!(batch, existing)]
     end
 
     def fetch_existing_records(batch)
-      incoming_hashes = batch.filter_map { |r| r["url_hash"] }
-      incoming_hashes.uniq!
-      return [] if incoming_hashes.empty?
-
-      Result.unscoped
-            .where(url_hash: incoming_hashes)
-            .pluck(:search_id, :url_hash, :acknowledged)
+      hashes = batch.filter_map { |r| r["url_hash"] }
+      hashes = hashes.uniq
+      hashes.empty? ? [] : Result.unscoped.where(url_hash: hashes).pluck(:search_id, :url_hash, :acknowledged)
     end
 
-    def calculate_new_records(batch, existing_db_records)
-      existing_in_current_search = existing_db_records.each_with_object(Set.new) do |(id, hash, _ack), set|
-        set << hash if id == @search_id
-      end
-
-      batch.count { |r| existing_in_current_search.exclude?(r["url_hash"]) }
+    def calculate_new_records(batch, existing)
+      search_hashes = existing.each_with_object(Set.new) { |(id, h), set| set << h if id == @search_id }
+      batch.count { |r| search_hashes.exclude?(r["url_hash"]) }
     end
 
-    def persist_records!(batch, existing_db_records)
-      global_ack_set = existing_db_records.each_with_object(Set.new) do |(_id, hash, ack), set|
-        set << hash if ack == true
-      end
-
-      enriched_records = batch.map { |r| build_db_payload(r, global_ack_set) }
-      execute_upsert(enriched_records)
+    def persist_records!(batch, existing)
+      global_ack = existing.each_with_object(Set.new) { |(_, h, ack), set| set << h if ack == true }
+      execute_upsert(batch.map { |r| build_db_payload(r, global_ack) })
     end
 
     def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength
@@ -107,19 +85,32 @@ module Results
     end
 
     def execute_upsert(enriched_records)
+      inserted_rows = []
+
       ActiveRecord::Base.transaction(requires_new: true) do
         result_data = Result.upsert_all(
           enriched_records,
           unique_by: %i[search_id url_hash],
           update_only: %i[title content engine relevance_score matched_keywords verification_status],
-          returning: %i[id]
+          returning: %i[id verification_status]
         )
 
-        inserted_ids = result_data.pluck("id")
+        inserted_rows = result_data.rows.map { |id, status| { id: id, status: status } }
+      end
 
-        Result.select(UI_ATTRIBUTES)
-              .where(id: inserted_ids, acknowledged: [false, @search.show_acknowledged].uniq)
-              .to_a
+      schedule_for_verification(inserted_rows)
+
+      inserted_ids = inserted_rows.pluck(:id)
+      Result.select(UI_ATTRIBUTES)
+            .where(id: inserted_ids, acknowledged: [false, @search.show_acknowledged].uniq)
+            .to_a
+    end
+
+    def schedule_for_verification(inserted_rows)
+      inserted_rows.each do |row|
+        if row[:status] == "pending" || row[:status].to_s.start_with?("unverified")
+          ResultVerificationJob.perform_async(row[:id], @search.user_id)
+        end
       end
     end
   end
