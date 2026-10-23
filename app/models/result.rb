@@ -35,6 +35,7 @@
 #  index_results_on_search_id_and_status           (search_id,status)
 #  index_results_on_search_id_and_target_id        (search_id,target_id)
 #  index_results_on_search_id_and_url_hash         (search_id,url_hash) UNIQUE
+#  index_results_on_search_status_ack_relevance    (search_id,status,acknowledged,relevance_score)
 #  index_results_on_target_domain                  (target_domain)
 #  index_results_on_target_id                      (target_id)
 #  index_results_on_url_hash                       (url_hash)

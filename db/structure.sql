@@ -723,6 +723,13 @@ CREATE UNIQUE INDEX index_results_on_search_id_and_url_hash ON public.results US
 
 
 --
+-- Name: index_results_on_search_status_ack_relevance; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_search_status_ack_relevance ON public.results USING btree (search_id, status, acknowledged, relevance_score);
+
+
+--
 -- Name: index_results_on_target_domain; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -929,6 +936,7 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261023130803'),
 ('20261021120241'),
 ('20261016081234'),
 ('20261012092642'),
