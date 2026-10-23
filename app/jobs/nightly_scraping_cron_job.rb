@@ -3,7 +3,7 @@
 class NightlyScrapingCronJob < ApplicationJob
   include Rls::Context
 
-  sidekiq_options queue: :default, retry: 3
+  sidekiq_options queue: :system, retry: 3
 
   sidekiq_retry_in do |count, _exception|
     (count + 1) * 2.minutes

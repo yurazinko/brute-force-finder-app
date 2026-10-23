@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class DegoogUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
   DEGOOG_IMAGE = ENV.fetch("DEGOOG_IMAGE", "ghcr.io/degoog-org/degoog:latest")
 
   private

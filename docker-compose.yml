@@ -32,7 +32,7 @@ x-app: &app
     resources:
       limits:
         memory: 1500M
-        cpus: '1'
+        cpus: '1.0'
   networks:
     - finder_network
 
@@ -142,8 +142,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: 3000M
+          cpus: '1.0'
+          memory: 2000M
     volumes:
       - yacy_data:/opt/yacy_search_server/DATA
       - ./data/yacy:/opt/yacy_search_server/DATA/SETTINGS

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class YacyUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
   YACY_IMAGE = ENV.fetch("YACY_IMAGE", "yacy/yacy_search_server:latest-alpine")
 
   private
