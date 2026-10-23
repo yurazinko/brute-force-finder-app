@@ -32,6 +32,7 @@ x-app: &app
     resources:
       limits:
         memory: 1500M
+        cpus: '1.0'
   networks:
     - finder_network
 
@@ -61,6 +62,7 @@ x-searxng-base: &searxng-base
   deploy:
     resources:
       limits:
+        cpus: '1.0'
         memory: 512M
   networks:
     - finder_network
@@ -140,6 +142,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '2.0'
           memory: 3000M
     volumes:
       - yacy_data:/opt/yacy_search_server/DATA
@@ -237,7 +240,7 @@ services:
   sidekiq:
     <<: *app
     container_name: finder_sidekiq
-    command: bundle exec sidekiq -q scraping -q default -q search_activations -c 1
+    command: bundle exec sidekiq -q scraping -q default -q search_activations -q verifications -q system -c 1
     depends_on:
       db:
         condition: service_started
