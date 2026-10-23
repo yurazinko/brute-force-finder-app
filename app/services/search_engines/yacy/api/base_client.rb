@@ -70,8 +70,12 @@ module SearchEngines
           { success: false, error: e.message }
         end
 
-        def handle_response(response, _instance)
-          return { success: false, error: "HTTP #{response.code}" } unless response.code == 200
+        def handle_response(response, instance)
+          unless response.code == 200
+            Rails.logger.warn("[#{logger_tag}] YaCy instance #{instance} returned error status #{response.code}")
+            triaged_as_dead(instance)
+            return { success: false, error: "HTTP #{response.code}" }
+          end
 
           data = JSON.parse(response.body)
 
