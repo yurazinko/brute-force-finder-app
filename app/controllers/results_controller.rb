@@ -21,12 +21,14 @@ class ResultsController < ApplicationController
   def update
     @result = Result.find(params.expect(:id))
 
-    if @result.update(result_params)
+    ActiveRecord::Base.transaction do
+      @result.update!(result_params)
+
       prepare_update_variables
       respond_to_successful_update
-    else
-      head :unprocessable_content
     end
+  rescue ActiveRecord::RecordInvalid
+    head :unprocessable_content
   end
 
   private
@@ -46,13 +48,12 @@ class ResultsController < ApplicationController
   end
 
   def prepare_update_variables
-    dom_count = params[:current_dom_count].to_i
-    dom_count = 20 if dom_count.zero?
+    visible_ids = params[:visible_ids] || []
 
     @next_card = Results::FeedRefill.next_card(
       base_scope: @base_scope,
       removed_id: @result.id,
-      current_dom_count: dom_count,
+      visible_ids: visible_ids,
       options: @filter_options,
       search: @search
     )
