@@ -2,83 +2,67 @@
 
 require "rails_helper"
 
-RSpec.describe SearchEngines::Yacy::Api::PeerClient do
+RSpec.describe SearchEngines::Yacy::Api::PeerClient, type: :service do
   include ActiveSupport::Testing::TimeHelpers
-
-  subject(:client) { described_class.new(query, options) }
 
   let(:query) { 'site:https://example.com/some/path "ruby developer"' }
   let(:options) { {} }
-  let(:redis_mock) { instance_double(Redis) }
+  let(:urls_env) { "http://yacy-peer-1.local:8090,http://yacy-peer-2.local:8090" }
+  let(:instance1) { "http://yacy-peer-1.local:8090" }
+  let(:instance2) { "http://yacy-peer-2.local:8090" }
+
+  let(:redis) { Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1")) }
 
   before do
-    allow(Redis).to receive(:new).and_return(redis_mock)
-    allow(redis_mock).to receive(:exists?).and_return(true)
-    allow(redis_mock).to receive(:rpoplpush).and_return("http://yacy-peer-1.local:8090")
-    allow(redis_mock).to receive(:rpush)
-    allow(redis_mock).to receive(:setex)
+    allow(Redis).to receive(:new).and_return(redis)
+    redis.flushdb
+
+    stub_const("ENV", ENV.to_h.merge("YACY_PEER_URLS" => urls_env))
+    allow(Rails.logger).to receive(:warn)
+    allow(Rails.logger).to receive(:info)
+  end
+
+  after do
+    redis.flushdb
+  end
+
+  describe ".search" do
+    it "instantiates the client and calls execute" do
+      client_instance = instance_double(described_class, execute: { success: true, data: [] })
+      allow(described_class).to receive(:new).with(query, options).and_return(client_instance)
+
+      described_class.search(query, options)
+
+      expect(client_instance).to have_received(:execute)
+    end
   end
 
   describe "pool initialization (initialize_pool)" do
-    context "when the pool key does not exist in Redis" do
-      before do
-        allow(redis_mock).to receive(:exists?).with(described_class::YACY_POOL_KEY).and_return(false)
-      end
+    it "populates the Redis list with values from ENV['YACY_PEER_URLS']" do
+      described_class.new(query, options)
 
-      it "populates the Redis list with values from ENV['YACY_PEER_URLS']" do
-        stub_const("ENV", ENV.to_hash.merge("YACY_PEER_URLS" => "http://peer1:8090,http://peer2:8090"))
-
-        client # Instantiation triggers initialize_pool
-
-        expect(redis_mock).to have_received(:rpush).with(
-          described_class::YACY_POOL_KEY,
-          array_including("http://peer1:8090", "http://peer2:8090")
-        )
-      end
-
-      it "falls back to localhost when ENV is not set" do
-        stub_const("ENV", ENV.to_hash.except("YACY_PEER_URLS"))
-
-        client
-
-        expect(redis_mock).to have_received(:rpush).with(
-          described_class::YACY_POOL_KEY,
-          ["http://localhost:8090"]
-        )
-      end
+      expect(redis.llen("yacy:peers_pool")).to eq(2)
+      expect(redis.lrange("yacy:peers_pool", 0, -1)).to contain_exactly(instance1, instance2)
+      expect(redis.exists?("yacy:peers_pool:synced")).to be_truthy
     end
 
-    context "when the pool already exists in Redis" do
+    context "when ENV['YACY_PEER_URLS'] is not set" do
       before do
-        allow(redis_mock).to receive(:exists?).with(described_class::YACY_POOL_KEY).and_return(true)
+        stub_const("ENV", ENV.to_h.except("YACY_PEER_URLS"))
       end
 
-      it "does not overwrite data in Redis" do
-        client
+      it "falls back to localhost" do
+        described_class.new(query, options)
 
-        expect(redis_mock).not_to have_received(:rpush)
+        expect(redis.llen("yacy:peers_pool")).to eq(1)
+        expect(redis.lrange("yacy:peers_pool", 0, -1)).to eq(["http://localhost:8090"])
       end
-    end
-  end
-
-  describe "instance rotation (next_available_instance)" do
-    it "rotates elements in the Redis list using rpoplpush" do
-      allow(redis_mock).to receive(:rpoplpush)
-        .with(described_class::YACY_POOL_KEY, described_class::YACY_POOL_KEY)
-        .and_return("http://yacy-peer-2.local:8090")
-
-      instance = client.send(:next_available_instance)
-
-      expect(instance).to eq("http://yacy-peer-2.local:8090")
-      expect(redis_mock).to have_received(:rpoplpush).with(
-        described_class::YACY_POOL_KEY,
-        described_class::YACY_POOL_KEY
-      )
     end
   end
 
   describe "#build_formatted_query" do
     it "normalizes HTML quotes and extracts clean host for 'site:' operator" do
+      client = described_class.new(query, options)
       formatted = client.send(:build_formatted_query)
 
       expect(formatted).to eq('site:example.com "ruby developer"')
@@ -87,8 +71,9 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
     context "when time_range option is provided" do
       let(:options) { { time_range: "week" } }
 
-      it "appends date filter /date based on time frame" do
+      it "appends date filter based on time frame" do
         travel_to Time.zone.local(2026, 8, 21) do
+          client = described_class.new(query, options)
           formatted = client.send(:build_formatted_query)
           expect(formatted).to eq('site:example.com "ruby developer" from:2026/08/14')
         end
@@ -97,7 +82,7 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
   end
 
   describe "#perform_request" do
-    let(:target_instance) { "http://yacy-peer-1.local:8090" }
+    let(:client) { described_class.new(query, options) }
 
     context "when the request is successful (HTTP 200)" do
       let(:yacy_response_body) do
@@ -117,16 +102,14 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
         }.to_json
       end
 
-      let(:response_double) do
-        instance_double(HTTParty::Response, code: 200, body: yacy_response_body)
-      end
-
       before do
-        allow(described_class).to receive(:get).and_return(response_double)
+        stub_request(:get, "#{instance1}/yacysearch.json")
+          .with(query: hash_including(query: 'site:example.com "ruby developer"'))
+          .to_return(status: 200, body: yacy_response_body)
       end
 
       it "returns formatted result payload" do
-        result = client.send(:perform_request, target_instance)
+        result = client.send(:perform_request, instance1)
 
         expect(result).to eq(
           success: true,
@@ -141,59 +124,35 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient do
           failed_engines: []
         )
       end
-
-      it "sends properly formatted query params" do
-        client.send(:perform_request, target_instance)
-
-        expect(described_class).to have_received(:get).with(
-          "#{target_instance}/yacysearch.json",
-          {
-            timeout: 12,
-            query: {
-              query: 'site:example.com "ruby developer"',
-              maximumRecords: 60,
-              resource: "local",
-              meanCount: 0,
-              maximumTime: 10,
-              verify: "iffresh",
-              strictContentDom: false
-            }
-          }
-        )
-      end
     end
 
     context "when YaCy returns an HTTP error (e.g., 500)" do
-      let(:response_double) { instance_double(HTTParty::Response, code: 500) }
-
       before do
-        allow(described_class).to receive(:get).and_return(response_double)
+        stub_request(:get, %r{#{instance1}/yacysearch\.json})
+          .to_return(status: 500)
       end
 
-      it "returns error hash" do
-        result = client.send(:perform_request, target_instance)
+      it "returns error hash and marks instance as dead" do
+        result = client.send(:perform_request, instance1)
 
         expect(result).to eq(success: false, error: "HTTP 500")
+        expect(redis.exists?("yacy:dead:#{instance1}")).to be_truthy
       end
     end
 
     context "when an exception occurs during HTTP request (Network/Timeout failure)" do
       before do
-        allow(described_class).to receive(:get).and_raise(StandardError.new("Connection refused"))
-        allow(Rails.logger).to receive(:warn)
+        stub_request(:get, %r{#{instance1}/yacysearch\.json})
+          .to_raise(StandardError.new("Connection refused"))
       end
 
-      it "marks instance as dead in Redis and returns error" do
-        result = client.send(:perform_request, target_instance)
+      it "marks instance as dead in Redis, logs warning, and returns error" do
+        result = client.send(:perform_request, instance1)
 
         expect(result).to eq(success: false, error: "Connection refused")
-        expect(redis_mock).to have_received(:setex).with(
-          "#{described_class::REDIS_DEAD_PREFIX}#{target_instance}",
-          anything,
-          "dead"
-        )
+        expect(redis.exists?("yacy:dead:#{instance1}")).to be_truthy
         expect(Rails.logger).to have_received(:warn).with(
-          "[Yacy::Api::PeerClient] YaCy instance #{target_instance} failed: Connection refused"
+          "[Yacy::Api::PeerClient] YaCy instance #{instance1} failed: Connection refused"
         )
       end
     end

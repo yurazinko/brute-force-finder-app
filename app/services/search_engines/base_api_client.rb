@@ -1,15 +1,20 @@
 # frozen_string_literal: true
 
 require "httparty"
+require "connection_pool"
+
 module SearchEngines
+  REDIS_POOL = ConnectionPool::Wrapper.new(size: 10, timeout: 5) do
+    Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1"))
+  end
+
   class BaseApiClient
     include HTTParty
-
-    # TODO: Add proxy: https://www.rubydoc.info/gems/httparty/0.12.0/HTTParty/ClassMethods
 
     TIMEOUT = 12
     MAX_RETRIES = 3
     CIRCUIT_BREAKER_TTL = 900
+    POOL_SYNC_TTL = 300
 
     default_timeout TIMEOUT
 
@@ -19,7 +24,7 @@ module SearchEngines
       @query = query
       @options = options
       @time_range = options[:time_range]
-      @redis = Redis.new(url: ENV.fetch("REDIS_URL", "redis://redis:6379/1"))
+      @redis = REDIS_POOL
       initialize_pool
     end
 
@@ -45,9 +50,50 @@ module SearchEngines
 
     private
 
-    def initialize_pool = raise(NotImplementedError)
+    def initialize_pool
+      urls = ENV.fetch(pool_env_var, pool_default_urls).split(",").map(&:strip).compact_blank
+      return if urls.empty?
 
-    def next_available_instance = raise(NotImplementedError)
+      sync_key = "#{pool_redis_key}:synced"
+      return if redis_key_exists?(sync_key)
+
+      lock_key = "#{pool_redis_key}:lock"
+      return unless @redis.set(lock_key, "1", nx: true, ex: 10)
+
+      begin
+        @redis.multi do |multi|
+          multi.del(pool_redis_key)
+          multi.rpush(pool_redis_key, urls.shuffle)
+          multi.setex(sync_key, POOL_SYNC_TTL, "1")
+        end
+      ensure
+        @redis.del(lock_key)
+      end
+    end
+
+    def next_available_instance
+      instance = @redis.lmove(pool_redis_key, pool_redis_key, "RIGHT", "LEFT")
+      return nil if instance.blank?
+
+      return find_next_alive_instance if redis_key_exists?("#{redis_dead_prefix}#{instance}")
+
+      instance
+    end
+
+    def find_next_alive_instance
+      total_instances = @redis.llen(pool_redis_key)
+      total_instances.times do
+        instance = @redis.lmove(pool_redis_key, pool_redis_key, "RIGHT", "LEFT")
+        return instance unless redis_key_exists?("#{redis_dead_prefix}#{instance}")
+      end
+      nil
+    end
+
+    def pool_redis_key = raise(NotImplementedError)
+
+    def pool_env_var = raise(NotImplementedError)
+
+    def pool_default_urls = raise(NotImplementedError)
 
     def logger_tag = raise(NotImplementedError)
 
