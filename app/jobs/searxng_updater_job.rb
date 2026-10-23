@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class SearxngUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
   CONTAINER_COUNT = ENV.fetch("SEARXNG_URLS", "http://searxng_1:8080").split(",").size
   SEARXNG_IMAGE = ENV.fetch("SEARXNG_IMAGE", "searxng/searxng:latest")
 

@@ -80,9 +80,15 @@
       <% end %>
     </div>
 
-    <% if result.verification_status.to_s.start_with?("unverified") %>
+    <% status = result.verification_status.to_s %>
+
+    <% if status == "pending" %>
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-2xs" title="Awaiting full page verification">
+        ⏳ Pending verification
+      </span>
+    <% elsif status.start_with?("unverified") %>
       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-2xs" title="Full page fetching failed or required captcha verification">
-        ⚠️ <%="Unverified: #{result.verification_status.split("_").last}" %>
+        ⚠️ <%= "Unverified: #{status.split('_').last}" %>
       </span>
     <% end %>
   </div>

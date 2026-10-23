@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class FourgetUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
   FOURGET_IMAGE = ENV.fetch("FOURGET_IMAGE", "luuul/4get:latest")
 
   private
