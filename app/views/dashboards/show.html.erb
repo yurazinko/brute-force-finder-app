@@ -1,12 +1,37 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-breeze-view p-4 rounded-xl border border-breeze-border shadow-sm">
+    <div>
+      <h1 class="text-base font-bold text-breeze-text">Analytics Dashboard</h1>
+      <p class="text-xs text-breeze-muted mt-0.5">Overview of domain productivity and target efficiency metrics.</p>
+    </div>
+
+    <%= form_with url: request.path, method: :get, local: true, class: "flex items-center gap-2" do |f| %>
+      <%= f.label :period, "Timeframe:", class: "text-xs font-medium text-breeze-muted uppercase tracking-wider" %>
+      <%= f.select :period,
+            options_for_select([
+              ['Last 7 days', 7],
+              ['Last 30 days', 30],
+              ['Past 6 months', 180],
+              ['Past year', 365],
+              ['All time', 0]
+            ], @period),
+            {},
+            {
+              onchange: 'this.form.requestSubmit();',
+              class: 'bg-breeze-background border border-breeze-border text-breeze-text text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-breeze-primary focus:outline-none cursor-pointer'
+            } %>
+    <% end %>
+  </div>
+
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <!-- Most Productive Domains -->
     <section class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
       <div class="mb-4">
         <h2 class="text-sm font-bold text-breeze-muted uppercase tracking-wider">
           Most Productive Domains
         </h2>
         <p class="text-xs text-breeze-muted mt-1">
-          Ranked by the sum of positive relevance scores; only results with <code>relevance_score &gt; 0</code> count.
+          Ranked by the sum of positive relevance scores; only results with <code>relevance_score &gt; 0</code> count. Click any row to edit target.
         </p>
       </div>
 
@@ -24,9 +49,10 @@
             </thead>
             <tbody>
               <% @productive_domains.each_with_index do |stat, index| %>
-                <tr class="border-b border-breeze-border last:border-0">
+                <tr onclick="window.location.href='<%= edit_target_path(stat[:id]) %>'"
+                    class="border-b border-breeze-border last:border-0 cursor-pointer hover:bg-breeze-hover/60 transition-colors">
                   <td class="py-3 pr-3 text-breeze-muted"><%= index + 1 %></td>
-                  <td class="py-3 pr-3 font-medium text-breeze-text break-all"><%= stat[:domain] %></td>
+                  <td class="py-3 pr-3 font-medium text-breeze-text break-all underline decoration-dotted underline-offset-4"><%= stat[:domain] %></td>
                   <td class="py-3 pr-3 text-right font-bold text-breeze-text"><%= stat[:relevant_results_count] %></td>
                   <td class="py-3 pr-3 text-right font-semibold"><%= stat[:total_relevance_score] %></td>
                   <td class="py-3 text-right"><%= number_with_precision(stat[:average_relevance_score], precision: 1) %></td>
@@ -37,18 +63,19 @@
         </div>
       <% else %>
         <p class="text-sm text-breeze-muted text-center py-8">
-          No relevant results found in the last 30 days.
+          No relevant results found for the selected period.
         </p>
       <% end %>
     </section>
 
+    <!-- Low-Yield Targets -->
     <section class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
       <div class="mb-4">
         <h2 class="text-sm font-bold text-amber-600 uppercase tracking-wider">
           Low-Yield Targets
         </h2>
         <p class="text-xs text-breeze-muted mt-1">
-          Active targets with at least 10 prompts and zero or unusually few relevant results.
+          Active targets with prompts and zero or unusually few relevant results for the selected period.
         </p>
       </div>
 
@@ -65,9 +92,10 @@
             </thead>
             <tbody>
               <% @loser_targets.each do |stat| %>
-                <tr class="border-b border-breeze-border last:border-0">
+                <tr onclick="window.location.href='<%= edit_target_path(stat.target.id) %>'"
+                    class="border-b border-breeze-border last:border-0 cursor-pointer hover:bg-breeze-hover/60 transition-colors">
                   <td class="py-3 pr-3">
-                    <div class="font-medium text-breeze-text"><%= stat.target.name %></div>
+                    <div class="font-medium text-breeze-text underline decoration-dotted underline-offset-4"><%= stat.target.name %></div>
                     <div class="text-xs text-breeze-muted font-mono break-all"><%= stat.target.domain %></div>
                   </td>
                   <td class="py-3 pr-3 text-right"><%= stat.prompts_count %></td>
@@ -82,7 +110,7 @@
         </div>
       <% else %>
         <p class="text-sm text-breeze-muted text-center py-8">
-          No low-yield targets found for the last 30 days.
+          No low-yield targets found for the selected period.
         </p>
       <% end %>
 
