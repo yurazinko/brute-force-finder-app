@@ -31,6 +31,7 @@ require "rails_helper"
 #  idx_results_content_trgm                        (content gin_trgm_ops) USING gin
 #  idx_results_title_trgm                          (title gin_trgm_ops) USING gin
 #  idx_results_url_trgm                            (url gin_trgm_ops) USING gin
+#  index_results_on_created_at                     (created_at)
 #  index_results_on_relevance_score                (relevance_score)
 #  index_results_on_search_id                      (search_id)
 #  index_results_on_search_id_and_relevance_score  (search_id,relevance_score)

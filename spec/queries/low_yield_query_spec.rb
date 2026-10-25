@@ -25,8 +25,14 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
         create_list(:prompt, 25, search: search, target: active_target, created_at: 5.days.ago)
 
         create_list(:prompt, 15, search: search, target: productive_target, created_at: 5.days.ago)
+
         create(
-          :result, search: search, url: "https://productive.com/item1", relevance_score: 5, created_at: 2.days.ago
+          :result,
+          search: search,
+          target: productive_target,
+          url: "https://productive.com/item1",
+          relevance_score: 5,
+          created_at: 2.days.ago
         )
       end
 

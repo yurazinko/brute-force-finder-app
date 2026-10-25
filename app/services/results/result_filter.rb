@@ -19,12 +19,13 @@ module Results
       return false if @url.blank?
 
       if @target.present? && @target.domain.present?
-        return false unless UrlMatcher.matches?(@url, @target)
+        matcher = UrlMatcher.new(@url, @target)
 
-        @matched_pattern = UrlMatcher.matched_pattern(@url, @target)
+        return false unless matcher.domain_matches?
 
-        has_active_patterns = @target.target_patterns.exists?(is_active: true)
-        return false if has_active_patterns && @matched_pattern.nil?
+        @matched_pattern = matcher.matched_pattern
+
+        return false if matcher.active_patterns? && @matched_pattern.nil?
       end
 
       @rank_result = RelevanceRanker.call(@result, snippet_text, @keyword_groups, @url)

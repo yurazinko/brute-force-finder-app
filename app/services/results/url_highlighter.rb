@@ -59,14 +59,26 @@ module Results
 
     def find_target_for_result
       search = @result.search
-      return nil unless search&.user
+      return nil unless search&.user_id
 
-      user_targets = Target.joins(:category).where(categories: { user_id: search.user_id }).distinct
-      user_targets.find { |target| Results::UrlMatcher.domain_matches?(@result.url, target) }
+      if search.instance_variable_defined?(:@cached_user_targets)
+        targets = search.instance_variable_get(:@cached_user_targets)
+      else
+        targets = Target.joins(:category)
+                        .where(categories: { user_id: search.user_id })
+                        .includes(:target_patterns)
+                        .distinct
+                        .to_a
+        search.instance_variable_set(:@cached_user_targets, targets)
+      end
+
+      targets.find { |target| Results::UrlMatcher.domain_matches?(@result.url, target) }
     end
 
     def find_active_matched_pattern(target, path)
-      target.target_patterns.active.sort_by { |p| -p.path_pattern.length }.find do |pattern|
+      active_patterns = target.target_patterns.select(&:is_active)
+
+      active_patterns.sort_by { |p| -p.path_pattern.length }.find do |pattern|
         Results::UrlMatcher.match_pattern?(path, pattern.path_pattern)
       end
     end

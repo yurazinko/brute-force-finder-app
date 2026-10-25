@@ -681,6 +681,13 @@ CREATE INDEX index_prompts_on_target_id ON public.prompts USING btree (target_id
 
 
 --
+-- Name: index_results_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_created_at ON public.results USING btree (created_at);
+
+
+--
 -- Name: index_results_on_relevance_score; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -936,6 +943,7 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261025171039'),
 ('20261023130803'),
 ('20261021120241'),
 ('20261016081234'),

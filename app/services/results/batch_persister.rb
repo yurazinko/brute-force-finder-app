@@ -12,7 +12,7 @@ module Results
       @search = search
       @search_id = search.id
       @prompt =  prompt
-      @target_id = prompt&.target_id
+      @target = prompt&.target
       @result_records = result_records
     end
 
@@ -61,7 +61,7 @@ module Results
       execute_upsert(batch.map { |r| build_db_payload(r, global_ack) })
     end
 
-    def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength
+    def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
       current_time = Time.current
       url_hash = record["url_hash"]
 
@@ -77,7 +77,8 @@ module Results
         "relevance_score" => record["relevance_score"] || 0,
         "matched_keywords" => record["matched_keywords"] || [],
         "verification_status" => record["verification_status"] || "pending",
-        "target_id" => @target_id,
+        "target_id" => @target&.id,
+        "target_domain" => @target&.domain,
         "target_pattern" => record["target_pattern"],
         "created_at" => record["created_at"] || current_time,
         "updated_at" => record["updated_at"] || current_time
