@@ -7,13 +7,15 @@ RSpec.describe "Dashboards", type: :request do
 
   let(:user) { create(:user) }
   let(:category) { create(:category, user: user) }
+  let!(:target_example) { create(:target, category: category, name: "Example Target", domain: "example.com") }
 
   before do
     sign_in user
   end
 
   describe "GET /dashboard" do
-    subject(:send_request) { get dashboard_path }
+    subject(:send_request) { get dashboard_path(params) }
+    let(:params) { {} }
 
     context "when user is authenticated and data is present" do
       let(:target_one) { create(:target, category: category, name: "Alpha Target", domain: "alpha.com") }
@@ -21,8 +23,8 @@ RSpec.describe "Dashboards", type: :request do
 
       let(:productive_domains) do
         [
-          { domain: "example.com", relevant_results_count: 10, total_relevance_score: 50, average_relevance_score: 5.0 },
-          { domain: "test.com", relevant_results_count: 5, total_relevance_score: 12, average_relevance_score: 2.4 }
+          { id: target_example.id, domain: "example.com", relevant_results_count: 10, total_relevance_score: 50, average_relevance_score: 5.0 },
+          { id: target_one.id, domain: "test.com", relevant_results_count: 5, total_relevance_score: 12, average_relevance_score: 2.4 }
         ]
       end
 
@@ -65,6 +67,15 @@ RSpec.describe "Dashboards", type: :request do
         expect(response.body).to include("beta.com")
         expect(response.body).to include("0%")
       end
+
+      context "when custom period parameter is provided" do
+        let(:params) { { period: 7 } }
+
+        it "accepts timeframe period and returns success" do
+          send_request
+          expect(response).to have_http_status(:success)
+        end
+      end
     end
 
     context "when dashboard data is empty" do
@@ -77,8 +88,8 @@ RSpec.describe "Dashboards", type: :request do
         send_request
 
         expect(response).to have_http_status(:success)
-        expect(response.body).to include("No relevant results found in the last 30 days.")
-        expect(response.body).to include("No low-yield targets found for the last 30 days.")
+        expect(response.body).to include("No relevant results found for the selected period.")
+        expect(response.body).to include("No low-yield targets found for the selected period.")
       end
     end
 
