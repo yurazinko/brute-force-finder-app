@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Results
-  class Counters # rubocop:disable Metrics/ClassLength
+  class Counters
     STATUSES = %w[unread watched interesting garbage].freeze
 
     Counts = Struct.new(

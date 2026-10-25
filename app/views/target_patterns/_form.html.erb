@@ -1,16 +1,24 @@
 <%
-   uri_obj = URI.parse(result&.url || (matched_target&.domain ? "https://#{matched_target.domain}" : "")) rescue nil
-   extracted_domain = uri_obj&.host&.sub(Utils::UrlNormalizer::WWW_PREFIX, "")
-   target_domain = matched_target&.domain || extracted_domain
+  uri_obj = URI.parse(result&.url || (matched_target&.domain ? "https://#{matched_target.domain}" : "")) rescue nil
+  extracted_domain = uri_obj&.host&.sub(Utils::UrlNormalizer::WWW_PREFIX, "")
+  target_domain = matched_target&.domain || extracted_domain
 
-   patterns_data = matched_target&.persisted? ? matched_target.target_patterns.map { |p| { id: p.id, path_pattern: p.path_pattern, is_active: p.is_active? } } : []
-   categories_data = current_user.categories.order(:name).map { |c| { id: c.id, name: c.name } }
+  patterns_data = matched_target&.persisted? ? matched_target.target_patterns.map { |p| { id: p.id, path_pattern: p.path_pattern, is_active: p.is_active? } } : []
+  categories_data = current_user.categories.order(:name).map { |c| { id: c.id, name: c.name } }
+  # Existing targets must not be re-attached from this modal. Search choices are
+  # supplied only for a newly discovered target built from a result URL.
+  searches_data = if matched_target&.persisted?
+                    []
+                  else
+                    current_user.searches.order(:title).map { |s| { id: s.id, title: s.title, status: s.status } }
+                  end
 %>
 
 <div data-controller="path-builder"
      data-path-builder-target-domain-value="<%= target_domain %>"
      data-path-builder-initial-patterns-value="<%= patterns_data.to_json %>"
      data-path-builder-categories-value="<%= categories_data.to_json %>"
+     data-path-builder-searches-value="<%= searches_data.to_json %>"
      data-path-builder-result-url-value="<%= result&.url %>"
      data-path-builder-matched-target-id-value="<%= matched_target&.id %>"
      data-path-builder-result-id-value="<%= params[:result_id] %>"

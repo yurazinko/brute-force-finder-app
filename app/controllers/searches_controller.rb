@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SearchesController < ApplicationController # rubocop:disable Metrics/ClassLength
+class SearchesController < ApplicationController
   include ResultFilterable
 
   before_action :set_search, only: %i[show edit update activate destroy toggle_pause complete]

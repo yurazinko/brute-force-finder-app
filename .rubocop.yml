@@ -62,6 +62,9 @@ Metrics/BlockLength:
     - 'config/**/*'
     - 'lib/**/*'
 
+Metrics/ClassLength:
+  Max: 150
+
 Metrics/ModuleLength:
   Exclude:
     - 'config/**/*'

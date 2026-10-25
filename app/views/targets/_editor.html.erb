@@ -1,0 +1,34 @@
+<%
+  persisted_target = target.persisted?
+  patterns_data = persisted_target ? target.target_patterns.map { |pattern| { id: pattern.id, path_pattern: pattern.path_pattern, is_active: pattern.is_active? } } : []
+  selected_search_ids = persisted_target ? target.prompts.distinct.pluck(:search_id) : []
+  target_category_id = target.category_id || params[:category_id]
+  cancel_path = if target_category_id.present?
+                  category_path(target_category_id)
+                else
+                  categories_path
+                end
+%>
+
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
+  <div
+    data-controller="path-builder"
+    data-path-builder-mode-value="target"
+    data-path-builder-target-id-value="<%= target.id if persisted_target %>"
+    data-path-builder-target-name-value="<%= target.name %>"
+    data-path-builder-target-domain-value="<%= target.domain %>"
+    data-path-builder-target-category-id-value="<%= target_category_id %>"
+    data-path-builder-target-is-active-value="<%= target.is_active.nil? ? true : target.is_active? %>"
+    data-path-builder-target-allow-query-strings-value="<%= target.allow_query_strings? %>"
+    data-path-builder-initial-patterns-value="<%= patterns_data.to_json %>"
+    data-path-builder-categories-value="<%= @categories.map { |category| { id: category.id, name: category.name } }.to_json %>"
+    data-path-builder-searches-value="<%= @searches.map { |search| { id: search.id, title: search.title, status: search.status } }.to_json %>"
+    data-path-builder-initial-search-ids-value="<%= selected_search_ids.to_json %>"
+    data-path-builder-authenticity-token-value="<%= form_authenticity_token %>"
+    data-path-builder-target-create-endpoint-value="<%= targets_path(format: :json) %>"
+    data-path-builder-target-update-endpoint-value="<%= target_path(target, format: :json) if persisted_target %>"
+    data-path-builder-create-endpoint-value="<%= target_patterns_path %>"
+    data-path-builder-redirect-path-value="<%= cancel_path %>"
+    data-path-builder-cancel-path-value="<%= cancel_path %>">
+  </div>
+</div>
