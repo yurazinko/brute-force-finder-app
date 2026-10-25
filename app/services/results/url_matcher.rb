@@ -43,6 +43,8 @@ module Results
     def matches?
       return false unless domain_matches?
 
+      return true if active_sorted_patterns.empty?
+
       uri = URI.parse(@url)
       path_matches?(uri.path)
     rescue URI::InvalidURIError
@@ -58,6 +60,10 @@ module Results
       nil
     end
 
+    def active_patterns?
+      active_sorted_patterns.any?
+    end
+
     def self.clean_domain(domain, www_prefix = Utils::UrlNormalizer::WWW_PREFIX)
       domain.to_s.sub(%r{\Ahttps?://}, "").sub(www_prefix, "").delete_suffix("/")
     end
@@ -71,23 +77,23 @@ module Results
     end
 
     def path_matches?(result_path)
-      patterns = active_sorted_patterns
-      return true if patterns.empty?
+      return true if active_sorted_patterns.empty?
 
       clean_result_path = result_path.to_s
-      patterns.any? { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
+      active_sorted_patterns.any? { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
     end
 
     def find_matching_pattern(result_path)
-      patterns = active_sorted_patterns
-      return nil if patterns.empty?
+      return nil if active_sorted_patterns.empty?
 
       clean_result_path = result_path.to_s
-      patterns.find { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
+      active_sorted_patterns.find { |pattern| self.class.match_pattern?(clean_result_path, pattern.path_pattern) }
     end
 
     def active_sorted_patterns
-      @target.target_patterns.active.sort_by { |p| -p.path_pattern.length }
+      return [] if @target.blank?
+
+      @active_sorted_patterns ||= @target.target_patterns.select(&:is_active).sort_by { |p| -p.path_pattern.length }
     end
   end
 end
