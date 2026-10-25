@@ -6,7 +6,7 @@ require "ipaddr"
 module SearchEngines
   module Yacy
     module Api
-      class Crawler < BaseApiClient # rubocop:disable Metrics/ClassLength
+      class Crawler < BaseApiClient
         CRAWLER_ENDPOINT = "/Crawler_p.html"
         REDIS_DEAD_PREFIX = "yacy:dead:"
 
