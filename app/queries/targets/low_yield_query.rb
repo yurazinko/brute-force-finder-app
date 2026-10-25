@@ -20,27 +20,15 @@ module Targets
     end
 
     def call # rubocop:disable Metrics/MethodLength
-      results_domain_sql = <<~SQL.squish
-        REGEXP_REPLACE(
-          REGEXP_REPLACE(
-            LOWER(
-              COALESCE(
-                NULLIF(BTRIM(results.target_domain), ''),
-                SUBSTRING(LOWER(results.url) FROM 'https?://([^/]+)')
-              )
-            ),
-            '^https?://', ''
-          ),
-          '/+$', ''
-        )
-      SQL
-
-      target_domain_sql = "REGEXP_REPLACE(REGEXP_REPLACE(LOWER(targets.domain), '^https?://', ''), '/+$', '')"
-
       sql = <<~SQL.squish
         SELECT
           targets.*,
-          (SELECT COUNT(prompts.id) FROM prompts WHERE prompts.target_id = targets.id AND prompts.created_at BETWEEN :since AND :now) AS prompts_count
+          (
+            SELECT COUNT(prompts.id)
+            FROM prompts
+            WHERE prompts.target_id = targets.id
+              AND prompts.created_at BETWEEN :since AND :now
+          ) AS prompts_count
         FROM targets
         WHERE targets.is_active = TRUE
           AND EXISTS (
@@ -50,8 +38,8 @@ module Targets
           )
           AND NOT EXISTS (
             SELECT 1 FROM results
-            WHERE results.created_at BETWEEN :since AND :now
-              AND (#{results_domain_sql}) = (#{target_domain_sql})
+            WHERE results.target_id = targets.id
+              AND results.created_at BETWEEN :since AND :now
           )
         ORDER BY prompts_count DESC
         LIMIT :limit

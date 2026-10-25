@@ -22,6 +22,7 @@
 #
 #  fk_rails_...  (category_id => categories.id)
 #
+
 class Target < ApplicationRecord
   belongs_to :category
   has_many :prompts, dependent: :destroy
@@ -31,7 +32,14 @@ class Target < ApplicationRecord
 
   validates :name, presence: true
   validates :domain, uniqueness: { scope: :category_id }
-  normalizes :domain, with: ->(value) { value.presence&.sub(%r{\Ahttps?://}, "")&.sub(%r{/+\z}, "") }
+  normalizes :domain, with: lambda { |value|
+    return nil if value.blank?
+
+    value.sub(%r{\Ahttps?://}, "")
+         .delete_prefix("www.")
+         .sub(%r{/+\z}, "")
+         .downcase
+  }
 
   scope :active, -> { where(is_active: true) }
 
@@ -51,11 +59,9 @@ class Target < ApplicationRecord
     joins(:prompts).group("targets.name").order(count_all: :desc).limit(5).count
   end
 
-  # TODO: Move to query objects
   def self.dead_weight_targets_last_30_days(limit_number = 5)
     results_subquery = Result.where(created_at: 30.days.ago..)
-                             .where("results.target_domain = targets.domain OR " \
-                                    "results.url ILIKE '%' || targets.domain || '%'")
+                             .where("results.target_domain = targets.domain")
                              .select("COUNT(results.id)")
 
     active_prompts_subquery = Prompt.joins(search: :results)
