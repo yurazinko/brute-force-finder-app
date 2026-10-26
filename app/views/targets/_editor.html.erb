@@ -3,11 +3,21 @@
   patterns_data = persisted_target ? target.target_patterns.map { |pattern| { id: pattern.id, path_pattern: pattern.path_pattern, is_active: pattern.is_active? } } : []
   selected_search_ids = persisted_target ? target.prompts.distinct.pluck(:search_id) : []
   target_category_id = target.category_id || params[:category_id]
-  cancel_path = if target_category_id.present?
-                  category_path(target_category_id)
-                else
-                  categories_path
-                end
+
+  raw_referrer = request.referrer
+  safe_referrer = if raw_referrer.present? && !raw_referrer.include?(target_path(target))
+                    raw_referrer
+                  else
+                    nil
+                  end
+
+  fallback_path = if target_category_id.present?
+                    category_path(target_category_id)
+                  else
+                    categories_path
+                  end
+
+  initial_cancel_path = safe_referrer || fallback_path
 %>
 
 <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
@@ -28,7 +38,7 @@
     data-path-builder-target-create-endpoint-value="<%= targets_path(format: :json) %>"
     data-path-builder-target-update-endpoint-value="<%= target_path(target, format: :json) if persisted_target %>"
     data-path-builder-create-endpoint-value="<%= target_patterns_path %>"
-    data-path-builder-redirect-path-value="<%= cancel_path %>"
-    data-path-builder-cancel-path-value="<%= cancel_path %>">
+    data-path-builder-redirect-path-value="<%= initial_cancel_path %>"
+    data-path-builder-cancel-path-value="<%= initial_cancel_path %>">
   </div>
 </div>

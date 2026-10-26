@@ -945,8 +945,9 @@ const TargetEditor: React.FC<PathBuilderProps> = (props) => {
   const persisted = targetId !== undefined && targetId !== null && String(targetId) !== ""
   const targetCreateEndpoint = props.targetCreateEndpoint || "/targets.json"
   const targetUpdateEndpoint = props.targetUpdateEndpoint || (persisted ? `/targets/${targetId}.json` : "")
-  const cancelPath = props.cancelPath || props.redirectPath || "/categories"
-  const [returnPath, setReturnPath] = useState(cancelPath)
+
+  const initialCancelPath = props.cancelPath || props.redirectPath || "/categories"
+  const [returnPath, setReturnPath] = useState(initialCancelPath)
 
   const handleSourceChange = (value: string) => {
     setSourceWasEdited(true)
@@ -1007,7 +1008,7 @@ const TargetEditor: React.FC<PathBuilderProps> = (props) => {
     return { created, failed }
   }
 
-  const handleSaveTarget = async (event: React.FormEvent) => {
+const handleSaveTarget = async (event: React.FormEvent) => {
     event.preventDefault()
     setError("")
     setNotice("")
@@ -1021,9 +1022,6 @@ const TargetEditor: React.FC<PathBuilderProps> = (props) => {
     let parsedPatterns = pendingPatterns
     const sourceWasLeftUntouched = persisted && !sourceWasEdited && sourceInput.trim() === (props.targetDomain || "").trim()
     try {
-      // Preserve legacy targets whose `domain` already contains a path unless the
-      // user explicitly edits the source input. Pasting a URL opts into the new
-      // host + path-pattern representation.
       if (!sourceWasLeftUntouched) {
         const parsed = parseSourceInput(sourceInput || domain)
         finalDomain = parsed.domain
@@ -1081,10 +1079,14 @@ const TargetEditor: React.FC<PathBuilderProps> = (props) => {
         if (savedId === undefined || savedId === null) throw new Error("Target was saved but the server did not return its ID.")
         setTargetId(savedId)
         if (savedTarget.edit_url) window.history.replaceState({}, "", savedTarget.edit_url)
-        if (savedTarget.category_url) setReturnPath(savedTarget.category_url)
+        if (savedTarget.category_url) {
+          setReturnPath(savedTarget.category_url)
+        } else {
+          setReturnPath(`/categories/${categoryId}`)
+        }
+      } else {
+        setReturnPath(`/categories/${categoryId}`)
       }
-
-      if (persisted) setReturnPath(`/categories/${categoryId}`)
 
       if (savedId !== undefined && parsedPatterns.length) {
         const toSave = parsedPatterns.filter((pattern) => !patterns.some((saved) => saved.path_pattern === pattern))
@@ -1122,7 +1124,7 @@ const TargetEditor: React.FC<PathBuilderProps> = (props) => {
       <div className="bg-breeze-view border border-breeze-border rounded-xl p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <a href={returnPath} className="inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60">
-            <span>⬅️</span><span>{persisted ? "Back to Category" : "Back"}</span>
+            <span>⬅️</span><span>Back</span>
           </a>
           <h1 className="text-xl sm:text-2xl font-bold text-breeze-text mt-3">{persisted ? `Edit Target Site${targetName ? `: ${targetName}` : ""}` : "Add New Target Site"}</h1>
           <p className="text-xs text-breeze-muted mt-1">Configure the target, attach it to searches, and manage its URL path patterns in one place.</p>
