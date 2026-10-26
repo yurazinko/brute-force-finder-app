@@ -27,6 +27,10 @@ require "rails_helper"
 RSpec.describe Search, type: :model do
   let(:user) { create(:user) }
 
+  before do
+    allow(Sidekiq::Client).to receive(:push_bulk)
+  end
+
   describe "validations" do
     it "is valid with valid attributes" do
       search = described_class.new(user: user, title: "Ruby Jobs", query_conditions: "(ruby)", status: "pending")

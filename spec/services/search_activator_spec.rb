@@ -19,10 +19,9 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
     )
   end
 
-  # Sidekiq testing helpers require clearing queues
   before do
     allow(Turbo::StreamsChannel).to receive(:broadcast_render_to)
-    allow(PromptProcessorJob).to receive(:perform_at)
+    allow(Sidekiq::Client).to receive(:push_bulk)
   end
 
   describe ".call" do
@@ -52,9 +51,16 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
         expect(described_class.call(search, target_ids, true)).to be(true)
       end
 
-      it "triggers Sidekiq workers with delayed execution" do
+      it "triggers Sidekiq push_bulk with bulk payload for delayed execution" do
         described_class.call(search, target_ids, true)
-        expect(PromptProcessorJob).to have_received(:perform_at).twice
+
+        expect(Sidekiq::Client).to have_received(:push_bulk).with(
+          hash_including(
+            "class" => "PromptProcessorJob",
+            "args" => satisfy { |args| args.all? { |prompt_id, uid| prompt_id.is_a?(Integer) && uid == user.id } },
+            "at" => kind_of(Array)
+          )
+        )
       end
 
       it "broadcasts live status updating to Turbo Streams" do
@@ -151,8 +157,8 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
           described_class.call(search, target_ids, false)
         end.to change(Prompt, :count).by(1)
 
-        expect(search.reload.status).to eq("pending") # статус залишається pending
-        expect(PromptProcessorJob).not_to have_received(:perform_at)
+        expect(search.reload.status).to eq("pending")
+        expect(Sidekiq::Client).not_to have_received(:push_bulk)
       end
     end
 
@@ -161,23 +167,22 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
 
       before do
         massive_target_ids << target_lever.id << target_greenhouse.id
-
         stub_const("SearchCampaigns::Activator::BATCH_SIZE", 1)
       end
 
-      it "successfully schedules prompts across multiple batches" do
+      it "successfully schedules prompts across multiple batches using push_bulk" do
         expect do
           described_class.call(search, massive_target_ids, true)
         end.to change(Prompt, :count).by(2)
 
-        expect(PromptProcessorJob).to have_received(:perform_at).twice
+        expect(Sidekiq::Client).to have_received(:push_bulk).once
       end
     end
 
     context "when transaction commit safety rules apply" do
       let(:target_ids) { [target_lever.id] }
 
-      it "guarantees Sidekiq jobs are queued only after database writes complete" do
+      it "guarantees Sidekiq jobs are queued via push_bulk only after database writes complete" do
         execution_sequence = []
 
         original_upsert = Prompt.method(:upsert_all)
@@ -186,7 +191,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
           original_upsert.call(*args, **kwargs)
         end
 
-        allow(PromptProcessorJob).to receive(:perform_at) do
+        allow(Sidekiq::Client).to receive(:push_bulk) do
           execution_sequence << :sidekiq_enqueue
         end
 
@@ -217,7 +222,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
       context "when targets exist but none of them are active" do
         it "does not create any prompts, skips jobs and returns true" do
           expect { described_class.call(search, [target_inactive.id], true) }.not_to change(Prompt, :count)
-          expect(PromptProcessorJob).not_to have_received(:perform_at)
+          expect(Sidekiq::Client).not_to have_received(:push_bulk)
           expect(search.reload.status).to eq("processing")
         end
       end

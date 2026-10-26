@@ -68,7 +68,16 @@ module SearchCampaigns
     end
 
     def schedule_prompt_jobs(payloads)
-      payloads.each { |prompt_id, time| PromptProcessorJob.perform_at(time, prompt_id, @search.user_id) }
+      return if payloads.empty?
+
+      args = payloads.map { |prompt_id, _| [prompt_id, @search.user_id] }
+      ats  = payloads.map { |_, time| time.to_f }
+
+      Sidekiq::Client.push_bulk(
+        "class" => "PromptProcessorJob",
+        "args" => args,
+        "at" => ats
+      )
     end
 
     def calculate_scheduled_time(index, step)
@@ -96,7 +105,13 @@ module SearchCampaigns
 
     def cleanup_target_prompts
       active_targets = targets_data.to_h
-      @search.prompts.find_each { |p| p.destroy if obsolete_target_prompt?(p, active_targets) }
+      obsolete_ids = []
+
+      @search.prompts.find_each do |p|
+        obsolete_ids << p.id if obsolete_target_prompt?(p, active_targets)
+      end
+
+      @search.prompts.where(id: obsolete_ids).delete_all if obsolete_ids.any?
     end
 
     def obsolete_target_prompt?(prompt, active_targets)
