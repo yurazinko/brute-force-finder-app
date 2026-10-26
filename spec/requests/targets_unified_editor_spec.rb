@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "sidekiq/testing"
 
 RSpec.describe "Unified target editor", type: :request do
   include Devise::Test::IntegrationHelpers
@@ -9,7 +10,14 @@ RSpec.describe "Unified target editor", type: :request do
   let!(:category) { create(:category, user: user) }
   let!(:search) { create(:search, user: user) }
 
-  before { sign_in user }
+  before do
+    sign_in user
+    Sidekiq::Testing.inline!
+  end
+
+  after do
+    Sidekiq::Testing.fake!
+  end
 
   describe "GET /targets/new" do
     it "renders the unified React editor and supports a category preselection" do

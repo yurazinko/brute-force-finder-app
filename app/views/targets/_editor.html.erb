@@ -5,7 +5,7 @@
   target_category_id = target.category_id || params[:category_id]
 
   raw_referrer = request.referrer
-  safe_referrer = if raw_referrer.present? && !raw_referrer.include?(target_path(target))
+  safe_referrer = if raw_referrer.present? && target.persisted? &&  !raw_referrer.include?(target_path(target))
                     raw_referrer
                   else
                     nil

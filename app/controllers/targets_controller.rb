@@ -18,29 +18,23 @@ class TargetsController < ApplicationController
   def create
     attributes = target_params
     @category = current_user.categories.find(attributes[:category_id])
-    @target = @category.targets.build(attributes.except(:category_id, :search_ids))
+    @target = @category.targets.build
 
-    if save_target_with_associations(@target, attributes)
+    if @target.persist_record(attributes)
       respond_to_successful_create
     else
       respond_to_failed_create
     end
-  rescue ActiveRecord::RecordInvalid => e
-    respond_to_invalid_record(e)
   end
 
   def update
     attributes = target_params
-    assign_category_if_present(attributes[:category_id])
-    @target.assign_attributes(attributes.except(:category_id, :search_ids))
 
-    if update_target_with_associations(@target, attributes)
+    if @target.persist_record(attributes)
       respond_to_successful_update
     else
       respond_to_failed_update
     end
-  rescue ActiveRecord::RecordInvalid => e
-    respond_to_invalid_update(e)
   end
 
   def destroy
@@ -66,52 +60,18 @@ class TargetsController < ApplicationController
                   ])
   end
 
-  def assign_category_if_present(category_id)
-    return if category_id.blank?
-
-    @target.category = current_user.categories.find(category_id)
-  end
-
-  def save_target_with_associations(target, attributes)
-    return false unless target.valid?
-
-    ActiveRecord::Base.transaction do
-      target.save!
-      synchronize_searches!(target, attributes[:search_ids]) if attributes.key?(:search_ids)
-    end
-    true
-  end
-
-  def update_target_with_associations(target, attributes)
-    return false unless target.valid?
-
-    ActiveRecord::Base.transaction do
-      target.save!
-      synchronize_searches!(target, attributes[:search_ids]) if attributes.key?(:search_ids)
-    end
-    true
-  end
-
   def respond_to_successful_create
     respond_to do |format|
-      format.html { redirect_to category_path(@category), notice: "Target #{@target.name} added!" }
+      format.html { redirect_to category_path(@target.category), notice: "Target #{@target.name} added!" }
       format.json { render json: { target: target_payload(@target) }, status: :created }
     end
   end
 
   def respond_to_failed_create
+    @category = @target.category
     respond_to do |format|
       format.html { redirect_to category_path(@category), alert: "Error: #{@target.errors.full_messages.join(', ')}" }
       format.json { render json: { errors: @target.errors.full_messages }, status: :unprocessable_content }
-    end
-  end
-
-  def respond_to_invalid_record(exception)
-    respond_to do |format|
-      format.html do
-        redirect_to category_path(@category), alert: "Error: #{exception.record.errors.full_messages.join(', ')}"
-      end
-      format.json { render json: { errors: exception.record.errors.full_messages }, status: :unprocessable_content }
     end
   end
 
@@ -131,29 +91,6 @@ class TargetsController < ApplicationController
       end
       format.json { render json: { errors: @target.errors.full_messages }, status: :unprocessable_content }
       format.js { render json: @target.errors, status: :unprocessable_content }
-    end
-  end
-
-  def respond_to_invalid_update(exception)
-    respond_to do |format|
-      format.html do
-        redirect_to edit_target_path(@target), alert: "Error: #{exception.record.errors.full_messages.join(', ')}"
-      end
-      format.json { render json: { errors: exception.record.errors.full_messages }, status: :unprocessable_content }
-    end
-  end
-
-  def synchronize_searches!(target, requested_search_ids)
-    requested_ids = Array(requested_search_ids).compact_blank.map(&:to_s)
-    requested_ids.uniq!
-    searches = current_user.searches.where(id: requested_ids)
-
-    target.prompts.where.not(search_id: searches.select(:id)).destroy_all
-
-    searches.find_each do |search|
-      target.prompts.find_or_create_by!(search: search) do |prompt|
-        prompt.full_query_text = "site:#{target.domain} #{search.query_conditions}"
-      end
     end
   end
 

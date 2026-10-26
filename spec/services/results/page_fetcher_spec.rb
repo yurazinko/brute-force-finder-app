@@ -73,7 +73,10 @@ RSpec.describe Results::PageFetcher, type: :service do
     end
 
     context "when page size exceeds MAX_BODY_SIZE" do
-      let(:large_body) { "a" * (described_class::MAX_BODY_SIZE + 1000) }
+      let(:large_body) do
+        padding = "a" * (described_class::MAX_BODY_SIZE + 1000)
+        "<html><body><p>#{padding}</p></body></html>"
+      end
 
       before do
         stub_request(:get, target_url)
