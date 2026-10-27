@@ -39,3 +39,6 @@ application.register("results-stream", ResultsStreamController)
 
 import TargetsSelectorController from "./targets_selector_controller"
 application.register("targets-selector", TargetsSelectorController)
+
+import FlashController from "./flash_controller"
+application.register("flash", FlashController)
