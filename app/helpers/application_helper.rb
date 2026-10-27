@@ -15,4 +15,19 @@ module ApplicationHelper
   rescue StandardError
     fallback
   end
+
+  def safe_back_path(fallback: root_path)
+    referer = request.referer
+    return fallback if referer.blank?
+
+    referer_uri = URI.parse(referer)
+
+    if referer_uri.path == request.path
+      fallback
+    else
+      referer
+    end
+  rescue URI::InvalidURIError
+    fallback
+  end
 end

@@ -1,6 +1,6 @@
 <% path_provider = search.present? ? search_path(search) : results_path %>
 
-<div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl min-h-[500px] flex flex-col justify-between">
+<div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl min-h-[500px] flex flex-col">
   <%= turbo_frame_tag "results_pool", class: "block w-full flex flex-col justify-between min-h-[450px]", data: { turbo_action: "advance" } do %>
     <div>
       <div class="flex justify-between items-center border-b border-breeze-border pb-4 mb-4">
@@ -10,19 +10,19 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-breeze-muted mb-6 bg-breeze-bg p-2.5 rounded-lg border border-breeze-border overflow-x-auto whitespace-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div class="flex flex-wrap items-center gap-y-3 gap-x-4 sm:gap-x-6 text-xs text-breeze-muted mb-6 bg-breeze-bg/70 p-2.5 rounded-lg border border-breeze-border/80">
 
         <div class="flex items-center gap-2">
           <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
             📅 <span>Timeframe:</span>
           </span>
-          <%= link_to "All time", url_for(params.to_unsafe_h.merge(page: nil, d: nil)), class: "font-medium inline-block #{params[:d].blank? ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "All time", url_for(params.to_unsafe_h.merge(page: nil, d: nil)), class: "font-medium inline-block #{params[:d].blank? ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
-          <%= link_to "Past 24h", url_for(params.to_unsafe_h.merge(page: nil, d: :day)), class: "font-medium inline-block #{params[:d] == 'day' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Past 24h", url_for(params.to_unsafe_h.merge(page: nil, d: :day)), class: "font-medium inline-block #{params[:d] == 'day' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
-          <%= link_to "Past Week", url_for(params.to_unsafe_h.merge(page: nil, d: :week)), class: "font-medium inline-block #{params[:d] == 'week' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Past Week", url_for(params.to_unsafe_h.merge(page: nil, d: :week)), class: "font-medium inline-block #{params[:d] == 'week' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
-          <%= link_to "Past Month", url_for(params.to_unsafe_h.merge(page: nil, d: :month)), class: "font-medium inline-block #{params[:d] == 'month' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Past Month", url_for(params.to_unsafe_h.merge(page: nil, d: :month)), class: "font-medium inline-block #{params[:d] == 'month' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
         </div>
 
         <div class="hidden sm:block h-4 border-l border-breeze-border/80"></div>
@@ -31,18 +31,18 @@
           <span class="font-semibold text-breeze-muted uppercase tracking-wider bg-breeze-bg pr-1 flex items-center gap-1">
             ↕️ <span>Sort:</span>
           </span>
-          <%= link_to "Top Relevance", url_for(params.to_unsafe_h.merge(page: nil, sort: :relevance_desc)), class: "font-medium inline-block #{params[:sort].blank? || params[:sort] == 'relevance_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Top Relevance", url_for(params.to_unsafe_h.merge(page: nil, sort: :relevance_desc)), class: "font-medium inline-block #{params[:sort].blank? || params[:sort] == 'relevance_desc' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
-          <%= link_to "Newest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_desc)), class: "font-medium inline-block #{params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Newest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_desc)), class: "font-medium inline-block #{params[:sort] == 'created_desc' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
           <span class="text-breeze-border">|</span>
-          <%= link_to "Oldest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_asc)), class: "font-medium inline-block #{params[:sort] == 'created_asc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
-          <span class="text-gray-500/40 px-0.5">|</span>
-          <%= link_to "Updated", url_for(params.to_unsafe_h.merge(page: nil, sort: :updated_desc)), class: "font-medium inline-block #{params[:sort] == 'updated_desc' ? 'text-breeze-accent underline font-bold' : 'text-gray-300 hover:text-breeze-text'}" %>
+          <%= link_to "Oldest", url_for(params.to_unsafe_h.merge(page: nil, sort: :created_asc)), class: "font-medium inline-block #{params[:sort] == 'created_asc' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
+          <span class="text-breeze-muted/40 px-0.5">|</span>
+          <%= link_to "Updated", url_for(params.to_unsafe_h.merge(page: nil, sort: :updated_desc)), class: "font-medium inline-block #{params[:sort] == 'updated_desc' ? 'text-breeze-accent underline font-bold' : 'text-breeze-text hover:text-breeze-text'}" %>
         </div>
 
         <div class="hidden lg:block h-4 border-l border-breeze-border/80 ml-auto"></div>
 
-        <%= form_with(url: path_provider, method: :get, local: true, class: "flex items-center w-full lg:w-auto", data: { turbo_frame: "results_pool", turbo_action: "advance" }) do |f| %>
+        <%= form_with(url: path_provider, method: :get, local: true, class: "flex items-center gap-2 w-full lg:w-auto", data: { turbo_frame: "results_pool", turbo_action: "advance" }) do |f| %>
           <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
           <%= hidden_field_tag :d, params[:d] if params[:d].present? %>
           <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
@@ -55,12 +55,13 @@
           <div class="relative w-full lg:w-48 flex items-center">
             <%= text_field_tag :q, params[:q],
                                 placeholder: "Filter matches...",
-                                class: "w-full bg-breeze-view text-xs text-breeze-text placeholder-breeze-muted/60 px-2.5 py-1.5 pr-7 rounded-md border border-breeze-border focus:outline-none focus:border-breeze-accent transition-all font-sans shadow-inner",
+                                class: "w-full bg-breeze-view text-xs text-breeze-text placeholder:text-breeze-muted/60 px-2.5 py-1.5 pr-7 rounded-md border border-breeze-border focus:outline-none focus:border-breeze-accent transition-all font-sans shadow-inner",
                                 oninput: "if(this.value.length > 0 && this.value.length < 3) { this.setCustomValidity('Min 3 chars') } else { this.setCustomValidity(''); if(this.value.length === 0) { this.form.requestSubmit(); } }" %>
             <% if params[:q].present? %>
               <%= link_to "✕", url_for(params.to_unsafe_h.merge(page: nil, q: nil)), class: "absolute right-2.5 text-[10px] text-breeze-muted hover:text-red-400 transition" %>
             <% end %>
           </div>
+          <%= f.submit "Apply", class: "shrink-0 px-3 py-1.5 text-[11px] font-semibold text-white bg-breeze-accent hover:opacity-90 rounded-md border border-breeze-accent/40 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
         <% end %>
 
       </div>
@@ -80,7 +81,7 @@
              id="empty_state"
              data-results-stream-target="empty-state">
           <svg class="w-10 h-10 mx-auto text-breeze-muted/50 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <p class="text-sm font-semibold text-gray-300">No results found matching this filter</p>
+          <p class="text-sm font-semibold text-breeze-text">No results found matching these filters</p>
           <p class="text-xs text-breeze-muted mt-1">Try selecting a different time window or clearing search keywords.</p>
         </div>
       </div>
@@ -91,3 +92,4 @@
     </div>
   <% end %>
 </div>
+

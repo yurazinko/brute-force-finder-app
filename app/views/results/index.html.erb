@@ -2,7 +2,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
 
-    <div class="lg:col-span-1 bg-breeze-view p-4 shadow-sm border border-breeze-border rounded-xl space-y-4">
+    <div class="lg:col-span-1 bg-breeze-view p-4 sm:p-5 shadow-sm border border-breeze-border rounded-xl space-y-4">
       <div class="flex justify-between items-center border-b border-breeze-border pb-2">
         <h2 class="text-xs sm:text-sm font-bold text-breeze-text uppercase tracking-wider">Campaigns Filter</h2>
         <%= link_to "Clear", results_path(status: params[:status], d: params[:d], sort: params[:sort]), class: "text-[11px] text-breeze-muted hover:text-breeze-accent font-semibold" if @selected_search_ids.any? %>
@@ -47,3 +47,5 @@
 
   </div>
 </div>
+
+

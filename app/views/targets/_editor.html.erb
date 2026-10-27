@@ -4,9 +4,9 @@
   selected_search_ids = persisted_target ? target.prompts.distinct.pluck(:search_id) : []
   target_category_id = target.category_id || params[:category_id]
 
-  raw_referrer = request.referrer
-  safe_referrer = if raw_referrer.present? && target.persisted? &&  !raw_referrer.include?(target_path(target))
-                    raw_referrer
+  raw_referer = request.referer
+  safe_referer = if raw_referer.present? && target.persisted? &&  !raw_referer.include?(target_path(target))
+                    raw_referer
                   else
                     nil
                   end
@@ -17,7 +17,7 @@
                     categories_path
                   end
 
-  initial_cancel_path = safe_referrer || fallback_path
+  initial_cancel_path = safe_referer || fallback_path
 %>
 
 <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">

@@ -47,21 +47,21 @@
 
               <!-- Main Links -->
               <div class="hidden md:flex items-center space-x-1 font-medium text-xs sm:text-sm">
-                <%= link_to searches_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(searches_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                <%= link_to searches_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "searches" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                   Searches
                 <% end %>
 
-                <%= link_to results_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(results_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                <%= link_to results_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "results" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                   Results
                 <% end %>
 
-                <%= link_to categories_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(categories_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                <%= link_to categories_path, class: "px-3 py-1.5 rounded-lg transition-all #{%w[categories targets target_patterns].include?(controller_name) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                   Targets
                 <% end %>
 
                 <!-- Statistics Link with Dead Targets Alert Badge -->
                 <div class="relative inline-flex items-center">
-                  <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(dashboard_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "dashboards" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                     Statistics
                   <% end %>
 
@@ -79,7 +79,7 @@
             <!-- Right Group: Actions + Profile -->
             <div class="flex items-center space-x-3 sm:space-x-4">
               <!-- Data Sync Link -->
-              <%= link_to data_transfers_path, class: "flex items-center gap-2 bg-breeze-bg/80 hover:bg-breeze-bg text-breeze-text px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-breeze-border/80 hover:border-breeze-border transition shadow-2xs" do %>
+              <%= link_to data_transfers_path, class: "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border transition shadow-2xs #{current_page?(data_transfers_path) ? 'bg-breeze-accent/10 text-breeze-accent border-breeze-accent/30' : 'bg-breeze-bg/80 hover:bg-breeze-bg text-breeze-text border-breeze-border/80 hover:border-breeze-border'}" do %>
                 <span class="text-xs">🔄</span>
                 <span>Sync & Data</span>
               <% end %>
@@ -112,8 +112,9 @@
     <% end %>
 
     <!-- Main Content Body -->
-    <main class="flex-grow pt-4 pb-12">
+    <main class="flex-grow pb-8">
       <%= yield %>
     </main>
   </body>
 </html>
+

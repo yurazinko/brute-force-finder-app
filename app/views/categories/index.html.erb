@@ -1,11 +1,11 @@
-<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-6">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
 
   <!-- Header Section -->
   <div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <%= link_to searches_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60 mb-2" do %>
+      <%= link_to safe_back_path(fallback:searches_path), class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60 mb-2" do %>
         <span>⬅️</span>
-        <span>Back to Campaigns</span>
+        <span>Back</span>
       <% end %>
       <h1 class="text-xl sm:text-2xl font-bold text-breeze-text flex items-center gap-2">
         <span>🌐</span>
@@ -17,7 +17,7 @@
     </div>
 
     <div>
-      <%= link_to new_category_path, class: "inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transition-all text-xs border border-blue-400/20 cursor-pointer" do %>
+      <%= link_to new_category_path, class: "inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition-all text-xs border border-blue-400/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" do %>
         <span>➕</span>
         <span>Create New Category</span>
       <% end %>
@@ -28,7 +28,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
     <% if @categories.any? %>
       <% @categories.each do |category| %>
-        <div class="bg-breeze-view border border-breeze-border/80 shadow-xs rounded-xl p-5 sm:p-6 flex flex-col justify-between hover:border-breeze-accent/50 hover:bg-breeze-view/90 transition-all">
+        <div class="bg-breeze-view border border-breeze-border/80 shadow-xs rounded-xl p-5 sm:p-6 flex flex-col justify-between hover:border-breeze-accent/50 hover:bg-breeze-view/80 transition-all">
           <div>
             <!-- Category Title & Badge -->
             <div class="flex justify-between items-start gap-2 mb-3">
@@ -46,7 +46,7 @@
                 <% category.targets.first(5).each do |target| %>
                   <div class="flex items-center justify-between text-xs font-mono py-1.5 border-b border-breeze-border/40 last:border-none gap-2">
                     <div class="flex items-center gap-1.5 min-w-0">
-                      <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0 <%= target.is_active? ? 'bg-emerald-400' : 'bg-gray-500' %>"></span>
+                      <span class="inline-block w-1.5 h-1.5 rounded-full shrink-0 <%= target.is_active? ? 'bg-emerald-400' : 'bg-breeze-muted/50' %>"></span>
                       <span class="truncate <%= target.is_active? ? 'text-breeze-text font-medium' : 'text-breeze-muted/60 line-through' %>">
                         <%= target.name %>
                       </span>
@@ -68,14 +68,14 @@
 
           <!-- Card Actions Footer -->
           <div class="mt-6 pt-3.5 border-t border-breeze-border/60 flex justify-between items-center text-xs">
-            <%= link_to category_path(category), class: "text-breeze-accent font-semibold hover:underline transition flex items-center gap-1" do %>
+            <%= link_to category_path(category), class: "inline-flex items-center gap-1.5 font-semibold text-breeze-accent hover:text-white px-3 py-1.5 rounded-lg bg-breeze-accent/10 hover:bg-breeze-accent border border-breeze-accent/20 transition-all shadow-2xs" do %>
               <span>Manage Sites</span>
-              <span>→</span>
+              <span>➡️</span>
             <% end %>
 
             <div class="flex items-center space-x-2">
-              <%= link_to 'Edit', edit_category_path(category), class: "text-breeze-muted hover:text-breeze-text px-2 py-1 rounded bg-breeze-bg/60 border border-breeze-border/40 transition" %>
-              <%= button_to 'Delete', category_path(category), method: :delete, data: { confirm: "Are you sure? This will delete the category and all its #{category.targets.size} linked sites!" }, class: "text-red-400 hover:text-red-300 px-2 py-1 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 cursor-pointer transition text-xs" %>
+              <%= link_to 'Rename', edit_category_path(category), class: "text-breeze-muted hover:text-breeze-text px-3 py-1.5 rounded-lg bg-breeze-bg/60 border border-breeze-border/60 transition text-xs font-semibold" %>
+              <%= button_to 'Delete', category_path(category), method: :delete, data: { turbo_confirm: "Are you sure? This will delete the category and all its #{category.targets.size} linked sites!" }, class: "text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 cursor-pointer transition text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@
         <svg class="w-12 h-12 mx-auto text-breeze-muted/50 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
         </svg>
-        <p class="text-base font-semibold text-gray-300">No target categories created yet</p>
+        <p class="text-base font-semibold text-breeze-text">No target categories created yet</p>
         <p class="text-xs text-breeze-muted mt-1 max-w-md mx-auto">
           Categories help group your active engines and web portals (e.g., "ATS Platforms", "Job Boards", "Direct Portals").
         </p>
@@ -95,3 +95,4 @@
   </div>
 
 </div>
+

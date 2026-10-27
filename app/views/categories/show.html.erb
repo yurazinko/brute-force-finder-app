@@ -1,32 +1,26 @@
 <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
   <div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <%= link_to '⬅️ Back to Categories', categories_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60" %>
+      <%= link_to '⬅️ Back',  safe_back_path(fallback:categories_path), class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60" %>
       <h1 class="text-xl sm:text-2xl font-bold text-breeze-text mt-2">Manage Category: <span class="text-breeze-accent"><%= @category.name %></span></h1>
       <p class="text-xs text-breeze-muted mt-1">Manage target domains assigned to this category.</p>
     </div>
 
-    <div class="flex items-center gap-3">
-      <span class="text-xs font-mono font-bold px-3 py-1 rounded-full border bg-breeze-accent/10 text-breeze-accent border-breeze-accent/20">
-        <%= @category.targets.size %> Targets Assigned
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 shrink-0">
+      <span class="inline-flex items-center text-xs font-mono font-semibold px-3 py-1.5 rounded-full border bg-breeze-accent/10 text-breeze-accent border-breeze-accent/20 whitespace-nowrap">
+        <%= pluralize(@category.targets.size, "target") %>
       </span>
-      <%= link_to "＋ Add New Target", new_target_path(category_id: @category.id), class: "inline-flex items-center justify-center py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-lg shadow-sm transition" %>
+      <%= link_to "＋ Add New Target", new_target_path(category_id: @category.id), class: "inline-flex items-center justify-center py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-lg shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
     </div>
   </div>
 
-  <% if flash[:notice].present? %>
-    <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-xs font-bold text-emerald-400">✓ <%= flash[:notice] %></div>
-  <% elsif flash[:alert].present? %>
-    <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs font-bold text-red-400">⚠️ <%= flash[:alert] %></div>
-  <% end %>
 
   <section class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl space-y-4">
-    <div class="border-b border-breeze-border/60 pb-3 flex items-center justify-between gap-4">
+    <div class="border-b border-breeze-border/60 pb-3 flex items-center gap-4">
       <div>
         <h2 class="text-xs font-bold text-breeze-muted uppercase tracking-wider">🎯 Linked Target Sites</h2>
         <p class="text-[11px] text-breeze-muted mt-1">Edit a target to configure URL patterns and attached searches.</p>
       </div>
-      <span class="bg-breeze-accent/10 text-breeze-accent border border-breeze-accent/20 text-xs font-mono font-bold px-2.5 py-1 rounded-full"><%= @category.targets.size %></span>
     </div>
 
     <div class="divide-y divide-breeze-border/60" id="targets_list">
@@ -34,10 +28,11 @@
         <%= render partial: "targets/target_row", collection: @category.targets, as: :target %>
       <% else %>
         <div class="text-center py-10 bg-breeze-bg/40 rounded-lg border border-dashed border-breeze-border/60">
-          <p class="text-breeze-muted text-xs italic">No target sites added to this category yet.</p>
-          <%= link_to "Add your first target", new_target_path(category_id: @category.id), class: "inline-flex mt-3 text-xs font-semibold text-breeze-accent hover:underline" %>
+          <p class="text-breeze-muted text-xs">No target sites have been added to this category yet. Use <span class="font-semibold text-breeze-text">Add New Target</span> above to get started.</p>
         </div>
       <% end %>
     </div>
   </section>
 </div>
+
+
