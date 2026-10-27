@@ -3,19 +3,19 @@
        data-controller="modal"
        data-action="click->modal#closeBackground keyup@window->modal#closeWithEsc">
 
-    <div class="bg-breeze-view border border-breeze-border rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-y-auto">
+    <div class="bg-breeze-view border border-breeze-border rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-y-auto overscroll-contain">
 
       <!-- Header -->
-      <div class="px-6 py-4 border-b border-breeze-border flex items-center justify-between bg-breeze-bg/50 sticky top-0 z-30">
+      <div class="px-4 sm:px-6 py-4 border-b border-breeze-border flex items-center justify-between gap-3 bg-breeze-bg/80 sticky top-0 z-30 backdrop-blur-sm">
         <h3 class="text-sm font-bold text-breeze-text flex items-center gap-2">
           <span>✨</span>
           <span>Configure Link Pattern and Target</span>
         </h3>
-        <%= link_to "✕", safe_redirect_path(params[:redirect_to], fallback: search_path(@search)), data: { turbo_frame: "_top" }, class: "text-breeze-muted hover:text-breeze-text transition text-xs font-bold px-2 py-1 rounded-md bg-breeze-bg border border-breeze-border/60" %>
+        <%= link_to "✕", safe_redirect_path(params[:redirect_to], fallback: search_path(@search)), data: { turbo_frame: "_top" }, aria: { label: "Close target configuration" }, class: "text-breeze-muted hover:text-breeze-text transition text-xs font-bold px-2 py-1 rounded-md bg-breeze-bg border border-breeze-border/60" %>
       </div>
 
       <!-- Form Container -->
-      <div id="modal_form_container" class="p-6">
+      <div id="modal_form_container" class="p-4 sm:p-6">
         <%= render "target_patterns/form",
                    target_pattern: @target_pattern,
                    result: @result,
@@ -29,3 +29,5 @@
     </div>
   </div>
 <% end %>
+
+

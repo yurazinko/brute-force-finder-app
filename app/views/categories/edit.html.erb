@@ -1,10 +1,10 @@
-<div class="max-w-md mx-auto px-2 sm:px-4 py-8 space-y-6">
+<div class="max-w-md mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
 
   <!-- Header -->
   <div>
-    <%= link_to categories_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60 mb-3" do %>
+    <%= link_to request.referrer || categories_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60 mb-3" do %>
       <span>⬅️</span>
-      <span>Cancel & Return</span>
+      <span>Back</span>
     <% end %>
     <h1 class="text-xl sm:text-2xl font-bold text-breeze-text flex items-center gap-2">
       <span>✏️</span>
@@ -13,13 +13,13 @@
   </div>
 
   <!-- Form -->
-  <%= form_with(model: @category, local: true, class: "space-y-5 bg-breeze-view p-5 sm:p-6 shadow-xs border border-breeze-border/80 rounded-xl") do |f| %>
+  <%= form_with(model: @category, local: true, class: "space-y-5 bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border/80 rounded-xl") do |f| %>
 
     <% if @category.errors.any? %>
       <div class="bg-red-500/10 border border-red-500/30 p-4 rounded-lg text-red-400 text-xs space-y-1">
         <h2 class="font-bold text-sm flex items-center gap-1.5">
           <span>⚠️</span>
-          <span><%= pluralize(@category.errors.count, "error") %> prohibited saving:</span>
+          <span><%= pluralize(@category.errors.count, "error") %> prevented this category from being saved:</span>
         </h2>
         <ul class="list-disc pl-5 font-mono space-y-0.5 text-red-300">
           <% @category.errors.full_messages.each do |msg| %>
@@ -31,15 +31,16 @@
 
     <div>
       <%= f.label :name, "Category Name", class: "block text-xs font-semibold text-breeze-text mb-1" %>
-      <%= f.text_field :name, class: "w-full text-xs sm:text-sm bg-breeze-bg text-breeze-text rounded-lg border border-breeze-border p-2.5 focus:border-breeze-accent focus:ring-1 focus:ring-breeze-accent outline-none placeholder:text-breeze-muted/50 transition-all" %>
+      <%= f.text_field :name, class: "w-full text-sm bg-breeze-bg text-breeze-text rounded-lg border border-breeze-border p-2.5 focus:border-breeze-accent focus:ring-1 focus:ring-breeze-accent outline-none placeholder:text-breeze-muted/50 transition-all" %>
     </div>
 
     <!-- Actions -->
     <div class="flex justify-end items-center space-x-3 pt-3 border-t border-breeze-border/60">
-      <%= link_to 'Back', categories_path, class: "py-2 px-4 border border-breeze-border/80 rounded-lg text-xs font-semibold text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60 transition cursor-pointer" %>
-      <%= f.submit "Update Category", class: "py-2 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-lg shadow-sm hover:shadow transition-all cursor-pointer border border-blue-400/20" %>
+      <%= link_to 'Back', categories_path, class: "inline-flex items-center justify-center py-2.5 px-4 border border-breeze-border/80 rounded-lg text-xs font-semibold text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
+      <%= f.submit "Update Category", class: "inline-flex items-center justify-center py-2.5 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-lg shadow-sm transition-all cursor-pointer border border-blue-400/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
     </div>
 
   <% end %>
 
 </div>
+

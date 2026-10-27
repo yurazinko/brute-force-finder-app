@@ -1,19 +1,19 @@
-<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
 
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 pb-4 border-b border-breeze-border/60">
-    <div>
-      <h1 class="text-2xl font-bold text-breeze-text tracking-tight">Scraping Campaigns</h1>
-      <p class="text-sm text-breeze-muted mt-1">Configure and monitor your automated search processes and target constraints.</p>
+  <header class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="min-w-0">
+      <h1 class="text-xl sm:text-2xl font-bold text-breeze-text tracking-tight">Scraping Campaigns</h1>
+      <p class="text-xs sm:text-sm text-breeze-muted mt-1">Configure and monitor your automated search processes and target constraints.</p>
     </div>
-    <div class="flex flex-row items-center gap-2 sm:gap-3 shrink-0 w-full sm:w-auto">
-      <%= link_to categories_path, class: "flex-1 sm:flex-none text-center bg-breeze-view hover:bg-breeze-bg text-breeze-text font-medium py-2 sm:py-1.5 px-4 border border-breeze-border rounded-lg shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-1.5" do %>
-        <span>Categories & Targets</span>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 shrink-0 w-full sm:w-auto">
+      <%= link_to categories_path, class: "inline-flex items-center justify-center text-center bg-breeze-bg/70 hover:bg-breeze-bg text-breeze-text font-semibold py-2.5 px-4 border border-breeze-border rounded-lg transition text-xs sm:text-sm" do %>
+        Categories & Targets
       <% end %>
-      <%= link_to new_search_path, class: "flex-1 sm:flex-none text-center bg-breeze-accent hover:opacity-90 text-white font-medium py-2 sm:py-1.5 px-4 rounded-lg shadow-sm transition text-xs sm:text-sm flex items-center justify-center gap-1.5" do %>
-        <span>New Search Criteria</span>
+      <%= link_to new_search_path, class: "inline-flex items-center justify-center text-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition text-xs sm:text-sm border border-blue-400/20" do %>
+        New Search Criteria
       <% end %>
     </div>
-  </div>
+  </header>
 
   <div class="bg-breeze-view border border-breeze-border rounded-xl shadow-sm overflow-hidden">
     <table class="min-w-full table-fixed divide-y divide-breeze-border/60 block md:table">
@@ -36,10 +36,11 @@
             <tr id="<%= dom_id(search) %>" class="hover:bg-breeze-bg/30 transition-colors group block md:table-row p-4 md:p-0 relative border-b border-breeze-border last:border-b-0 md:border-b-0">
 
               <td class="px-0 md:px-6 py-1 md:py-4 align-middle block md:table-cell">
-                <div class="mb-2 flex justify-between items-start gap-2">
-                  <%= link_to search.title, search_path(search), class: "text-base font-semibold text-breeze-text hover:text-breeze-accent transition-colors block truncate max-w-[75%] md:max-w-full", title: search.title %>
+                <div class="mb-2 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                  <%= link_to search.title, search_path(search), class: "text-base font-semibold text-breeze-text hover:text-breeze-accent transition-colors block truncate min-w-0 w-full md:max-w-full", title: search.title %>
 
-                  <div class="flex items-center gap-1 md:hidden">
+                  <div class="flex items-center justify-start gap-1 md:hidden shrink-0">
+                    <%= render "searches/action_buttons", search: search %>
                   </div>
                 </div>
 
@@ -78,7 +79,7 @@
 
               <td class="px-0 md:px-6 py-1 md:py-4 align-middle block md:table-cell">
                 <div class="mb-2 max-w-full md:max-w-xs lg:max-w-sm">
-                  <code class="font-mono text-[11px] text-gray-400 bg-breeze-bg/80 px-2 py-1 rounded border border-breeze-border block whitespace-normal break-words leading-relaxed">
+                  <code class="font-mono text-[11px] text-breeze-muted bg-breeze-bg/80 px-2 py-1 rounded border border-breeze-border block whitespace-normal break-words leading-relaxed">
                     <%= search.query_conditions %>
                   </code>
                 </div>
@@ -113,7 +114,7 @@
               </td>
 
               <td class="px-0 md:px-6 py-1 md:py-4 align-middle hidden md:table-cell text-right">
-                <div class="flex items-center justify-end gap-1 w-full opacity-60 group-hover:opacity-100 transition-opacity">
+                <div class="flex items-center justify-end gap-1 w-full opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                   <%= render "searches/action_buttons", search: search, compact: true %>
                 </div>
               </td>
@@ -132,3 +133,4 @@
     </table>
   </div>
 </div>
+

@@ -7,6 +7,7 @@ module Alerts
     end
 
     def show_alert?
+      return false if @user.blank?
       return false if dismissed?
 
       dead_targets_present?

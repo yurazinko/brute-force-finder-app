@@ -1,11 +1,11 @@
-<div class="max-w-7xl mx-auto px-4 py-8">
-  <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-breeze-view p-4 rounded-xl border border-breeze-border shadow-sm">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
+  <div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <h1 class="text-base font-bold text-breeze-text">Analytics Dashboard</h1>
+      <h1 class="text-xl sm:text-2xl font-bold text-breeze-text">Analytics Dashboard</h1>
       <p class="text-xs text-breeze-muted mt-0.5">Overview of domain productivity and target efficiency metrics.</p>
     </div>
 
-    <%= form_with url: request.path, method: :get, local: true, class: "flex items-center gap-2" do |f| %>
+    <%= form_with url: request.path, method: :get, local: true, class: "flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto" do |f| %>
       <%= f.label :period, "Timeframe:", class: "text-xs font-medium text-breeze-muted uppercase tracking-wider" %>
       <%= f.select :period,
             options_for_select([
@@ -18,20 +18,20 @@
             {},
             {
               onchange: 'this.form.requestSubmit();',
-              class: 'bg-breeze-background border border-breeze-border text-breeze-text text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-breeze-primary focus:outline-none cursor-pointer'
+              class: 'w-full sm:w-auto bg-breeze-bg border border-breeze-border text-breeze-text text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-breeze-accent focus:border-breeze-accent focus:outline-none cursor-pointer'
             } %>
     <% end %>
   </div>
 
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
     <!-- Most Productive Domains -->
-    <section class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
+    <section class="bg-breeze-view p-4 sm:p-6 rounded-xl border border-breeze-border shadow-sm">
       <div class="mb-4">
-        <h2 class="text-sm font-bold text-breeze-muted uppercase tracking-wider">
+        <h2 class="text-xs sm:text-sm font-bold text-breeze-muted uppercase tracking-wider">
           Most Productive Domains
         </h2>
         <p class="text-xs text-breeze-muted mt-1">
-          Ranked by the sum of positive relevance scores; only results with <code>relevance_score &gt; 0</code> count. Click any row to edit target.
+          Ranked by the sum of positive relevance scores; only results with <code>relevance_score &gt; 0</code> count. Select a domain or target name to edit its configuration.
         </p>
       </div>
 
@@ -49,10 +49,9 @@
             </thead>
             <tbody>
               <% @productive_domains.each_with_index do |stat, index| %>
-                <tr onclick="window.location.href='<%= edit_target_path(stat[:id]) %>'"
-                    class="border-b border-breeze-border last:border-0 cursor-pointer hover:bg-breeze-hover/60 transition-colors">
+                <tr class="border-b border-breeze-border/60 last:border-0 hover:bg-breeze-bg/40 transition-colors">
                   <td class="py-3 pr-3 text-breeze-muted"><%= index + 1 %></td>
-                  <td class="py-3 pr-3 font-medium text-breeze-text break-all underline decoration-dotted underline-offset-4"><%= stat[:domain] %></td>
+                  <td class="py-3 pr-3 font-medium break-all"><%= link_to stat[:domain], edit_target_path(stat[:id]), class: "text-breeze-text underline decoration-dotted underline-offset-4 hover:text-breeze-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" %></td>
                   <td class="py-3 pr-3 text-right font-bold text-breeze-text"><%= stat[:relevant_results_count] %></td>
                   <td class="py-3 pr-3 text-right font-semibold"><%= stat[:total_relevance_score] %></td>
                   <td class="py-3 text-right"><%= number_with_precision(stat[:average_relevance_score], precision: 1) %></td>
@@ -69,9 +68,9 @@
     </section>
 
     <!-- Low-Yield Targets -->
-    <section class="bg-breeze-view p-6 rounded-xl border border-breeze-border shadow-sm">
+    <section class="bg-breeze-view p-4 sm:p-6 rounded-xl border border-breeze-border shadow-sm">
       <div class="mb-4">
-        <h2 class="text-sm font-bold text-amber-600 uppercase tracking-wider">
+        <h2 class="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider">
           Low-Yield Targets
         </h2>
         <p class="text-xs text-breeze-muted mt-1">
@@ -92,14 +91,13 @@
             </thead>
             <tbody>
               <% @loser_targets.each do |stat| %>
-                <tr onclick="window.location.href='<%= edit_target_path(stat.target.id) %>'"
-                    class="border-b border-breeze-border last:border-0 cursor-pointer hover:bg-breeze-hover/60 transition-colors">
+                <tr class="border-b border-breeze-border/60 last:border-0 hover:bg-breeze-bg/40 transition-colors">
                   <td class="py-3 pr-3">
-                    <div class="font-medium text-breeze-text underline decoration-dotted underline-offset-4"><%= stat.target.name %></div>
-                    <div class="text-xs text-breeze-muted font-mono break-all"><%= stat.target.domain %></div>
+                    <%= link_to stat.target.name, edit_target_path(stat.target), class: "font-medium text-breeze-text underline decoration-dotted underline-offset-4 hover:text-breeze-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" %>
+                    <div class="text-xs text-breeze-muted font-mono break-all mt-0.5"><%= stat.target.domain %></div>
                   </td>
                   <td class="py-3 pr-3 text-right"><%= stat.prompts_count %></td>
-                  <td class="py-3 pr-3 text-right <%= stat.relevant_results_count.zero? ? 'text-red-600 font-bold' : 'text-amber-600 font-semibold' %>">
+                  <td class="py-3 pr-3 text-right <%= stat.relevant_results_count.zero? ? 'text-red-400 font-bold' : 'text-amber-400 font-semibold' %>">
                     <%= stat.relevant_results_count %>
                   </td>
                   <td class="py-3 text-right font-semibold"><%= number_to_percentage(stat.yield_percentage, precision: 2, strip_insignificant_zeros: true) %></td>
@@ -120,3 +118,5 @@
     </section>
   </div>
 </div>
+
+

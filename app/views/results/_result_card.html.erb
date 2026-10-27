@@ -12,7 +12,7 @@
                       when score >= 300 then "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                       when score >= 100 then "bg-blue-500/10 text-blue-400 border-blue-500/30"
                       when score > 0   then "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                      else                  "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                      else                  "bg-breeze-bg text-breeze-muted border-breeze-border"
                       end
 
   keywords = Array(result.matched_keywords)
@@ -23,7 +23,7 @@
      data-controller="read-status result-card"
      data-read-status-url-value="<%= result_path(result) %>"
      data-read-status-current-status-value="<%= result.status %>"
-     class="p-4 sm:p-5 border border-breeze-border/80 rounded-xl hover:border-breeze-accent/50 hover:bg-breeze-view/40 transition-all bg-breeze-bg/60 flex flex-col gap-3 shadow-xs <%= 'opacity-50 duration-500' if should_dim %>">
+     class="p-4 sm:p-5 border border-breeze-border/80 rounded-xl hover:border-breeze-accent/50 hover:bg-breeze-view/40 transition-all bg-breeze-bg/40 flex flex-col gap-3 shadow-xs <%= 'opacity-50 duration-500' if should_dim %>">
 
   <div class="flex items-start justify-between gap-3">
     <a href="<%= result.url %>"
@@ -34,7 +34,7 @@
       data-current-tab="<%= current_tab %>"
       data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
       data-read-status="<%= result.status %>"
-      class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate flex-1 transition-colors">
+      class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate min-w-0 flex-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" title="<%= result.title.presence || 'Untitled Result' %>">
       <%= result.title.presence || "Untitled Result" %>
     </a>
 
@@ -61,7 +61,7 @@
     </div>
 
   <div class="bg-breeze-view p-3 sm:p-3.5 rounded-lg border border-breeze-border/60 shadow-inner h-20 sm:h-24 overflow-hidden">
-    <p class="text-xs sm:text-sm text-gray-300 font-sans break-words line-clamp-3 leading-relaxed">
+    <p class="text-xs sm:text-sm text-breeze-text font-sans break-words line-clamp-3 leading-relaxed">
       <%= result.content.presence || "* No preview content available *" %>
     </p>
   </div>
@@ -132,7 +132,7 @@
                       data: { turbo_stream: true },
                       class: "text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto shadow-2xs" do %>
           <span>🗑️</span>
-          <span>Mark as Garbage</span>
+          <span>Move to Trash</span>
         <% end %>
       <% end %>
 
@@ -150,7 +150,7 @@
                       method: :patch,
                       form: { data: { action: "submit->result-card#appendVisibleIds" } },
                       data: { turbo_stream: true },
-                      class: "text-xs font-medium bg-breeze-view hover:bg-breeze-border/40 text-gray-300 hover:text-breeze-text border border-breeze-border px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto shadow-2xs" do %>
+                      class: "text-xs font-medium bg-breeze-view hover:bg-breeze-border/40 text-breeze-muted hover:text-breeze-text border border-breeze-border px-3 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer w-full sm:w-auto shadow-2xs" do %>
           <span>↩️</span>
           <span>Move to Inbox</span>
         <% end %>
@@ -165,3 +165,4 @@
     </div>
   </div>
 </div>
+

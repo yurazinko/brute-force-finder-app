@@ -4,7 +4,6 @@
     <span class="text-breeze-muted font-semibold text-[10px] uppercase tracking-wider shrink-0">
       Status:
     </span>
-    <!-- w-28 гарантує однакову ширину для будь-яких слів (Completed, Processing, etc.) -->
     <div class="flex items-center shrink-0 w-28 justify-start">
       <%= render "searches/status_badge", search: search %>
     </div>
@@ -17,8 +16,8 @@
       <!-- Indicator -->
       <span class="flex h-1.5 w-1.5 relative shrink-0">
         <% if search.status == 'processing' %>
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-breeze-accent opacity-50"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-breeze-accent"></span>
         <% else %>
           <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-gray-600"></span>
         <% end %>
@@ -45,3 +44,4 @@
     </div>
   </div>
 </div>
+

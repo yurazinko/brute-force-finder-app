@@ -8,7 +8,7 @@
     <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
       <% if target.target_patterns.any? %>
         <% target.target_patterns.each do |pattern| %>
-          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono <%= pattern.is_active? ? 'bg-breeze-view text-breeze-accent border border-breeze-accent/30' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20 line-through' %>" title="Path pattern">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono max-w-full break-all <%= pattern.is_active? ? 'bg-breeze-view text-breeze-accent border border-breeze-accent/30' : 'bg-breeze-bg text-breeze-muted border border-breeze-border/60 line-through' %>" title="Path pattern">
             <span>🛤️</span>
             <span><%= pattern.path_pattern %></span>
           </span>
@@ -19,22 +19,23 @@
     </div>
   </div>
 
-  <div class="flex items-center space-x-2 shrink-0">
+  <div class="flex flex-wrap items-center gap-2 shrink-0">
     <%= button_to target_path(target),
                   method: :patch,
                   params: { target: { is_active: !target.is_active? } },
-                  class: "inline-flex items-center px-2 py-1 rounded text-xs font-semibold border transition cursor-pointer #{target.is_active? ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-breeze-bg text-gray-300 border-breeze-border hover:bg-breeze-bg'}" do %>
-      <span class="mr-1.5 flex h-1.5 w-1.5 items-center">
-        <span class="absolute inline-flex h-1.5 w-1.5 rounded-full <%= target.is_active? ? 'bg-green-500 animate-pulse' : 'bg-gray-400' %>"></span>
+                  class: "inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view #{target.is_active? ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/15' : 'bg-breeze-bg text-breeze-muted border-breeze-border hover:bg-breeze-bg/80'}" do %>
+      <span class="relative mr-1.5 flex h-1.5 w-1.5 shrink-0 items-center justify-center">
+        <span class="absolute inline-flex h-1.5 w-1.5 rounded-full <%= target.is_active? ? 'bg-emerald-400 animate-pulse' : 'bg-breeze-muted/60' %>"></span>
       </span>
       <%= target.is_active? ? 'Active' : 'Disabled' %>
     <% end %>
 
-    <%= link_to "Edit", edit_target_path(target), class: "text-xs text-breeze-muted hover:text-breeze-accent font-medium px-2.5 py-1 border border-breeze-border rounded hover:border-indigo-200 transition bg-breeze-view" %>
+    <%= link_to "Edit", edit_target_path(target), class: "text-xs text-breeze-muted hover:text-breeze-text font-semibold px-3 py-1.5 border border-breeze-border rounded-lg hover:border-breeze-accent/40 hover:bg-breeze-bg/60 transition bg-breeze-view focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
 
-    <%= button_to "Remove", target_path(target),
+    <%= button_to "Delete", target_path(target),
                   method: :delete,
-                  data: { confirm: "Delete #{target.name}?" },
-                  class: "text-xs text-breeze-muted hover:text-red-600 font-medium px-2.5 py-1 border border-breeze-border rounded hover:border-red-200 hover:bg-red-50/30 transition cursor-pointer bg-breeze-view" %>
+                  data: { turbo_confirm: "Delete #{target.name}?" },
+                  class: "text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-1.5 border border-red-500/20 rounded-lg hover:border-red-500/40 hover:bg-red-500/10 transition cursor-pointer bg-breeze-view focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
   </div>
 </div>
+
