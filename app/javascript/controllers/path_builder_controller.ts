@@ -1,7 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 import React from "react"
 import { createRoot, type Root } from "react-dom/client"
-import { PathBuilder, type Category, type PathBuilderProps, type SearchOption } from "../components/PathBuilder"
+import PathBuilder from "../components/path_builder/PathBuilder"
+import type { Category, PathBuilderProps, SearchOption } from "../components/path_builder/types"
 
 type Pattern = {
   id: number | string
