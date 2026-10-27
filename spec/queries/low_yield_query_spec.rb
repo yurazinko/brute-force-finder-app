@@ -22,9 +22,9 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
   describe ".call" do
     context "when targets have prompts but zero results" do
       before do
-        create_list(:prompt, 25, search: search, target: active_target, created_at: 5.days.ago)
+        create_list(:prompt, 25, search: search, target: active_target, status: "active", created_at: 5.days.ago)
 
-        create_list(:prompt, 15, search: search, target: productive_target, created_at: 5.days.ago)
+        create_list(:prompt, 15, search: search, target: productive_target, status: "active", created_at: 5.days.ago)
 
         create(
           :result,

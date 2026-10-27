@@ -27,6 +27,7 @@ module Targets
             SELECT COUNT(prompts.id)
             FROM prompts
             WHERE prompts.target_id = targets.id
+              AND prompts.status <> 'pending'
               AND prompts.created_at BETWEEN :since AND :now
           ) AS prompts_count
         FROM targets
@@ -34,6 +35,7 @@ module Targets
           AND EXISTS (
             SELECT 1 FROM prompts
             WHERE prompts.target_id = targets.id
+              AND prompts.status <> 'pending'
               AND prompts.created_at BETWEEN :since AND :now
           )
           AND NOT EXISTS (
