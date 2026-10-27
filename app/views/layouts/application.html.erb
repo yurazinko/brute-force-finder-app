@@ -59,9 +59,20 @@
                   Targets
                 <% end %>
 
-                <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(dashboard_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
-                  Statistics
-                <% end %>
+                <!-- Statistics Link with Dead Targets Alert Badge -->
+                <div class="relative inline-flex items-center">
+                  <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg transition-all #{current_page?(dashboard_path) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                    Statistics
+                  <% end %>
+
+                  <% if @dead_targets_alert %>
+                    <span class="absolute text-[10px] select-none pointer-events-auto cursor-help"
+                          style="right: calc(var(--spacing) * 0.6); bottom: calc(var(--spacing) * 0.4);"
+                          title="You have dead targets in your searches.">
+                      ⚠️
+                    </span>
+                  <% end %>
+                </div>
               </div>
             </div>
 

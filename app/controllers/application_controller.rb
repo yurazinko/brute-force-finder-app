@@ -12,8 +12,13 @@ class ApplicationController < ActionController::Base
 
   before_action :authenticate_user!
   around_action :set_rls_user
+  before_action :check_alerts
 
   private
+
+  def check_alerts
+    @dead_targets_alert = Alerts::DeadTargetsChecker.new(current_user).show_alert?
+  end
 
   def set_rls_user(&)
     with_rls_user(current_user&.id, &)
