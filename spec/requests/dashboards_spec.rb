@@ -42,6 +42,10 @@ RSpec.describe "Dashboards", type: :request do
       before do
         allow(Result).to receive(:top_domains_efficiency)
           .with(hash_including(limit: 15)).and_return(productive_domains)
+
+        allow(Targets::LowYieldQuery).to receive(:call)
+          .with(hash_including(limit: 1)).and_return(loser_targets)
+
         allow(Targets::LowYieldQuery).to receive(:call)
           .with(hash_including(limit: 10)).and_return(loser_targets)
       end
@@ -90,6 +94,22 @@ RSpec.describe "Dashboards", type: :request do
         expect(response).to have_http_status(:success)
         expect(response.body).to include("No relevant results found for the selected period.")
         expect(response.body).to include("No low-yield targets found for the selected period.")
+      end
+    end
+
+    context "when dead targets alert is active" do
+      before do
+        allow_any_instance_of(Alerts::DeadTargetsChecker).to receive(:show_alert?).and_return(true)
+        allow(Result).to receive(:top_domains_efficiency).and_return([])
+        allow(Targets::LowYieldQuery).to receive(:call).and_return([])
+      end
+
+      it "automatically dismisses alerts and writes to cache" do
+        expect(Rails.cache).to receive(:write)
+          .with("user:#{user.id}:dismissed_dead_targets", true, expires_in: 7.days)
+
+        get dashboard_path
+        expect(response).to have_http_status(:success)
       end
     end
 
