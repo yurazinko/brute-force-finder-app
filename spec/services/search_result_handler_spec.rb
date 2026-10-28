@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe SearchCampaigns::ResultHandler, type: :service do
-  let(:user) { User.create!(email: "test@example.com", password: "password123") }
+  let(:user) { User.create!(username: "test@example.com", password: "password123") }
   let(:search) { Search.create!(user: user, title: "Ruby Jobs", query_conditions: "ruby") }
   let(:prompt) { Prompt.create!(search: search, full_query_text: "site:github.com ruby", status: "active") }
 

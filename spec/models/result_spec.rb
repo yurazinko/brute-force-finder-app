@@ -50,7 +50,7 @@ require "rails_helper"
 #  fk_rails_...  (target_id => targets.id)
 #
 RSpec.describe Result, type: :model do
-  let(:user) { User.create!(email: "test@example.com", password: "password") }
+  let(:user) { User.create!(username: "test@example.com", password: "password") }
   let(:category) { Category.create!(name: "General", user: user) }
   let(:search) { Search.create!(title: "Ruby Lead", query_conditions: "ruby", user: user) }
 

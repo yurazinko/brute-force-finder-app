@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Results::ResultFilter, type: :service do
-  let(:user) { User.create!(email: "test@example.com", password: "password") }
+  let(:user) { User.create!(username: "test@example.com", password: "password") }
   let(:category) { Category.create!(name: "General", user: user) }
   let(:target) { create(:target, domain: "example.com", category: category) }
   let(:prompt) { instance_double("Prompt", target: target, full_query_text: 'site:example.com (ruby OR "ruby on rails")') }

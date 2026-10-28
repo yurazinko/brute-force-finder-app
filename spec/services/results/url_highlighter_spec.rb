@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Results::UrlHighlighter, type: :service do
-  let(:user) { User.create!(email: "highlighter_test@example.com", password: "password123") }
+  let(:user) { User.create!(username: "highlighter_test@example.com", password: "password123") }
   let(:category) { Category.create!(name: "Tech", user: user) }
   let(:target) { Target.create!(category: category, name: "Example Target", domain: "example.com") }
   let(:search) { Search.create!(user: user, title: "Search", query_conditions: "ruby", status: "completed") }

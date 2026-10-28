@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe ResultsHelper, type: :helper do
-  let(:user) { User.create!(email: "test@example.com", password: "password") }
+  let(:user) { User.create!(username: "test@example.com", password: "password") }
   let(:category) { Category.create!(name: "General", user: user) }
   let(:search) { create(:search, user: user) }
   let!(:target) { Target.create!(name: "GitHub", domain: "github.com", category: category) } # Змінено на let!

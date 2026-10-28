@@ -5,7 +5,7 @@ require "sidekiq/testing"
 
 RSpec.describe NightlyScrapingCronJob, type: :job do
   describe "#perform" do
-    let(:user) { User.create!(email: "cron_test@example.com", password: "password123") }
+    let(:user) { User.create!(username: "cron_test@example.com", password: "password123") }
 
     let!(:completed_search)  { create(:search, user: user, status: "completed") }
     let!(:failed_search)     { create(:search, user: user, status: "failed") }
