@@ -3,7 +3,10 @@
 class ResultsController < ApplicationController
   include ResultFilterable
 
+  before_action :find_result, only: :update
   before_action :set_scopes_and_options
+
+  rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 
   def index
     @selected_search_ids = params[:search_ids] || []
@@ -19,19 +22,27 @@ class ResultsController < ApplicationController
   end
 
   def update
-    @result = Result.find(params.expect(:id))
+    update_success = if result_params[:status].present?
+                       Results::UpdateStatusService.new(result: @result, status: result_params[:status]).call
+                     else
+                       @result.update(result_params)
+                     end
 
-    ActiveRecord::Base.transaction do
-      @result.update!(result_params)
+    head :unprocessable_content and return unless update_success
 
-      prepare_update_variables
-      respond_to_successful_update
-    end
-  rescue ActiveRecord::RecordInvalid
-    head :unprocessable_content
+    prepare_update_variables
+    respond_to_successful_update
   end
 
   private
+
+  def find_result
+    @result = current_user.results.find(params.expect(:id))
+  end
+
+  def render_not_found
+    head :not_found
+  end
 
   def set_scopes_and_options
     @search = current_user.searches.find_by(id: params[:search_id])
@@ -39,9 +50,9 @@ class ResultsController < ApplicationController
     @base_scope = if @search
                     @search.results
                   elsif params[:search_ids].present?
-                    Result.where(search_id: params[:search_ids])
+                    current_user.results.where(search_id: params[:search_ids])
                   else
-                    Result.all
+                    current_user.results
                   end
 
     @filter_options = parse_filter_options(search_instance: @search)
