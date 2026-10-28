@@ -7,15 +7,15 @@ module Database
         records.each do |record|
           search = Search.create!(
             user_id: target_user_id,
-            title: record["title"],
-            query_conditions: record["query_conditions"],
-            show_acknowledged: record["show_acknowledged"] || false,
-            status: record["status"] || "pending",
-            time_frame: record["time_frame"],
-            created_at: record["created_at"],
-            updated_at: record["updated_at"]
+            title: record[:title],
+            query_conditions: record[:query_conditions],
+            show_acknowledged: record[:show_acknowledged] || false,
+            status: record[:status] || "pending",
+            time_frame: record[:time_frame],
+            created_at: record[:created_at],
+            updated_at: record[:updated_at]
           )
-          id_maps["searches"][record["id"]] = search.id
+          id_maps[:searches][record[:id]] = search.id
         end
       end
     end

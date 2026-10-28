@@ -53,17 +53,17 @@ module SearchCampaigns
 
     def broadcast_counters(counts)
       targets = {
-        "counter_unread" => counts.unread,
-        "counter_interesting" => counts.interesting,
-        "counter_watched" => counts.watched,
-        "counter_garbage" => counts.garbage
+        counter_unread: counts.unread,
+        counter_interesting: counts.interesting,
+        counter_watched: counts.watched,
+        counter_garbage: counts.garbage
       }
 
       targets.each do |target_id, value|
         Turbo::StreamsChannel.broadcast_update_to(
           @search,
           :results,
-          target: target_id,
+          target: target_id.to_s,
           html: value.to_i.to_s
         )
       end

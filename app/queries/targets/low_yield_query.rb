@@ -57,7 +57,7 @@ module Targets
       records = Target.find_by_sql([sql, params])
 
       records.map do |target|
-        prompts_count = target.attributes["prompts_count"].to_i
+        prompts_count = target[:prompts_count].to_i
         Stat.new(
           target: target,
           prompts_count: prompts_count,

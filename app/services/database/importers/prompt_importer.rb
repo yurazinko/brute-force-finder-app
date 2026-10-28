@@ -11,19 +11,19 @@ module Database
       private
 
       def build_prompt_row(record)
-        search_id = id_maps["searches"][record["search_id"]]
-        query_text = record["full_query_text"]
+        search_id = id_maps[:searches][record[:search_id]]
+        query_text = record[:full_query_text]
 
         return if search_id.blank? || query_text.blank?
 
         {
           search_id: search_id,
-          target_id: id_maps["targets"][record["target_id"]],
+          target_id: id_maps[:targets][record[:target_id]],
           full_query_text: query_text,
-          status: record["status"] || "pending",
-          error_message: record["error_message"],
-          created_at: Time.zone.parse(record["created_at"]),
-          updated_at: Time.zone.parse(record["updated_at"])
+          status: record[:status] || "pending",
+          error_message: record[:error_message],
+          created_at: Time.zone.parse(record[:created_at]),
+          updated_at: Time.zone.parse(record[:updated_at])
         }
       end
     end

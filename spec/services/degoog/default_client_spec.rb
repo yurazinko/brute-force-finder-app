@@ -109,16 +109,16 @@ RSpec.describe SearchEngines::Degoog::Api::DefaultClient, type: :service do
           success: true,
           data: [
             {
-              "url" => "https://indeed.com/viewjob?id=1",
-              "title" => "Ruby Developer",
-              "content" => "Ctx",
-              "engine" => "Degoog/bing"
+              url: "https://indeed.com/viewjob?id=1",
+              title: "Ruby Developer",
+              content: "Ctx",
+              engine: "Degoog/bing"
             },
             {
-              "url" => "https://indeed.com/viewjob?id=2",
-              "title" => "Senior RoR Engineer",
-              "content" => "Ctx",
-              "engine" => "Degoog/Google, Brave"
+              url: "https://indeed.com/viewjob?id=2",
+              title: "Senior RoR Engineer",
+              content: "Ctx",
+              engine: "Degoog/Google, Brave"
             }
           ]
         }
@@ -205,7 +205,7 @@ RSpec.describe SearchEngines::Degoog::Api::DefaultClient, type: :service do
 
         expect(result[:data]).to eq(
           [
-            { "url" => "https://ok.com", "title" => nil, "content" => "", "engine" => "Degoog" }
+            { url: "https://ok.com", title: nil, content: "", engine: "Degoog" }
           ]
         )
         expect(WebMock).not_to have_requested(:post, "#{instance1}/api/search")

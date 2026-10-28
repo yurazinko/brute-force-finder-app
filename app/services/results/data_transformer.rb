@@ -16,11 +16,12 @@ module Results
     end
 
     def process
-      @raw_results.each_with_object([]) do |result, records|
+      @raw_results.each_with_object([]) do |raw_result, records|
+        result = raw_result.with_indifferent_access
         filter = ResultFilter.new(result, @prompt)
         next unless filter.valid?
 
-        clean_url = Utils::UrlNormalizer.normalize(result["url"], target_configs: @target_configs)
+        clean_url = Utils::UrlNormalizer.normalize(result[:url], target_configs: @target_configs)
         next if clean_url.blank?
 
         records << build_record(clean_url, result, filter.rank_result, filter.matched_pattern)
@@ -46,9 +47,9 @@ module Results
         search_id: @search_id,
         url: clean_url,
         url_hash: Utils::UrlNormalizer.hash(clean_url),
-        title: result["title"],
-        content: result["content"],
-        engine: result["engine"],
+        title: result[:title],
+        content: result[:content],
+        engine: result[:engine],
         relevance_score: rank_result.relevance_score,
         matched_keywords: rank_result.matched_keywords,
         verification_status: rank_result.verification_status,

@@ -6,7 +6,7 @@ RSpec.describe Database::Importers::SearchImporter do
   subject(:importer) { described_class.new(records, target_user.id, id_maps) }
 
   let(:target_user) { create(:user) }
-  let(:id_maps) { { "searches" => {} } }
+  let(:id_maps) { { searches: {} } }
 
   describe "#call" do
     context "when importing valid records with full attributes" do
@@ -43,7 +43,7 @@ RSpec.describe Database::Importers::SearchImporter do
         expect(created_search.status).to eq("completed")
         expect(created_search.time_frame).to eq("week")
 
-        expect(id_maps["searches"]["old-id-101"]).to eq(created_search.id)
+        expect(id_maps[:searches]["old-id-101"]).to eq(created_search.id)
       end
     end
 
@@ -68,7 +68,7 @@ RSpec.describe Database::Importers::SearchImporter do
         expect(created_search.show_acknowledged).to be false
         expect(created_search.status).to eq("pending")
         expect(created_search.time_frame).to be_nil
-        expect(id_maps["searches"]["old-id-202"]).to eq(created_search.id)
+        expect(id_maps[:searches]["old-id-202"]).to eq(created_search.id)
       end
     end
 
@@ -77,7 +77,7 @@ RSpec.describe Database::Importers::SearchImporter do
 
       it "does not create any Search records" do
         expect { importer.call }.not_to change(Search, :count)
-        expect(id_maps["searches"]).to be_empty
+        expect(id_maps[:searches]).to be_empty
       end
     end
   end

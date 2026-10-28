@@ -68,32 +68,32 @@ module SearchEngines
         end
 
         def parse_urls(response_body, instance)
-          data = JSON.parse(response_body)
+          data = JSON.parse(response_body).with_indifferent_access
 
-          return { success: false, error: "Engine Error: #{data['error']}" } if data["error"]
+          return { success: false, error: "Engine Error: #{data[:error]}" } if data[:error]
 
-          { success: true, data: extract_results(data), failed_engines: data["unresponsive_engines"] || [] }
+          { success: true, data: extract_results(data), failed_engines: data[:unresponsive_engines] || [] }
         rescue JSON::ParserError => e
           Rails.logger.error("[#{logger_tag}] Malformed JSON from #{instance}: #{e.message}")
           { success: false, error: "Malformed JSON" }
         end
 
         def extract_results(data)
-          raw_results = (data["results"].presence || []).filter_map do |hash|
-            next if hash["url"].blank?
+          raw_results = (data[:results].presence || []).filter_map do |hash|
+            next if hash[:url].blank?
 
-            sub_engine = hash["engine"].presence
+            sub_engine = hash[:engine].presence
             engine_label = sub_engine.present? ? "#{provider_name}/#{sub_engine.capitalize}" : provider_name
 
             {
-              "url" => hash["url"],
-              "title" => hash["title"],
-              "content" => hash["content"],
-              "engine" => engine_label
+              url: hash[:url],
+              title: hash[:title],
+              content: hash[:content],
+              engine: engine_label
             }
           end
 
-          raw_results.uniq { |hash| hash["url"] }
+          raw_results.uniq { |hash| hash[:url] }
         end
       end
     end

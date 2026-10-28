@@ -7,11 +7,13 @@ RSpec.describe Database::Importers::BaseImporter do
 
   let(:records) { [{ "id" => 1 }] }
   let(:target_user_id) { 42 }
-  let(:id_maps) { { "searches" => {} } }
+  let(:id_maps) { { searches: {} } }
 
   describe "#initialize" do
     it "correctly assigns attr_readers" do
-      expect(importer.records).to eq(records)
+      expect(importer.records).to all(be_a(ActiveSupport::HashWithIndifferentAccess))
+      expect(importer.records.first[:id]).to eq(1)
+      expect(importer.records.first["id"]).to eq(1)
       expect(importer.target_user_id).to eq(target_user_id)
       expect(importer.id_maps).to eq(id_maps)
     end

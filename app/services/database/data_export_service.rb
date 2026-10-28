@@ -62,14 +62,16 @@ module Database
       user_searches   = user.searches
 
       all_datasets = {
-        "categories" => user_categories,
-        "targets" => Target.where(category_id: user_categories.select(:id)),
-        "searches" => user_searches,
-        "prompts" => Prompt.where(search_id: user_searches.select(:id)),
-        "results" => Result.where(search_id: user_searches.select(:id))
+        categories: user_categories,
+        targets: Target.where(category_id: user_categories.select(:id)),
+        searches: user_searches,
+        prompts: Prompt.where(search_id: user_searches.select(:id)),
+        results: Result.where(search_id: user_searches.select(:id))
       }
 
-      all_datasets.slice(*requested_tables).to_a
+      # `tables` comes from request values and remains string-based at the boundary.
+      # The in-memory dataset registry uses symbols; JSON export keys remain strings on the wire.
+      all_datasets.slice(*requested_tables.map(&:to_sym)).to_a
     end
 
     def notify_progress(index, total_steps, table_name, &)

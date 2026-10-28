@@ -76,14 +76,14 @@ RSpec.describe SearchEngines::Searxng::Api::TorClient, type: :service do
         expected_result = {
           success: true,
           data: [
-            { "url" => "https://lever.co/job1",
-              "title" => "Ruby Developer",
-              "content" => "Ctx",
-              "engine" => "SearXNG/Google" },
-            { "url" => "https://lever.co/job2",
-              "title" => "Senior RoR Engineer",
-              "content" => "Ctx",
-              "engine" => "SearXNG/Duckduckgo" }
+            { url: "https://lever.co/job1",
+              title: "Ruby Developer",
+              content: "Ctx",
+              engine: "SearXNG/Google" },
+            { url: "https://lever.co/job2",
+              title: "Senior RoR Engineer",
+              content: "Ctx",
+              engine: "SearXNG/Duckduckgo" }
           ],
           failed_engines: []
         }
@@ -133,7 +133,7 @@ RSpec.describe SearchEngines::Searxng::Api::TorClient, type: :service do
         result = described_class.new(query).execute
         expect(result[:data]).to eq(
           [
-            { "url" => "https://ok.com", "title" => nil, "content" => nil, "engine" => "SearXNG" }
+            { url: "https://ok.com", title: nil, content: nil, engine: "SearXNG" }
           ]
         )
         expect(WebMock).not_to have_requested(:get, "#{instance1}/search")

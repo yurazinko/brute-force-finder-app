@@ -34,9 +34,9 @@ module Results
 
     def prepare_and_deduplicate(records)
       records.each_with_object({}) do |record, acc|
-        stringified = record.transform_keys(&:to_s)
-        hash = stringified["url_hash"]
-        acc[hash] ||= stringified if hash.present?
+        normalized = record.with_indifferent_access.symbolize_keys
+        hash = normalized[:url_hash]
+        acc[hash] ||= normalized if hash.present?
       end.values
     end
 
@@ -46,14 +46,14 @@ module Results
     end
 
     def fetch_existing_records(batch)
-      hashes = batch.filter_map { |r| r["url_hash"] }
+      hashes = batch.filter_map { |r| r[:url_hash] }
       hashes = hashes.uniq
       hashes.empty? ? [] : Result.unscoped.where(url_hash: hashes).pluck(:search_id, :url_hash, :acknowledged)
     end
 
     def calculate_new_records(batch, existing)
       search_hashes = existing.each_with_object(Set.new) { |(id, h), set| set << h if id == @search_id }
-      batch.count { |r| search_hashes.exclude?(r["url_hash"]) }
+      batch.count { |r| search_hashes.exclude?(r[:url_hash]) }
     end
 
     def persist_records!(batch, existing)
@@ -63,25 +63,25 @@ module Results
 
     def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
       current_time = Time.current
-      url_hash = record["url_hash"]
+      url_hash = record[:url_hash]
 
       {
-        "search_id" => @search_id,
-        "url" => record["url"],
-        "url_hash" => url_hash,
-        "title" => record["title"],
-        "content" => record["content"],
-        "engine" => record["engine"],
-        "status" => record["status"] || "unread",
-        "acknowledged" => global_ack_set.include?(url_hash),
-        "relevance_score" => record["relevance_score"] || 0,
-        "matched_keywords" => record["matched_keywords"] || [],
-        "verification_status" => record["verification_status"] || "pending",
-        "target_id" => @target&.id,
-        "target_domain" => @target&.domain,
-        "target_pattern" => record["target_pattern"],
-        "created_at" => record["created_at"] || current_time,
-        "updated_at" => record["updated_at"] || current_time
+        search_id: @search_id,
+        url: record[:url],
+        url_hash: url_hash,
+        title: record[:title],
+        content: record[:content],
+        engine: record[:engine],
+        status: record[:status] || "unread",
+        acknowledged: global_ack_set.include?(url_hash),
+        relevance_score: record[:relevance_score] || 0,
+        matched_keywords: record[:matched_keywords] || [],
+        verification_status: record[:verification_status] || "pending",
+        target_id: @target&.id,
+        target_domain: @target&.domain,
+        target_pattern: record[:target_pattern],
+        created_at: record[:created_at] || current_time,
+        updated_at: record[:updated_at] || current_time
       }
     end
 

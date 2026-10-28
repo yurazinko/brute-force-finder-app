@@ -75,7 +75,8 @@ module SearchEngines
             res = self.class.get("#{instance}/api/extensions?type=engine")
             break FALLBACK_ENGINES unless res.success?
 
-            installed_ids = res.parsed_response["engines"]&.map { |ext| ext["id"] }
+            parsed_response = res.parsed_response.with_indifferent_access
+            installed_ids = parsed_response[:engines]&.map { |extension| extension.with_indifferent_access[:id] }
             installed_ids.presence || FALLBACK_ENGINES
           end
         rescue StandardError => e
@@ -97,7 +98,7 @@ module SearchEngines
         end
 
         def parse_response(response_body, instance)
-          data = JSON.parse(response_body)
+          data = JSON.parse(response_body).with_indifferent_access
 
           { success: true, data: extract_results(data) }
         rescue JSON::ParserError => e
@@ -106,27 +107,27 @@ module SearchEngines
         end
 
         def extract_results(data)
-          results = (data["results"] || []).filter_map { |hash| build_result_item(hash) }
+          results = (data[:results] || []).filter_map { |hash| build_result_item(hash) }
 
-          results.uniq { |hash| hash["url"] }
+          results.uniq { |hash| hash[:url] }
         end
 
         def build_result_item(hash)
-          return if hash["url"].blank?
+          return if hash[:url].blank?
 
-          { "url" => hash["url"],
-            "title" => hash["title"],
-            "content" => format_content(hash),
-            "engine" => format_engine_label(hash) }
+          { url: hash[:url],
+            title: hash[:title],
+            content: format_content(hash),
+            engine: format_engine_label(hash) }
         end
 
         def format_content(hash)
-          [hash["content"], hash["snippet"]].compact_blank.uniq.join(" ").squish
+          [hash[:content], hash[:snippet]].compact_blank.uniq.join(" ").squish
         end
 
         def format_engine_label(hash)
-          sources = hash["sources"]&.map(&:capitalize)&.join(", ")
-          source = hash["source"] || sources
+          sources = hash[:sources]&.map(&:capitalize)&.join(", ")
+          source = hash[:source] || sources
 
           source.present? ? "#{provider_name}/#{source}" : provider_name
         end

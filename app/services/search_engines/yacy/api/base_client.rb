@@ -77,7 +77,7 @@ module SearchEngines
             return { success: false, error: "HTTP #{response.code}" }
           end
 
-          data = JSON.parse(response.body)
+          data = JSON.parse(response.body).with_indifferent_access
 
           results = parse_results(data)
           trigger_fallback_crawl_if_needed(results)
@@ -86,13 +86,13 @@ module SearchEngines
         end
 
         def parse_results(data)
-          channels = data.dig("channels", 0, "items") || []
+          channels = data.dig(:channels, 0, :items) || []
           channels.map do |item|
             {
-              "url" => item["link"],
-              "title" => item["title"],
-              "content" => item["description"],
-              "engine" => provider_name
+              url: item[:link],
+              title: item[:title],
+              content: item[:description],
+              engine: provider_name
             }
           end
         end

@@ -5,10 +5,10 @@ module Results
     attr_reader :rank_result, :matched_pattern
 
     def initialize(result, prompt)
-      @result = result
+      @result = result.with_indifferent_access
       @prompt = prompt
       @target = prompt&.target
-      @url = result["url"]
+      @url = @result[:url]
       @keyword_groups = DorkParser.parse_groups(prompt&.full_query_text)
       @rank_result = nil
       @matched_pattern = nil
@@ -34,7 +34,7 @@ module Results
     private
 
     def snippet_text
-      [@result["url"], @result["title"], @result["content"]].compact.join(" ")
+      [@result[:url], @result[:title], @result[:content]].compact.join(" ")
     end
   end
 end

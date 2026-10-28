@@ -43,8 +43,8 @@ class FourgetUpdaterJob < BaseContainerUpdaterJob
   def validate_response!(response)
     raise "Smoke test failed with HTTP code #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
-    json = JSON.parse(response.body)
-    raise "Smoke test failed: status is not 'ok' (#{json['status']})" unless json["status"] == "ok"
-    raise "Smoke test payload missing 'web' key" unless json.key?("web")
+    json = JSON.parse(response.body).with_indifferent_access
+    raise "Smoke test failed: status is not 'ok' (#{json[:status]})" unless json[:status] == "ok"
+    raise "Smoke test payload missing 'web' key" unless json.key?(:web)
   end
 end

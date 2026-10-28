@@ -50,8 +50,8 @@ module SearchEngines
         end
 
         def fetch_valid_public_urls(body)
-          data = JSON.parse(body)
-          instances = data["instances"] || {}
+          data = JSON.parse(body).with_indifferent_access
+          instances = data[:instances] || {}
 
           instances.select { |url, conf| valid_instance?(url, conf) }.keys
         rescue JSON::ParserError
@@ -61,7 +61,8 @@ module SearchEngines
         def valid_instance?(url, conf)
           return false if url.to_s.include?(".onion")
 
-          conf.dig("http", "status_code") == 200 && conf.dig("http", "error").nil?
+          conf = conf.with_indifferent_access
+          conf.dig(:http, :status_code) == 200 && conf.dig(:http, :error).nil?
         end
 
         def next_available_instance

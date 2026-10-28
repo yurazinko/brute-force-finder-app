@@ -5,17 +5,17 @@ module Database
     include Rls::Context
 
     IMPORTERS = {
-      "categories" => Importers::CategoryImporter,
-      "targets" => Importers::TargetImporter,
-      "searches" => Importers::SearchImporter,
-      "prompts" => Importers::PromptImporter,
-      "results" => Importers::ResultImporter
+      categories: Importers::CategoryImporter,
+      targets: Importers::TargetImporter,
+      searches: Importers::SearchImporter,
+      prompts: Importers::PromptImporter,
+      results: Importers::ResultImporter
     }.freeze
 
     def initialize(file_path, user_id: nil)
       @file_path = file_path
       @user_id = user_id
-      @id_maps = { "categories" => {}, "targets" => {}, "searches" => {} }
+      @id_maps = { categories: {}, targets: {}, searches: {} }
     end
 
     def call(&)
@@ -57,7 +57,7 @@ module Database
     def load_and_sanitize_data
       parsed = JSON.parse(File.read(@file_path))
       parsed = JSON.parse(parsed) if parsed.is_a?(String)
-      parsed.transform_keys { |key| key.to_s.tr('"', "").strip }
+      parsed.transform_keys { |key| key.to_s.tr('"', "").strip }.with_indifferent_access
     end
 
     def process_import(raw_data, target_user_id, &)
