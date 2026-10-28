@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe "TargetPatterns", type: :request do
   include Devise::Test::IntegrationHelpers if defined?(Devise)
 
-  let(:user) { User.create!(email: "test@example.com", password: "password") }
+  let(:user) { User.create!(username: "test@example.com", password: "password") }
   let(:category) { Category.create!(name: "Job Boards", user: user) }
   let(:search) { Search.create!(title: "Ruby Developer", query_conditions: "ruby developer", user: user) }
 

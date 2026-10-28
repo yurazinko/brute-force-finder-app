@@ -4,7 +4,7 @@ require "rails_helper"
 
 RSpec.describe PromptProcessorJob, type: :job do
   let(:job) { described_class.new }
-  let(:user) { User.create!(email: "test@example.com", password: "password123") }
+  let(:user) { User.create!(username: "test@example.com", password: "password123") }
   let(:search) { Search.create!(user: user, title: "Test Search", query_conditions: "ruby", time_frame: "month") }
   let(:category) { Category.create!(name: "Technology") } # Створюємо категорію для таргета
   let(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co", allow_query_strings: true, is_active: true) }

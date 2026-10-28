@@ -2,9 +2,6 @@
   <div class="w-full max-w-md space-y-6 bg-breeze-view p-5 sm:p-8 rounded-xl border border-breeze-border shadow-sm">
 
     <div class="text-center">
-      <h2 class="text-2xl font-bold text-breeze-text tracking-tight">
-        Welcome back
-      </h2>
       <p class="mt-1 text-sm text-breeze-muted">
         Please enter your credentials to log in
       </p>
@@ -13,12 +10,12 @@
     <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-4" }) do |f| %>
 
       <div>
-        <%= f.label :email, class: "block text-sm font-medium text-breeze-text mb-1.5" %>
-        <%= f.email_field :email,
+        <%= f.label :username, "Username", class: "block text-sm font-medium text-breeze-text mb-1.5" %>
+        <%= f.text_field :username,
                           autofocus: true,
-                          autocomplete: "email",
+                          autocomplete: "username",
                           required: true,
-                          placeholder: "name@company.com",
+                          placeholder: "e.g. alex_dev",
                           class: "w-full px-3.5 py-2.5 bg-breeze-bg border border-breeze-border rounded-lg text-breeze-text placeholder:text-breeze-muted/50 text-sm focus:outline-none focus:ring-2 focus:ring-breeze-accent focus:border-transparent transition" %>
       </div>
 
@@ -51,4 +48,3 @@
 
   </div>
 </div>
-

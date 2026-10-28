@@ -76,34 +76,32 @@
               </div>
             </div>
 
-            <!-- Right Group: Actions + Profile -->
-            <div class="flex items-center space-x-3 sm:space-x-4">
+            <!-- Right Group: Sync, Profile Settings & Logout -->
+            <div class="flex items-center space-x-1 font-medium text-xs sm:text-sm">
               <!-- Data Sync Link -->
-              <%= link_to data_transfers_path, class: "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border transition shadow-2xs #{current_page?(data_transfers_path) ? 'bg-breeze-accent/10 text-breeze-accent border-breeze-accent/30' : 'bg-breeze-bg/80 hover:bg-breeze-bg text-breeze-text border-breeze-border/80 hover:border-breeze-border'}" do %>
-                <span class="text-xs">🔄</span>
-                <span>Sync & Data</span>
+              <%= link_to data_transfers_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "data_transfers" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
+                <span>🔄</span>
+                <span>Sync</span>
               <% end %>
 
-              <div class="h-5 w-px bg-breeze-border/60 hidden sm:block"></div>
+              <!-- Edit Profile Link -->
+              <%= link_to edit_user_registration_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "registrations" && action_name == "edit" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
+                <span>⚙️</span>
+                <span class="max-w-[120px] truncate" title="<%= current_user.username %>"><%= current_user.username %></span>
+              <% end %>
 
-              <!-- User Profile & Logout -->
-              <div class="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
-                <div class="hidden lg:flex flex-col text-right leading-tight">
-                  <span class="font-semibold text-breeze-text truncate max-w-[160px]" title="<%= current_user.email %>">
-                    <%= current_user.email %>
-                  </span>
-                </div>
+              <div class="h-4 w-px bg-breeze-border/60 mx-1"></div>
 
-                <%= link_to destroy_user_session_path,
-                            data: { turbo_method: :delete },
-                            class: "flex items-center gap-1.5 text-breeze-muted hover:text-red-400 hover:bg-red-500/10 px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-transparent hover:border-red-500/20 transition",
-                            title: "Log out" do %>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                  </svg>
-                  <span class="hidden sm:inline">Log out</span>
-                <% end %>
-              </div>
+              <!-- Log out Button -->
+              <%= link_to destroy_user_session_path,
+                          data: { turbo_method: :delete },
+                          class: "px-3 py-1.5 rounded-lg transition-all text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-1.5",
+                          title: "Log out" do %>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                <span class="hidden sm:inline">Log out</span>
+              <% end %>
             </div>
 
           </div>
@@ -117,4 +115,3 @@
     </main>
   </body>
 </html>
-

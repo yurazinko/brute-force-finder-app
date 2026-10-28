@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe Results::BatchPersister, type: :service do
-  let(:user) { User.create!(email: "persister_test@example.com", password: "password123") }
+  let(:user) { User.create!(username: "persister_test@example.com", password: "password123") }
   let(:search) do
     Search.create!(
       user: user,
