@@ -37,8 +37,8 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
       begin
         response = Net::HTTP.get_response(url)
         if response.is_a?(Net::HTTPSuccess)
-          json = JSON.parse(response.body)
-          if json.key?("channels")
+          json = JSON.parse(response.body).with_indifferent_access
+          if json.key?(:channels)
             found = true
             break
           end

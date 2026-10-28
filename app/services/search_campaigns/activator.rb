@@ -73,6 +73,7 @@ module SearchCampaigns
       args = payloads.map { |prompt_id, _| [prompt_id, @search.user_id] }
       ats  = payloads.map { |_, time| time.to_f }
 
+      # Sidekiq's push_bulk job envelope uses string keys as part of its JSON payload contract.
       Sidekiq::Client.push_bulk(
         "class" => "PromptProcessorJob",
         "args" => args,

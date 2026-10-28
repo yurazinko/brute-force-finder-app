@@ -5,12 +5,12 @@ module Database
     class CategoryImporter < BaseImporter
       def call
         records.each do |record|
-          category = Category.find_or_create_by!(user_id: target_user_id, name: record["name"]) do |cat|
-            cat.created_at = record["created_at"] if record["created_at"].present?
-            cat.updated_at = record["updated_at"] if record["updated_at"].present?
+          category = Category.find_or_create_by!(user_id: target_user_id, name: record[:name]) do |cat|
+            cat.created_at = record[:created_at] if record[:created_at].present?
+            cat.updated_at = record[:updated_at] if record[:updated_at].present?
           end
 
-          id_maps["categories"][record["id"]] = category.id
+          id_maps[:categories][record[:id]] = category.id
         end
       end
     end

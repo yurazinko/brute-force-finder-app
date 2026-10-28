@@ -55,6 +55,7 @@ module SearchEngines
           end
         end
 
+        # YaCy expects these exact form-field names, including their capitalization.
         def base_crawler_params # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity,Metrics/MethodLength,Metrics/PerceivedComplexity
           {
             "crawlingstart" => "Neuen Crawl starten",

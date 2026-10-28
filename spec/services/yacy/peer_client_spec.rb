@@ -115,10 +115,10 @@ RSpec.describe SearchEngines::Yacy::Api::PeerClient, type: :service do
           success: true,
           data: [
             {
-              "url" => "https://example.com/job/1",
-              "title" => "Ruby Lead",
-              "content" => "Looking for Ruby developer",
-              "engine" => "YaCy"
+              url: "https://example.com/job/1",
+              title: "Ruby Lead",
+              content: "Looking for Ruby developer",
+              engine: "YaCy"
             }
           ],
           failed_engines: []

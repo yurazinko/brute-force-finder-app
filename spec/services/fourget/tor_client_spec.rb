@@ -74,14 +74,14 @@ RSpec.describe SearchEngines::Fourget::Api::TorClient, type: :service do
         expected_result = {
           success: true,
           data: [
-            { "url" => "https://indeed.com/viewjob?id=1",
-              "title" => "Ruby Developer",
-              "content" => "Ctx",
-              "engine" => "4get" },
-            { "url" => "https://indeed.com/viewjob?id=2",
-              "title" => "Senior RoR Engineer",
-              "content" => "Ctx",
-              "engine" => "4get" }
+            { url: "https://indeed.com/viewjob?id=1",
+              title: "Ruby Developer",
+              content: "Ctx",
+              engine: "4get" },
+            { url: "https://indeed.com/viewjob?id=2",
+              title: "Senior RoR Engineer",
+              content: "Ctx",
+              engine: "4get" }
           ],
           npt: "token123"
         }
@@ -136,7 +136,7 @@ RSpec.describe SearchEngines::Fourget::Api::TorClient, type: :service do
 
         expect(result[:data]).to eq(
           [
-            { "url" => "https://ok.com", "title" => nil, "content" => nil, "engine" => "4get" }
+            { url: "https://ok.com", title: nil, content: nil, engine: "4get" }
           ]
         )
         expect(WebMock).not_to have_requested(:get, "#{instance1}/api/v1/web")

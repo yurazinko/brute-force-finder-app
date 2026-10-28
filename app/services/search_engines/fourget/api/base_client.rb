@@ -91,14 +91,14 @@ module SearchEngines
         end
 
         def parse_response(response_body, instance)
-          data = JSON.parse(response_body)
+          data = JSON.parse(response_body).with_indifferent_access
 
-          return { success: false, error: "4get Error Status: #{data['status']}" } unless data["status"] == "ok"
+          return { success: false, error: "4get Error Status: #{data[:status]}" } unless data[:status] == "ok"
 
           {
             success: true,
             data: extract_results(data),
-            npt: data["npt"]
+            npt: data[:npt]
           }
         rescue JSON::ParserError => e
           Rails.logger.error("[#{logger_tag}] Malformed JSON from #{instance}: #{e.message}")
@@ -106,20 +106,20 @@ module SearchEngines
         end
 
         def extract_results(data)
-          web_results = data["web"].presence || []
+          web_results = data[:web].presence || []
 
           raw_results = web_results.filter_map do |hash|
-            next if hash["url"].blank?
+            next if hash[:url].blank?
 
             {
-              "url" => hash["url"],
-              "title" => hash["title"],
-              "content" => hash["desc"] || hash["description"],
-              "engine" => provider_name
+              url: hash[:url],
+              title: hash[:title],
+              content: hash[:desc] || hash[:description],
+              engine: provider_name
             }
           end
 
-          raw_results.uniq { |hash| hash["url"] }
+          raw_results.uniq { |hash| hash[:url] }
         end
       end
     end

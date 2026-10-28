@@ -47,8 +47,9 @@ module SearchEngines
       return unless raw_items.is_a?(Array)
 
       raw_items.each do |item|
-        url = item["url"]
-        yield(item) if url.present? && seen_urls.add?(url)
+        normalized_item = item.with_indifferent_access
+        url = normalized_item[:url]
+        yield(normalized_item.symbolize_keys) if url.present? && seen_urls.add?(url)
       end
     end
 

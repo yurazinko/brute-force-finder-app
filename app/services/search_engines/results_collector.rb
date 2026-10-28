@@ -50,7 +50,7 @@ module SearchEngines
       return [] if data.blank?
 
       data.reject do |item|
-        url = item["url"]
+        url = item[:url]
         url.blank? || !seen_urls.add?(url)
       end
     end

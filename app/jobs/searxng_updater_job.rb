@@ -29,8 +29,8 @@ class SearxngUpdaterJob < BaseContainerUpdaterJob
     response = Net::HTTP.get_response(url)
     raise "Smoke test failed with status code #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
-    json = JSON.parse(response.body)
-    raise "Smoke test payload missing 'results' key" unless json.key?("results")
+    json = JSON.parse(response.body).with_indifferent_access
+    raise "Smoke test payload missing 'results' key" unless json.key?(:results)
   rescue StandardError => e
     raise "Smoke test failed for #{service_host}: #{e.message}"
   end
