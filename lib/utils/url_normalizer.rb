@@ -7,17 +7,13 @@ module Utils
     def self.normalize(url, target_configs: {})
       return nil if url.blank?
 
-      uri = URI.parse(url.strip)
+      uri = parse_uri(url)
+      return nil if uri&.host.blank? || uri&.scheme.blank?
+
       domain = extract_domain(uri.host)
       return nil if domain.blank?
 
-      keep_query = should_keep_query?(domain, target_configs)
-
-      if keep_query && uri.query.present?
-        "#{uri.scheme}://#{uri.host}#{uri.path}?#{uri.query}"
-      else
-        "#{uri.scheme}://#{uri.host}#{uri.path}"
-      end
+      build_normalized_string(uri, domain, target_configs)
     rescue URI::InvalidURIError
       nil
     end
@@ -25,7 +21,8 @@ module Utils
     def self.extract_domain(host)
       return nil if host.blank?
 
-      host.start_with?(WWW_PREFIX) ? host.sub(WWW_PREFIX, "") : host
+      downcased_host = host.downcase
+      downcased_host.start_with?(WWW_PREFIX) ? downcased_host.sub(WWW_PREFIX, "") : downcased_host
     end
 
     def self.clean_domain_string(domain_str)
@@ -34,12 +31,28 @@ module Utils
     end
 
     def self.hash(url)
-      Digest::SHA256.hexdigest(url.downcase)
+      normalized_url = normalize(url)
+      return nil if normalized_url.blank?
+
+      Digest::SHA256.hexdigest(normalized_url)
     end
 
-    private_class_method def self.should_keep_query?(domain, target_configs)
+    def self.parse_uri(url)
+      URI.parse(url.strip)
+    end
+
+    def self.build_normalized_string(uri, domain, target_configs)
+      scheme = uri.scheme.downcase
+      path = uri.path.to_s
+      query = should_keep_query?(domain, target_configs) ? uri.query : nil
+
+      query.present? ? "#{scheme}://#{domain}#{path}?#{query}" : "#{scheme}://#{domain}#{path}"
+    end
+
+    def self.should_keep_query?(domain, target_configs)
       target_configs.any? do |target_domain, allow_query|
-        (domain == target_domain || domain.end_with?(".#{target_domain}")) && allow_query
+        downcased_target = target_domain.to_s.downcase
+        (domain == downcased_target || domain.end_with?(".#{downcased_target}")) && allow_query
       end
     end
   end

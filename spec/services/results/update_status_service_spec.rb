@@ -14,7 +14,7 @@ RSpec.describe Results::UpdateStatusService, type: :service do
       status: "unread",
       acknowledged: false,
       url: "https://example.com/job",
-      url_hash: "shared_hash_123"
+      url_hash: "shared_hash123"
     )
   end
 
@@ -24,7 +24,7 @@ RSpec.describe Results::UpdateStatusService, type: :service do
       status: "unread",
       acknowledged: false,
       url: "https://example.com/job",
-      url_hash: "shared_hash_123"
+      url_hash: "shared_hash123"
     )
   end
 

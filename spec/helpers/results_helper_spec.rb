@@ -25,7 +25,7 @@ RSpec.describe ResultsHelper, type: :helper do
     end
 
     context "when URL is valid and matches target domain without patterns" do
-      let!(:result) { Result.create!(search: search, url: "https://github.com/features/actions", url_hash: "hash_1") }
+      let!(:result) { Result.create!(search: search, url: "https://github.com/features/actions", url_hash: "hash1") }
 
       it "highlights the target domain name" do
         html_output = helper.highlight_target_domain(result)
@@ -49,7 +49,7 @@ RSpec.describe ResultsHelper, type: :helper do
 
     context "when URL matches target domain AND has an exact path pattern" do
       let!(:pattern) { TargetPattern.create!(target: target, path_pattern: "/features/actions", is_active: true) }
-      let!(:result) { Result.create!(search: search, url: "https://github.com/features/actions", url_hash: "hash_2") }
+      let!(:result) { Result.create!(search: search, url: "https://github.com/features/actions", url_hash: "hash2") }
 
       it "highlights both the domain part and the exact path pattern" do
         html_output = helper.highlight_target_domain(result)

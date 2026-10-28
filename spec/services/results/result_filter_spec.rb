@@ -19,7 +19,7 @@ RSpec.describe Results::ResultFilter, type: :service do
 
   let(:rank_result) { instance_double("RelevanceRanker::Result", valid?: true) }
 
-  subject { described_class.new(valid_result, prompt, target_configs) }
+  subject { described_class.new(valid_result, prompt) }
 
   describe "#valid?" do
     context "when URL is blank" do
@@ -79,7 +79,7 @@ RSpec.describe Results::ResultFilter, type: :service do
         }
       end
 
-      subject { described_class.new(valid_result, indeed_prompt, target_configs) }
+      subject { described_class.new(valid_result, indeed_prompt) }
 
       before do
         allow(Results::DorkParser).to receive(:parse_groups).with(indeed_prompt.full_query_text).and_return([%w[ruby]])

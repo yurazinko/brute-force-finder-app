@@ -103,6 +103,42 @@ RSpec.describe Results::UrlMatcher, type: :service do
       end
     end
 
+    context "when handling malformed or unsafe path patterns (Regexp safety)" do
+      let(:target_domain) { "example.com" }
+
+      it "rescues RegexpError and returns false when pattern contains unbalanced parentheses" do
+        TargetPattern.create!(target: target, path_pattern: "/jobs/(", is_active: true)
+        url = "https://example.com/jobs/"
+
+        expect(described_class.matches?(url, target)).to be false
+      end
+
+      it "treats dots literally instead of wildcard matching any character" do
+        TargetPattern.create!(target: target, path_pattern: "/file.txt", is_active: true)
+
+        valid_url = "https://example.com/file.txt"
+        invalid_url = "https://example.com/fileXtxt"
+
+        expect(described_class.matches?(valid_url, target)).to be true
+        expect(described_class.matches?(invalid_url, target)).to be false
+      end
+
+      it "treats special regex quantifiers (like '+') literally instead of as repetitions" do
+        TargetPattern.create!(target: target, path_pattern: "/item+", is_active: true)
+
+        valid_url = "https://example.com/item+"
+        invalid_url = "https://example.com/itemmm"
+
+        expect(described_class.matches?(valid_url, target)).to be true
+        expect(described_class.matches?(invalid_url, target)).to be false
+      end
+
+      it "treats special characters literally when matching via match_pattern?" do
+        expect(described_class.match_pattern?("/item?", "/item?")).to be true
+        expect(described_class.match_pattern?("/item", "/item?")).to be false
+      end
+    end
+
     context "when handling edge cases and normalization" do
       context "with www prefix variants" do
         let(:target_domain) { "www.indeed.com" }

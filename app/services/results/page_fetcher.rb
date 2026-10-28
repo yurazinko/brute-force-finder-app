@@ -13,10 +13,10 @@ module Results
     MAX_BODY_SIZE = 2 * 1024 * 1024
 
     CAPTCHA_INDICATORS = [
-      "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha", "enable javascript", "cloudflare", "captcha",
+      "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha", "enable javascript",
       "ray id:", "just a moment...", "attention required!",
       "are you a human?", "verify you are a human", "please complete the security check",
-      "security check required", "access denied", "you are being redirected"
+      "security check required", "you are being redirected"
     ].freeze
 
     CAPTCHA_REGEX = Regexp.new(

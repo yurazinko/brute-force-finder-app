@@ -34,7 +34,7 @@ RSpec.describe "Results", type: :request do
       search: search,
       title: "Senior Backend Developer",
       url: "https://lever.co/jobs/1",
-      url_hash: "shared_hash_123",
+      url_hash: "shared_hash123",
       status: "unread",
       acknowledged: false,
       relevance_score: 150
@@ -46,7 +46,7 @@ RSpec.describe "Results", type: :request do
       search: search2,
       title: "Senior Backend Developer (Duplicate)",
       url: "https://lever.co/jobs/1",
-      url_hash: "shared_hash_123",
+      url_hash: "shared_hash123",
       status: "unread",
       acknowledged: false,
       relevance_score: 150
