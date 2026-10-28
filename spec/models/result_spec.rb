@@ -140,4 +140,60 @@ RSpec.describe Result, type: :model do
       expect(orphan_stat).to be_nil
     end
   end
+
+  describe "URL hash synchronization (UpdateStatusService)" do
+    let(:search2) { Search.create!(title: "Ruby Senior", query_conditions: "senior ruby", user: user) }
+
+    let!(:result1) do
+      Result.create!(
+        search: search,
+        status: "unread",
+        acknowledged: false,
+        url: "https://example.com/shared-job",
+        url_hash: "shared_hash_123"
+      )
+    end
+
+    let!(:result2) do
+      Result.create!(
+        search: search2,
+        status: "unread",
+        acknowledged: false,
+        url: "https://example.com/shared-job",
+        url_hash: "shared_hash_123"
+      )
+    end
+
+    let!(:result_unrelated) do
+      Result.create!(
+        search: search,
+        status: "unread",
+        acknowledged: false,
+        url: "https://example.com/other-job",
+        url_hash: "other_hash_456"
+      )
+    end
+
+    it "propagates acknowledged: true to all records with the same url_hash when status changes from unread" do
+      success = Results::UpdateStatusService.new(result: result1, status: "watched").call
+
+      expect(success).to be true
+
+      expect(result1.reload.status).to eq("watched")
+      expect(result1.acknowledged).to be true
+
+      expect(result2.reload.acknowledged).to be true
+
+      expect(result_unrelated.reload.acknowledged).to be false
+      expect(result_unrelated.status).to eq("unread")
+    end
+
+    it "does not propagate acknowledged when status remains unread" do
+      success = Results::UpdateStatusService.new(result: result1, status: "unread").call
+
+      expect(success).to be true
+      expect(result1.reload.acknowledged).to be false
+      expect(result2.reload.acknowledged).to be false
+    end
+  end
 end

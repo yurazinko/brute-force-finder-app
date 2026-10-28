@@ -19,12 +19,34 @@ RSpec.describe "Results", type: :request do
     )
   end
 
+  let(:search2) do
+    Search.create!(
+      user: user,
+      title: "Rails Senior Jobs",
+      query_conditions: "rails senior",
+      status: "pending",
+      show_acknowledged: false
+    )
+  end
+
   let!(:result) do
     Result.create!(
       search: search,
       title: "Senior Backend Developer",
       url: "https://lever.co/jobs/1",
-      url_hash: SecureRandom.hex(10),
+      url_hash: "shared_hash_123",
+      status: "unread",
+      acknowledged: false,
+      relevance_score: 150
+    )
+  end
+
+  let!(:duplicate_result) do
+    Result.create!(
+      search: search2,
+      title: "Senior Backend Developer (Duplicate)",
+      url: "https://lever.co/jobs/1",
+      url_hash: "shared_hash_123",
       status: "unread",
       acknowledged: false,
       relevance_score: 150
@@ -74,6 +96,18 @@ RSpec.describe "Results", type: :request do
         assert_select "turbo-stream[action='replace'][target='search_tabs_navigation']"
 
         expect(response.body).not_to include("results_pool_list")
+      end
+
+      it "propagates acknowledged to other results with the same url_hash when status changes from unread" do
+        expect(duplicate_result.acknowledged).to be false
+
+        patch result_path(result, format: :turbo_stream),
+              params: { result: { status: "watched" }, status: "unread" }
+
+        expect(response).to have_http_status(:ok)
+        expect(result.reload.acknowledged).to be true
+
+        expect(duplicate_result.reload.acknowledged).to be true
       end
     end
 

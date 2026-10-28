@@ -51,8 +51,6 @@ class Result < ApplicationRecord
   belongs_to :search
   belongs_to :target, optional: true
 
-  after_update :broadcast_acknowledged, if: :saved_change_to_status?
-
   validates :status, inclusion: { in: %w[unread watched garbage interesting] }
 
   scope :without_garbage, -> { where.not(status: "garbage") }
@@ -107,12 +105,4 @@ class Result < ApplicationRecord
   end
 
   private_class_method :map_efficiency_row
-
-  private
-
-  def broadcast_acknowledged
-    return if status == "unread"
-
-    Result.where(url_hash: url_hash).update_all(acknowledged: true, updated_at: Time.current)
-  end
 end
