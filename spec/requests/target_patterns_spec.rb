@@ -24,7 +24,7 @@ RSpec.describe "TargetPatterns", type: :request do
   describe "GET /target_patterns/new" do
     context "when result exists and matches an existing target" do
       let!(:target) { Target.create!(name: "GitHub Jobs", domain: "github.com", category: category, is_active: true) }
-      let!(:result) { Result.create!(search: search, url: "https://github.com/jobs/123", url_hash: "hash_123") }
+      let!(:result) { Result.create!(search: search, url: "https://github.com/jobs/123", url_hash: "hash123") }
 
       it "renders the new template successfully and finds the matched target" do
         get new_target_pattern_path, params: { result_id: result.id }

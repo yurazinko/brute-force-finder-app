@@ -17,7 +17,7 @@ module Results
 
     def process
       @raw_results.each_with_object([]) do |result, records|
-        filter = ResultFilter.new(result, @prompt, @target_configs)
+        filter = ResultFilter.new(result, @prompt)
         next unless filter.valid?
 
         clean_url = Utils::UrlNormalizer.normalize(result["url"], target_configs: @target_configs)

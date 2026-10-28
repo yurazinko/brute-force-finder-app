@@ -17,8 +17,13 @@ module Results
     def self.match_pattern?(path, pattern_str)
       return false if path.blank? || pattern_str.blank?
 
-      regex_str = pattern_str.gsub("*", ".*")
+      escaped_pattern = Regexp.escape(pattern_str)
+
+      regex_str = escaped_pattern.gsub("\\*", ".*")
+
       path.match?(/\A#{regex_str}\z/)
+    rescue RegexpError
+      false
     end
 
     def initialize(url, target)
@@ -33,7 +38,7 @@ module Results
       target_domain = self.class.clean_domain(@target.domain, @www_prefix)
 
       uri = URI.parse(@url)
-      result_host = uri.host&.sub(@www_prefix, "")
+      result_host = uri.host&.downcase&.sub(@www_prefix, "")
 
       host_matches?(result_host, target_domain)
     rescue URI::InvalidURIError
@@ -65,7 +70,7 @@ module Results
     end
 
     def self.clean_domain(domain, www_prefix = Utils::UrlNormalizer::WWW_PREFIX)
-      domain.to_s.sub(%r{\Ahttps?://}, "").sub(www_prefix, "").delete_suffix("/")
+      domain.to_s.sub(%r{\Ahttps?://}, "").downcase.sub(www_prefix, "").delete_suffix("/")
     end
 
     private

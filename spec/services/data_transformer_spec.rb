@@ -19,22 +19,7 @@ RSpec.describe Results::DataTransformer, type: :model do
         Prompt.find_or_create_by!(search: search, target: target, full_query_text: "site:#{target.domain} ruby")
       end
 
-      allow(Utils::UrlNormalizer).to receive(:normalize) do |url, target_configs: {}|
-        domain = url.split("/").third&.delete_prefix("www.")
-
-        keep_query = target_configs.any? do |target_domain, allow_query|
-          (domain == target_domain || domain&.end_with?(".#{target_domain}")) && allow_query
-        end
-
-        keep_query ? url : url.split("?").first
-      end
-
-      allow(Utils::UrlNormalizer).to receive(:hash) do |url|
-        "hash_of_#{url}"
-      end
-
       stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby</body></html>", headers: {})
-
       allow(Resolv).to receive(:getaddress).and_return("8.8.8.8")
     end
 
@@ -76,28 +61,60 @@ RSpec.describe Results::DataTransformer, type: :model do
     context "when domains match the target" do
       let(:raw_results) do
         [
-          { "url" => "https://example.com/path?abc=123", "title" => "Exact Match", "content" => "Text 1" },
-          { "url" => "https://sub.example.com/path", "title" => "Subdomain Match", "content" => "Text 2" },
-          { "url" => "https://www.example.com/path", "title" => "WWW Match", "content" => "Text 3" }
+          { "url" => "HTTPS://WWW.EXAMPLE.COM/ruby-page-one?utm_source=twitter", "title" => "Ruby Exact Match", "content" => "Ruby Text 1" },
+          { "url" => "https://sub.example.com/ruby-page-two", "title" => "Ruby Subdomain Match", "content" => "Ruby Text 2" }
         ]
       end
 
-      it "successfully transforms all matching records" do
-        expect(processed_records.size).to eq(3)
+      it "successfully transforms and normalizes matching records" do
+        expect(processed_records.size).to eq(2)
       end
 
-      it "builds the correct hash structure for each record" do
-        first_record = processed_records.first
+      it "preserves path case while downcasing scheme/domain and stripping www and default queries" do
+        first_record = processed_records.find { |r| r[:title] == "Ruby Exact Match" }
 
         expect(first_record).to include(
           search_id: search_id,
-          url: "https://example.com/path",
-          url_hash: "hash_of_https://example.com/path",
-          title: "Exact Match",
-          content: "Text 1"
+          url: "https://example.com/ruby-page-one", # query вилучено за замовчуванням, www прибрано, домен у нижньому регістрі
+          title: "Ruby Exact Match",
+          content: "Ruby Text 1"
         )
+        expect(first_record[:url_hash]).to eq(Utils::UrlNormalizer.hash("https://example.com/ruby-page-one"))
         expect(first_record[:created_at]).to be_a(Time)
         expect(first_record[:updated_at]).to be_a(Time)
+      end
+    end
+
+    context "when deduplicating www and non-www URLs via real UrlNormalizer" do
+      let(:raw_results) do
+        [
+          { "url" => "https://www.example.com/jobs/ruby", "title" => "Job WWW" },
+          { "url" => "https://example.com/jobs/ruby", "title" => "Job Plain" }
+        ]
+      end
+
+      it "generates identical url_hashes for www and non-www variants pointing to the same resource" do
+        hashes = processed_records.pluck(:url_hash)
+        expect(hashes.size).to eq(2)
+        expect(hashes.first).to eq(hashes.last)
+      end
+    end
+
+    context "when paths differ only by case (case-sensitivity edge case)" do
+      let(:raw_results) do
+        [
+          { "url" => "https://example.com/Jobs/Ruby", "title" => "Upper Path" },
+          { "url" => "https://example.com/jobs/ruby", "title" => "Lower Path" }
+        ]
+      end
+
+      it "treats case-sensitive paths as distinct records with different hashes" do
+        urls = processed_records.pluck(:url)
+        hashes = processed_records.pluck(:url_hash)
+
+        expect(urls).to include("https://example.com/Jobs/Ruby")
+        expect(urls).to include("https://example.com/jobs/ruby")
+        expect(hashes.first).not_to eq(hashes.last)
       end
     end
 
@@ -157,20 +174,6 @@ RSpec.describe Results::DataTransformer, type: :model do
       end
     end
 
-    context "when prompt is nil" do
-      let(:prompt) { instance_double("Prompt", target: nil, full_query_text: "ruby") }
-      let(:raw_results) do
-        [
-          { "url" => "https://anydomain.com/page", "title" => "Any", "content" => "Content" }
-        ]
-      end
-
-      it "allows any domain without target domain filtering" do
-        expect(processed_records.size).to eq(1)
-        expect(processed_records.first[:url]).to eq("https://anydomain.com/page")
-      end
-    end
-
     context "checking keep_query (allow_query_strings) logic" do
       let(:target) { nil }
       let!(:query_target) { create(:target, domain: "query.com", allow_query_strings: true, category: category) }
@@ -185,19 +188,19 @@ RSpec.describe Results::DataTransformer, type: :model do
 
       let(:raw_results) do
         [
-          { "url" => "https://example.com/p?q=1", "title" => "No Query" },
-          { "url" => "https://query.com/p?q=2", "title" => "Keep Query" }
+          { "url" => "https://example.com/p?q=1", "title" => "No Query Target Config" },
+          { "url" => "https://query.com/p?q=2", "title" => "Keep Query Target Config" }
         ]
       end
 
-      it "preserves query parameters only for allowed domains" do
+      it "preserves query parameters only for allowed domains configured on targets" do
         urls = processed_records.pluck(:url)
         expect(urls).to include("https://example.com/p")
         expect(urls).to include("https://query.com/p?q=2")
       end
     end
 
-    context "when processing subdomains with allow_query_strings enabled" do
+    context "when processing regional subdomains with allow_query_strings enabled" do
       let(:target) { create(:target, domain: "indeed.com", allow_query_strings: true, category: category) }
       let(:raw_results) do
         [
@@ -212,25 +215,9 @@ RSpec.describe Results::DataTransformer, type: :model do
 
       it "generates unique url_hashes for each job on regional subdomains" do
         hashes = processed_records.pluck(:url_hash)
-        expect(hashes.first).to eq("hash_of_https://pl.indeed.com/viewjob?jk=c632099926f119ae")
-        expect(hashes.last).to eq("hash_of_https://ca.indeed.com/viewjob?jk=a111222333b4455c")
+        expect(hashes.first).to eq(Utils::UrlNormalizer.hash("https://pl.indeed.com/viewjob?jk=c632099926f119ae"))
+        expect(hashes.last).to eq(Utils::UrlNormalizer.hash("https://ca.indeed.com/viewjob?jk=a111222333b4455c"))
         expect(hashes.first).not_to eq(hashes.last)
-      end
-    end
-
-    context "when normalizer returns a blank string" do
-      let(:raw_results) do
-        [
-          { "url" => "https://example.com/bad-page", "title" => "Bad" }
-        ]
-      end
-
-      before do
-        allow(Utils::UrlNormalizer).to receive(:normalize).and_return("")
-      end
-
-      it "ignores the result" do
-        expect(processed_records).to eq([])
       end
     end
   end

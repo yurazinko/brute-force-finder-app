@@ -150,7 +150,7 @@ RSpec.describe Result, type: :model do
         status: "unread",
         acknowledged: false,
         url: "https://example.com/shared-job",
-        url_hash: "shared_hash_123"
+        url_hash: "shared_hash123"
       )
     end
 
@@ -160,7 +160,7 @@ RSpec.describe Result, type: :model do
         status: "unread",
         acknowledged: false,
         url: "https://example.com/shared-job",
-        url_hash: "shared_hash_123"
+        url_hash: "shared_hash123"
       )
     end
 

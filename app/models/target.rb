@@ -43,37 +43,6 @@ class Target < ApplicationRecord
 
   after_update_commit :sync_associated_prompts, if: :saved_change_to_domain?
 
-  def self.top_by_prompts_count(limit_number)
-    joins(:prompts)
-      .left_joins(:category)
-      .select("targets.name, targets.domain, COUNT(DISTINCT prompts.id) as prompts_count")
-      .group("targets.id, targets.name, targets.domain")
-      .order(prompts_count: :desc)
-      .limit(limit_number)
-  end
-
-  def self.prompts_distribution_map
-    joins(:prompts).group("targets.name").order(count_all: :desc).limit(5).count
-  end
-
-  def self.dead_weight_targets_last_30_days(limit_number = 5)
-    results_subquery = Result.where(created_at: 30.days.ago..)
-                             .where("results.target_domain = targets.domain")
-                             .select("COUNT(results.id)")
-
-    active_prompts_subquery = Prompt.joins(search: :results)
-                                    .where(results: { created_at: 30.days.ago.. })
-                                    .where("prompts.target_id = targets.id")
-                                    .select("COUNT(DISTINCT prompts.id)")
-
-    active
-      .select("targets.id, targets.name, targets.domain, " \
-              "COALESCE((#{active_prompts_subquery.to_sql}), 0) as prompts_count, " \
-              "COALESCE((#{results_subquery.to_sql}), 0) as results_count")
-      .order(Arel.sql("results_count ASC, prompts_count DESC"))
-      .limit(limit_number)
-  end
-
   def persist_record(attributes)
     Targets::Persistor.call(self, attributes)
   end
