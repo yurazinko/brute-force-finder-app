@@ -48,7 +48,7 @@ module Results
     def initialize(result, snippet_text, keyword_groups, url, strict_mode: nil)
       @result = result
       @snippet_text = snippet_text.to_s
-      @keyword_groups = Array(keyword_groups).map { |group| Array(group).compact.map(&:to_s) }.reject(&:empty?)
+      @keyword_groups = parse_keyword_groups(keyword_groups)
       @url = url
       @explicit_strict_mode = strict_mode
     end
@@ -63,6 +63,16 @@ module Results
     end
 
     private
+
+    def parse_keyword_groups(keyword_groups)
+      groups = Array(keyword_groups).map do |group|
+        g = Array(group).compact
+        g.map!(&:to_s)
+        g
+      end
+      groups.reject!(&:empty?)
+      groups
+    end
 
     def empty_rank
       RankResult.new(

@@ -77,35 +77,6 @@ class Result < ApplicationRecord
   }
 
   def self.top_domains_efficiency(since: 30.days.ago, limit: 5)
-    joins(:target, :search)
-      .where(created_at: since..Time.current)
-      .where(
-        "(searches.relevance_mode = 'strict' AND results.relevance_score >= 100) " \
-        "OR (searches.relevance_mode = 'balanced' AND results.relevance_score > 0)"
-      )
-      .group("targets.id")
-      .group("targets.domain")
-      .order(Arel.sql("SUM(results.relevance_score) DESC, COUNT(*) DESC, AVG(results.relevance_score) DESC"))
-      .limit(limit)
-      .pluck(
-        "targets.id",
-        "targets.domain",
-        Arel.sql("COUNT(*)"),
-        Arel.sql("SUM(results.relevance_score)"),
-        Arel.sql("AVG(results.relevance_score)")
-      )
-      .map { |row| map_efficiency_row(row) }
+    Results::TopDomainsEfficiency.call(since: since, limit: limit)
   end
-
-  def self.map_efficiency_row(row)
-    {
-      id: row[0],
-      domain: row[1],
-      relevant_results_count: row[2].to_i,
-      total_relevance_score: row[3].to_i,
-      average_relevance_score: row[4].to_f.round(1)
-    }
-  end
-
-  private_class_method :map_efficiency_row
 end
