@@ -5,7 +5,8 @@ require "rails_helper"
 RSpec.describe Targets::LowYieldQuery, type: :query do
   let(:user) { create(:user) }
   let(:category) { create(:category, user: user) }
-  let(:search) { create(:search, user: user) }
+  let(:search) { create(:search, user: user, relevance_mode: "balanced") }
+  let(:strict_search) { create(:search, user: user, relevance_mode: "strict") }
 
   let!(:active_target) do
     create(:target, category: category, name: "Active Low Yield", domain: "lowyield.com", is_active: true)
@@ -18,6 +19,12 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
   let!(:productive_target) do
     create(:target, category: category, name: "High Yield", domain: "productive.com", is_active: true)
   end
+  let!(:strict_partial_target) do
+    create(:target, category: category, name: "Strict Partial", domain: "strict-partial.com", is_active: true)
+  end
+  let!(:strict_productive_target) do
+    create(:target, category: category, name: "Strict Productive", domain: "strict-productive.com", is_active: true)
+  end
 
   describe ".call" do
     context "when targets have prompts but zero results" do
@@ -25,6 +32,8 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
         create_list(:prompt, 25, search: search, target: active_target, status: "active", created_at: 5.days.ago)
 
         create_list(:prompt, 15, search: search, target: productive_target, status: "active", created_at: 5.days.ago)
+        create_list(:prompt, 8, search: strict_search, target: strict_partial_target, status: "active", created_at: 5.days.ago)
+        create_list(:prompt, 6, search: strict_search, target: strict_productive_target, status: "active", created_at: 5.days.ago)
 
         create(
           :result,
@@ -34,14 +43,29 @@ RSpec.describe Targets::LowYieldQuery, type: :query do
           relevance_score: 5,
           created_at: 2.days.ago
         )
+        create(
+          :result,
+          search: strict_search,
+          target: strict_partial_target,
+          url: "https://strict-partial.com/item1",
+          relevance_score: 50,
+          created_at: 2.days.ago
+        )
+        create(
+          :result,
+          search: strict_search,
+          target: strict_productive_target,
+          url: "https://strict-productive.com/item1",
+          relevance_score: 100,
+          created_at: 2.days.ago
+        )
       end
 
       it "identifies zero-result targets and excludes productive or inactive ones" do
         results = described_class.call(since: 30.days.ago, limit: 5)
 
-        expect(results.map(&:target)).to include(active_target)
-        expect(results.map(&:target)).not_to include(productive_target)
-        expect(results.map(&:target)).not_to include(inactive_target)
+        expect(results.map(&:target)).to include(active_target, strict_partial_target)
+        expect(results.map(&:target)).not_to include(productive_target, strict_productive_target, inactive_target)
       end
 
       it "calculates correct prompt count and zero results" do

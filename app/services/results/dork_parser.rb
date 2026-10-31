@@ -44,6 +44,7 @@ module Results
       quoted_phrases = clause_text.scan(/"([^"]+)"/).flatten
       clean_unquoted = clause_text.gsub(/"[^"]+"/, "")
                                   .gsub(/\b(OR|AND|NOT)\b/i, " ")
+                                  .tr(",;", "  ")
 
       unquoted_words = clean_unquoted.split(/\s+/)
                                      .reject { |w| w.length < 2 || STOP_WORDS.include?(w.downcase) }

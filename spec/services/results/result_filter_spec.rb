@@ -6,6 +6,7 @@ RSpec.describe Results::ResultFilter, type: :service do
   let(:user) { User.create!(username: "test@example.com", password: "password") }
   let(:category) { Category.create!(name: "General", user: user) }
   let(:target) { create(:target, domain: "example.com", category: category) }
+  let(:search) { create(:search, user: user, relevance_mode: "balanced") }
   let(:prompt) { instance_double("Prompt", target: target, full_query_text: 'site:example.com (ruby OR "ruby on rails")') }
   let(:target_configs) { { "example.com" => true } }
 
@@ -17,9 +18,20 @@ RSpec.describe Results::ResultFilter, type: :service do
     }
   end
 
-  let(:rank_result) { instance_double("RelevanceRanker::Result", valid?: true) }
+  let(:rank_result) { instance_double(Results::RelevanceRanker::RankResult, valid?: true) }
 
-  subject { described_class.new(valid_result, prompt) }
+  subject { described_class.new(valid_result, prompt, search) }
+
+  describe "constructor compatibility" do
+    it "accepts the legacy two-argument call and derives Search from a real prompt when available" do
+      real_prompt = create(:prompt, search: search, target: target, full_query_text: "site:example.com ruby")
+      ruby_result = valid_result.merge("content" => "Ruby software engineer")
+      filter = described_class.new(ruby_result, real_prompt)
+
+      expect(filter).to be_a(described_class)
+      expect(filter.valid?).to be(true)
+    end
+  end
 
   describe "#valid?" do
     context "when URL is blank" do
@@ -49,7 +61,7 @@ RSpec.describe Results::ResultFilter, type: :service do
         expected_snippet = "https://example.com/jobs/dev?jk=c632099926f119ae&src=search Senior Developer We are looking for an experienced software engineer."
 
         expect(Results::RelevanceRanker).to receive(:call)
-          .with(valid_result, expected_snippet, [%w[ruby]], valid_result["url"])
+          .with(valid_result, expected_snippet, [%w[ruby]], valid_result["url"], strict_mode: false)
           .and_return(rank_result)
 
         expect(subject.valid?).to be true
@@ -57,7 +69,7 @@ RSpec.describe Results::ResultFilter, type: :service do
       end
 
       context "when RelevanceRanker considers result invalid" do
-        let(:rank_result) { instance_double("RelevanceRanker::Result", valid?: false) }
+        let(:rank_result) { instance_double(Results::RelevanceRanker::RankResult, valid?: false) }
 
         it "returns false" do
           allow(Results::RelevanceRanker).to receive(:call).and_return(rank_result)
@@ -79,7 +91,7 @@ RSpec.describe Results::ResultFilter, type: :service do
         }
       end
 
-      subject { described_class.new(valid_result, indeed_prompt) }
+      subject { described_class.new(valid_result, indeed_prompt, search) }
 
       before do
         allow(Results::DorkParser).to receive(:parse_groups).with(indeed_prompt.full_query_text).and_return([%w[ruby]])
@@ -94,6 +106,10 @@ RSpec.describe Results::ResultFilter, type: :service do
 
   describe "extracted component dependencies" do
     describe "Results::DorkParser" do
+      it "treats comma-separated standalone terms as separate ordered groups" do
+        expect(Results::DorkParser.parse_groups("ruby, developer")).to eq([["ruby"], ["developer"]])
+      end
+
       it "correctly parses boolean groups and standalone words" do
         query = 'site:apply.workable.com tld:io (ruby OR "ruby on rails") /date (krakow OR cracow) developer'
         groups = Results::DorkParser.parse_groups(query)

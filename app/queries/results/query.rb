@@ -52,19 +52,39 @@ module Results
       status = options[:status].to_s
 
       if STATUS_FILTERS.include?(status)
-        scope.where(status: status)
+        scope.where(results: { status: status })
       else
-        scope.where(status: "unread", acknowledged: acknowledged_values)
+        scope.where(results: { status: "unread", acknowledged: acknowledged_values })
       end
     end
 
     def filter_by_relevance(scope)
       return scope unless unread_status?
+      return filter_for_search_mode(scope) if search.present?
 
-      if show_less_relevant?
-        scope.where("results.relevance_score <= 0")
+      max_score = RelevanceRanker::MAX_SCORE
+      # A global feed may combine campaigns with different thresholds. Apply
+      # each parent search's mode to its own results instead of choosing one.
+      condition = if show_less_relevant?
+                    "CASE WHEN searches.relevance_mode = 'strict' " \
+                      "THEN results.relevance_score < #{max_score} " \
+                      "ELSE results.relevance_score <= 0 END"
+                  else
+                    "CASE WHEN searches.relevance_mode = 'strict' " \
+                      "THEN results.relevance_score >= #{max_score} " \
+                      "ELSE results.relevance_score > 0 END"
+                  end
+
+      scope.joins(:search).where(Arel.sql(condition))
+    end
+
+    def filter_for_search_mode(scope)
+      if search.strict_mode?
+        operator = show_less_relevant? ? "<" : ">="
+        scope.where("results.relevance_score #{operator} ?", RelevanceRanker::MAX_SCORE)
       else
-        scope.where("results.relevance_score > 0")
+        operator = show_less_relevant? ? "<=" : ">"
+        scope.where("results.relevance_score #{operator} 0")
       end
     end
 

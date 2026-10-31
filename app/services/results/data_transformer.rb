@@ -2,12 +2,13 @@
 
 module Results
   class DataTransformer
-    def self.process(search_id, raw_results, prompt)
-      new(search_id, raw_results, prompt).process
+    def self.process(search, raw_results, prompt)
+      new(search, raw_results, prompt).process
     end
 
-    def initialize(search_id, raw_results, prompt)
-      @search_id = search_id
+    def initialize(search, raw_results, prompt)
+      @search = search
+      @search_id = search.id
       @raw_results = raw_results || []
       @prompt = prompt
       @target = prompt&.target
@@ -18,7 +19,7 @@ module Results
     def process
       @raw_results.each_with_object([]) do |raw_result, records|
         result = raw_result.with_indifferent_access
-        filter = ResultFilter.new(result, @prompt)
+        filter = ResultFilter.new(result, @prompt, @search)
         next unless filter.valid?
 
         clean_url = Utils::UrlNormalizer.normalize(result[:url], target_configs: @target_configs)

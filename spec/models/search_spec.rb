@@ -8,6 +8,7 @@ require "rails_helper"
 #
 #  id                :bigint           not null, primary key
 #  query_conditions  :text
+#  relevance_mode    :string           default("strict"), not null
 #  show_acknowledged :boolean          default(FALSE), not null
 #  status            :string           default("pending")
 #  time_frame        :string
@@ -73,6 +74,30 @@ RSpec.describe Search, type: :model do
     it "normalizes blank time_frame strings to nil" do
       search = described_class.create!(user: user, title: "A", query_conditions: "B", status: "pending", time_frame: " ")
       expect(search.time_frame).to be_nil
+    end
+  end
+
+  describe "relevance threshold mode" do
+    it "accepts strict and balanced modes" do
+      %w[strict balanced].each do |mode|
+        search = described_class.new(user: user, title: "A", query_conditions: "B", relevance_mode: mode)
+        expect(search).to be_valid
+      end
+    end
+
+    it "rejects unsupported modes" do
+      search = described_class.new(user: user, title: "A", query_conditions: "B", relevance_mode: "unsupported")
+
+      expect(search).not_to be_valid
+      expect(search.errors[:relevance_mode]).to include("is not included in the list")
+    end
+
+    it "identifies strict mode through strict_mode?" do
+      strict_search = described_class.new(relevance_mode: "strict")
+      balanced_search = described_class.new(relevance_mode: "balanced")
+
+      expect(strict_search.strict_mode?).to be(true)
+      expect(balanced_search.strict_mode?).to be(false)
     end
   end
 

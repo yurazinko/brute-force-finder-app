@@ -43,9 +43,15 @@ module Targets
               AND prompts.created_at >= :since
           )
           AND NOT EXISTS (
-            SELECT 1 FROM results
+            SELECT 1
+            FROM results
+            INNER JOIN searches ON searches.id = results.search_id
             WHERE results.target_id = targets.id
               AND results.created_at >= :since
+              AND (
+                (searches.relevance_mode = 'strict' AND results.relevance_score >= 100)
+                OR (searches.relevance_mode = 'balanced' AND results.relevance_score > 0)
+              )
           )
         ORDER BY prompts_count DESC
         LIMIT :limit

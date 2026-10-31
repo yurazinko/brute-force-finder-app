@@ -97,7 +97,9 @@ class SearchesController < ApplicationController
   def set_search = @search = current_user.searches.find(params.expect(:id))
 
   def search_params
-    params.expect(search: [:title, :query_conditions, :time_frame, :show_acknowledged, { target_ids: [] }])
+    params.expect(
+      search: [:title, :query_conditions, :time_frame, :show_acknowledged, :relevance_mode, { target_ids: [] }]
+    )
   end
 
   def set_categories_for_form = @categories = current_user.categories.includes(:active_targets).order(:name)
@@ -133,6 +135,7 @@ class SearchesController < ApplicationController
       query_conditions: donor.query_conditions,
       time_frame: donor.time_frame,
       show_acknowledged: donor.show_acknowledged,
+      relevance_mode: donor.relevance_mode,
       target_ids: donor.target_ids
     )
   end

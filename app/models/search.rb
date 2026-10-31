@@ -6,6 +6,7 @@
 #
 #  id                :bigint           not null, primary key
 #  query_conditions  :text
+#  relevance_mode    :string           default("strict"), not null
 #  show_acknowledged :boolean          default(FALSE), not null
 #  status            :string           default("pending")
 #  time_frame        :string
@@ -25,6 +26,8 @@
 class Search < ApplicationRecord
   ALLOWED_STATUSES = %w[pending processing completed failed paused].freeze
   ALLOWED_TIME_FRAMES = [nil, "day", "week", "month", "year"].freeze
+  DEFAULT_RELEVANCE_MODE = "strict"
+  ALLOWED_RELEVANCE_MODES = %w[strict balanced].freeze
 
   belongs_to :user
 
@@ -37,6 +40,7 @@ class Search < ApplicationRecord
   validates :title, :query_conditions, presence: true
   validates :status, inclusion: { in: ALLOWED_STATUSES }
   validates :time_frame, inclusion: { in: ALLOWED_TIME_FRAMES }, allow_nil: true
+  validates :relevance_mode, inclusion: { in: ALLOWED_RELEVANCE_MODES }
 
   def target_ids=(ids)
     if persisted?
@@ -49,6 +53,10 @@ class Search < ApplicationRecord
     end
 
     super
+  end
+
+  def strict_mode?
+    relevance_mode == "strict"
   end
 
   def paused?

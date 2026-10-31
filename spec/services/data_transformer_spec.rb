@@ -8,22 +8,27 @@ RSpec.describe Results::DataTransformer, type: :model do
     let(:user) { User.create!(username: "test@example.com", password: "password") }
     let(:category) { Category.create!(name: "General", user: user) }
     let(:target) { create(:target, domain: "example.com", category: category) }
-    let(:prompt) { instance_double("Prompt", target: target, full_query_text: "ruby") }
+
+    let(:search) do
+      Search.find_or_create_by!(id: search_id, user: user) do |s|
+        s.title = "Ruby Search"
+        s.query_conditions = "ruby"
+        s.relevance_mode = "balanced"
+      end
+    end
+
+    let(:prompt) do
+      domain_str = target&.domain
+      query_prefix = domain_str.present? ? "site:#{domain_str} " : ""
+      Prompt.find_or_create_by!(search: search, target: target, full_query_text: "#{query_prefix}#{search.query_conditions}")
+    end
 
     before do
-      if target.present?
-        search = Search.find_or_create_by!(id: search_id, user: user) do |s|
-          s.title = "Ruby Search"
-          s.query_conditions = "ruby"
-        end
-        Prompt.find_or_create_by!(search: search, target: target, full_query_text: "site:#{target.domain} ruby")
-      end
-
-      stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby</body></html>", headers: {})
+      stub_request(:get, /.*/).to_return(status: 200, body: "<html><body>ruby developer position</body></html>", headers: {})
       allow(Resolv).to receive(:getaddress).and_return("8.8.8.8")
     end
 
-    subject(:processed_records) { described_class.process(search_id, raw_results, prompt) }
+    subject(:processed_records) { described_class.process(search, raw_results, prompt) }
 
     context "when raw_results is empty or nil" do
       let(:raw_results) { nil }
@@ -75,7 +80,7 @@ RSpec.describe Results::DataTransformer, type: :model do
 
         expect(first_record).to include(
           search_id: search_id,
-          url: "https://example.com/ruby-page-one", # query вилучено за замовчуванням, www прибрано, домен у нижньому регістрі
+          url: "https://example.com/ruby-page-one",
           title: "Ruby Exact Match",
           content: "Ruby Text 1"
         )
@@ -122,7 +127,7 @@ RSpec.describe Results::DataTransformer, type: :model do
       let(:target) { nil }
       let(:raw_results) do
         [
-          { "url" => "https://anydomain.com/page", "title" => "Any", "content" => "Content" }
+          { "url" => "https://anydomain.com/page", "title" => "Any Ruby page", "content" => "Content" }
         ]
       end
 
@@ -152,7 +157,7 @@ RSpec.describe Results::DataTransformer, type: :model do
 
       let(:raw_results) do
         [
-          { "url" => "https://example.com/page", "title" => "Page" }
+          { "url" => "https://example.com/page", "title" => "Ruby Page" }
         ]
       end
 
@@ -179,17 +184,14 @@ RSpec.describe Results::DataTransformer, type: :model do
       let!(:query_target) { create(:target, domain: "query.com", allow_query_strings: true, category: category) }
 
       before do
-        search = Search.find_or_create_by!(id: search_id, user: user) do |s|
-          s.title = "Ruby Search"
-          s.query_conditions = "ruby"
-        end
+        search.update!(query_conditions: "ruby")
         Prompt.find_or_create_by!(search: search, target: query_target, full_query_text: "site:query.com ruby")
       end
 
       let(:raw_results) do
         [
-          { "url" => "https://example.com/p?q=1", "title" => "No Query Target Config" },
-          { "url" => "https://query.com/p?q=2", "title" => "Keep Query Target Config" }
+          { "url" => "https://example.com/p?q=1", "title" => "No Query Target Config", "content" => "Ruby listing" },
+          { "url" => "https://query.com/p?q=2", "title" => "Keep Query Target Config", "content" => "Ruby listing" }
         ]
       end
 
@@ -204,8 +206,8 @@ RSpec.describe Results::DataTransformer, type: :model do
       let(:target) { create(:target, domain: "indeed.com", allow_query_strings: true, category: category) }
       let(:raw_results) do
         [
-          { "url" => "https://pl.indeed.com/viewjob?jk=c632099926f119ae", "title" => "Job PL" },
-          { "url" => "https://ca.indeed.com/viewjob?jk=a111222333b4455c", "title" => "Job CA" }
+          { "url" => "https://pl.indeed.com/viewjob?jk=c632099926f119ae", "title" => "Job PL", "content" => "Ruby developer role" },
+          { "url" => "https://ca.indeed.com/viewjob?jk=a111222333b4455c", "title" => "Job CA", "content" => "Ruby developer role" }
         ]
       end
 
@@ -218,6 +220,58 @@ RSpec.describe Results::DataTransformer, type: :model do
         expect(hashes.first).to eq(Utils::UrlNormalizer.hash("https://pl.indeed.com/viewjob?jk=c632099926f119ae"))
         expect(hashes.last).to eq(Utils::UrlNormalizer.hash("https://ca.indeed.com/viewjob?jk=a111222333b4455c"))
         expect(hashes.first).not_to eq(hashes.last)
+      end
+    end
+
+    # Покриття сценаріїв Strict та Balanced режимів релевантності
+    describe "Relevance Threshold Modes (Strict vs Balanced)" do
+      before do
+        search.update!(query_conditions: "(ruby) (developer)")
+        prompt.update!(full_query_text: "site:#{target.domain} #{search.query_conditions}")
+      end
+
+      context "Scenario A: Balanced Mode" do
+        before { search.update!(relevance_mode: "balanced") }
+
+        let(:raw_results) do
+          [
+            { "url" => "https://example.com/partial", "title" => "Ruby only", "content" => "We use ruby language" },
+            { "url" => "https://example.com/full", "title" => "Ruby & Developer", "content" => "Ruby developer position" }
+          ]
+        end
+
+        it "retains primary-only candidates for verification with a zero score and scores full matches at 100" do
+          expect(processed_records.size).to eq(2)
+          partial = processed_records.find { |record| record[:url].end_with?("/partial") }
+          full = processed_records.find { |record| record[:url].end_with?("/full") }
+
+          expect(partial[:relevance_score]).to eq(0)
+          expect(partial[:verification_status]).to eq("pending")
+          expect(full[:relevance_score]).to eq(100)
+          expect(full[:verification_status]).to eq("verified")
+        end
+      end
+
+      context "Scenario B: Strict Mode" do
+        before { search.update!(relevance_mode: "strict") }
+
+        let(:raw_results) do
+          [
+            { "url" => "https://example.com/partial", "title" => "Ruby only", "content" => "We use ruby language" },
+            { "url" => "https://example.com/full", "title" => "Ruby & Developer", "content" => "Ruby developer position" }
+          ]
+        end
+
+        it "retains partial matches for the below-threshold feed and scores full matches at 100" do
+          expect(processed_records.size).to eq(2)
+          partial = processed_records.find { |record| record[:url].end_with?("/partial") }
+          full = processed_records.find { |record| record[:url].end_with?("/full") }
+
+          expect(partial[:relevance_score]).to eq(50)
+          expect(partial[:verification_status]).to eq("pending")
+          expect(full[:relevance_score]).to eq(100)
+          expect(full[:verification_status]).to eq("verified")
+        end
       end
     end
   end

@@ -19,6 +19,7 @@ RSpec.describe Database::Importers::SearchImporter do
             "show_acknowledged" => true,
             "status" => "completed",
             "time_frame" => "week",
+            "relevance_mode" => "balanced",
             "created_at" => "2026-01-01T10:00:00Z",
             "updated_at" => "2026-01-02T10:00:00Z"
           }
@@ -42,6 +43,7 @@ RSpec.describe Database::Importers::SearchImporter do
         expect(created_search.show_acknowledged).to be true
         expect(created_search.status).to eq("completed")
         expect(created_search.time_frame).to eq("week")
+        expect(created_search.relevance_mode).to eq("balanced")
 
         expect(id_maps[:searches]["old-id-101"]).to eq(created_search.id)
       end
@@ -55,18 +57,20 @@ RSpec.describe Database::Importers::SearchImporter do
             "title" => "Default Search",
             "query_conditions" => { "keyword" => "rails" },
             "time_frame" => nil,
+            "relevance_mode" => "strict",
             "created_at" => "2026-02-01T10:00:00Z",
             "updated_at" => "2026-02-01T10:00:00Z"
           }
         ]
       end
 
-      it "applies default fallback values for show_acknowledged and status" do
+      it "applies default fallback values for show_acknowledged, status, and relevance mode" do
         importer.call
 
         created_search = Search.last
         expect(created_search.show_acknowledged).to be false
         expect(created_search.status).to eq("pending")
+        expect(created_search.relevance_mode).to eq("strict")
         expect(created_search.time_frame).to be_nil
         expect(id_maps[:searches]["old-id-202"]).to eq(created_search.id)
       end

@@ -9,8 +9,8 @@
 
   score = result.relevance_score.to_i
   score_badge_class = case
-                      when score >= 300 then "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                      when score >= 100 then "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                      when score >= 80 then "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      when score >= 40 then "bg-blue-500/10 text-blue-400 border-blue-500/30"
                       when score > 0   then "bg-amber-500/10 text-amber-400 border-amber-500/30"
                       else                  "bg-breeze-bg text-breeze-muted border-breeze-border"
                       end
@@ -39,7 +39,7 @@
     </a>
 
     <!-- Relevance Score:-->
-    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Relevance Score based on matched keyword groups">
+    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Percentage of matched keyword groups; missing the first group is penalized">
       <span>🎯</span>
       <span><%= score %></span>
     </div>
@@ -165,4 +165,3 @@
     </div>
   </div>
 </div>
-

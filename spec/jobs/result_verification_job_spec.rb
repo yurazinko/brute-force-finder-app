@@ -5,8 +5,16 @@ require "rails_helper"
 RSpec.describe ResultVerificationJob, type: :job do
   include ActiveJob::TestHelper
 
-  let(:search) { create(:search, query_conditions: "ruby, rails") }
-  let(:result) { create(:result, search: search, url: "https://example.com/job/1", verification_status: "pending", matched_keywords: ["ruby"]) }
+  let(:search) { create(:search, query_conditions: "ruby rails", relevance_mode: "strict") }
+  let(:result) do
+    create(
+      :result,
+      search: search,
+      url: "https://example.com/job/1",
+      verification_status: "pending",
+      matched_keywords: ["ruby"]
+    )
+  end
 
   let(:fetch_result) do
     instance_double(
@@ -20,7 +28,7 @@ RSpec.describe ResultVerificationJob, type: :job do
   let(:rank_result) do
     instance_double(
       Results::RelevanceRanker::RankResult,
-      relevance_score: 200,
+      relevance_score: 100,
       matched_keywords: ["rails"]
     )
   end
@@ -29,16 +37,13 @@ RSpec.describe ResultVerificationJob, type: :job do
     allow(Results::DorkParser).to receive(:parse_groups).and_return([%w[ruby], %w[rails]])
     allow(Results::StreamingPageFetcher).to receive(:fetch_and_match).and_return(fetch_result)
     allow(Results::RelevanceRanker).to receive(:call).and_return(rank_result)
-
     allow(Rails.cache).to receive(:write).and_return(true)
   end
 
   describe "#perform" do
     context "when result does not exist" do
       it "returns silently without raising errors" do
-        expect do
-          described_class.new.perform(-1)
-        end.not_to(change { Result.count })
+        expect { described_class.new.perform(-1) }.not_to(change { Result.count })
       end
     end
 
@@ -53,7 +58,6 @@ RSpec.describe ResultVerificationJob, type: :job do
 
     context "when domain is throttled" do
       before do
-        # Симулюємо зайнятість домену (write з nx: true повертає false, бо ключ вже існує)
         allow(Rails.cache).to receive(:write)
           .with("domain_throttle:example.com", true, nx: true, expires_in: 3.seconds)
           .and_return(false)
@@ -67,14 +71,25 @@ RSpec.describe ResultVerificationJob, type: :job do
       end
     end
 
-    context "when page fetch is successful and verified" do
-      it "updates result with merged keywords, relevance score, and verified status" do
-        expect do
-          described_class.new.perform(result.id)
-          result.reload
-        end.to change { result.verification_status }.from("pending").to("verified")
+    context "when page fetch is successful" do
+      it "passes the owning search's relevance mode to the ranker" do
+        expect(Results::RelevanceRanker).to receive(:call).with(
+          result,
+          fetch_result.text,
+          [%w[ruby], %w[rails]],
+          result.url,
+          strict_mode: true
+        ).and_return(rank_result)
 
-        expect(result.relevance_score).to eq(200)
+        described_class.new.perform(result.id)
+      end
+
+      it "updates result with merged keywords, normalized relevance score, and verified status" do
+        described_class.new.perform(result.id)
+        result.reload
+
+        expect(result.verification_status).to eq("verified")
+        expect(result.relevance_score).to eq(100)
         expect(result.matched_keywords).to contain_exactly("ruby", "rails")
       end
 
@@ -97,11 +112,38 @@ RSpec.describe ResultVerificationJob, type: :job do
         )
       end
 
-      it "updates verification_status to unverified_captcha" do
+      it "marks the result as unverified and applies the benefit-of-the-doubt floor for a primary match" do
         described_class.new.perform(result.id)
         result.reload
 
         expect(result.verification_status).to eq("unverified_captcha")
+        expect(result.relevance_score).to eq(Results::RelevanceRanker::CAPTCHA_SCORE_FLOOR)
+      end
+
+      it "does not boost a result when the primary group did not match" do
+        result.update!(matched_keywords: ["rails"], relevance_score: -100)
+
+        described_class.new.perform(result.id)
+
+        expect(result.reload.relevance_score).to eq(-100)
+      end
+
+      it "does not let a primary-only CAPTCHA candidate bypass balanced mode's secondary-group requirement" do
+        search.update!(relevance_mode: "balanced")
+        result.update!(matched_keywords: ["ruby"], relevance_score: 0)
+
+        described_class.new.perform(result.id)
+
+        expect(result.reload.relevance_score).to eq(0)
+      end
+
+      it "keeps a balanced CAPTCHA candidate above the floor when primary and a later group matched" do
+        search.update!(relevance_mode: "balanced")
+        result.update!(matched_keywords: %w[ruby rails], relevance_score: 10)
+
+        described_class.new.perform(result.id)
+
+        expect(result.reload.relevance_score).to eq(Results::RelevanceRanker::CAPTCHA_SCORE_FLOOR)
       end
     end
 
@@ -115,11 +157,13 @@ RSpec.describe ResultVerificationJob, type: :job do
         )
       end
 
-      it "updates verification_status to unverified_error" do
+      it "updates verification_status to unverified_error without changing the score" do
+        original_score = result.relevance_score
         described_class.new.perform(result.id)
         result.reload
 
         expect(result.verification_status).to eq("unverified_error")
+        expect(result.relevance_score).to eq(original_score)
       end
     end
   end

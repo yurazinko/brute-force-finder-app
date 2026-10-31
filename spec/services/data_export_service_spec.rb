@@ -31,6 +31,15 @@ RSpec.describe Database::DataExportService do
       expect(exported_data.keys).to match_array(%w[categories targets searches prompts results])
     end
 
+    it "preserves the relevance mode in the exported search record" do
+      user_search.update!(relevance_mode: "balanced")
+
+      expect(service.call).to be(true)
+      exported_data = JSON.parse(user.data_export.download)
+
+      expect(exported_data.fetch("searches").first.fetch("relevance_mode")).to eq("balanced")
+    end
+
     it "exports only records belonging to the given user" do
       service.call
       exported_data = JSON.parse(user.data_export.download)

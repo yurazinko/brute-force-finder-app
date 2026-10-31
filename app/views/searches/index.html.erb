@@ -84,9 +84,13 @@
                   </code>
                 </div>
 
-                <div class="flex items-center gap-1.5 text-xs">
+                <div class="flex flex-wrap items-center gap-1.5 text-xs">
                   <span class="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-breeze-muted bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border">
                     ⏱️ <%= search.time_frame.present? ? "Past #{search.time_frame}" : "Anytime" %>
+                  </span>
+                  <span class="inline-flex items-center text-[10px] font-semibold uppercase tracking-wider text-breeze-muted bg-breeze-bg px-2 py-0.5 rounded border border-breeze-border"
+                        title="<%= search.strict_mode? ? 'Every keyword group must match' : 'The first group and at least one later group must match' %>">
+                    <%= search.strict_mode? ? "Strict" : "Balanced" %>
                   </span>
                 </div>
               </td>
@@ -133,4 +137,3 @@
     </table>
   </div>
 </div>
-
