@@ -12,6 +12,7 @@ module Database
             show_acknowledged: record[:show_acknowledged] || false,
             status: record[:status] || "pending",
             time_frame: record[:time_frame],
+            relevance_mode: record[:relevance_mode],
             created_at: record[:created_at],
             updated_at: record[:updated_at]
           )

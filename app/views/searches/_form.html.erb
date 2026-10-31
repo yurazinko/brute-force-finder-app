@@ -50,6 +50,22 @@
         </div>
       </div>
 
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div class="min-w-0">
+          <%= f.label :relevance_mode, "Relevance Rule", class: "mb-1.5 block text-xs font-semibold text-breeze-text" %>
+          <%= f.select :relevance_mode,
+                       [
+                         ['Strict (Every keyword group must match)', 'strict'],
+                         ['Balanced (Primary + at least one supporting group)', 'balanced']
+                       ],
+                       {},
+                       { class: "w-full min-h-10 cursor-pointer rounded-lg border border-breeze-border bg-breeze-bg px-3 py-2.5 text-sm text-breeze-text transition-colors focus:border-breeze-accent focus:outline-none focus:ring-2 focus:ring-breeze-accent/30" } %>
+          <p class="mt-1.5 text-[11px] leading-relaxed text-breeze-muted">
+            Strict requires every group to match. Balanced requires the primary group and at least one supporting group (for a single-group query, the primary group is sufficient). Each group contributes equally to the percentage score; missing the primary group applies a penalty.
+          </p>
+        </div>
+      </div>
+
       <label class="flex items-start gap-3 rounded-lg border border-breeze-border/50 bg-breeze-view/50 p-3.5 cursor-pointer transition-colors hover:border-breeze-border hover:bg-breeze-view">
         <%= f.check_box :show_acknowledged, class: "mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-breeze-border bg-breeze-bg text-breeze-accent focus:ring-2 focus:ring-breeze-accent/40" %>
         <span class="min-w-0">

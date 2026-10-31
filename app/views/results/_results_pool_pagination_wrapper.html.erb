@@ -48,9 +48,16 @@
                          results_path(explore_params)
                        end
       %>
+      <% threshold_description = if @search&.strict_mode?
+                                  "all keyword groups"
+                                elsif @search
+                                  "the first group and at least one later group"
+                                else
+                                  "each campaign's configured relevance threshold"
+                                end %>
       <div class="my-6 p-4 sm:p-5 rounded-xl border border-amber-500/20 bg-amber-500/5 text-center space-y-2">
         <p class="text-sm font-medium text-amber-300">
-          🎯 You've reached the end of highly relevant results.
+          🎯 You've reached the end of results matching <%= threshold_description %>.
         </p>
         <div>
           <%= link_to explore_path,
@@ -58,7 +65,7 @@
                         turbo_stream: true
                       },
                       class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 transition cursor-pointer" do %>
-            <span>Want to explore less relevant results?</span>
+            <span>Show results below this threshold</span>
             <span>⬇️</span>
           <% end %>
         </div>
@@ -68,4 +75,3 @@
     <% end %>
   <% end %>
 </div>
-

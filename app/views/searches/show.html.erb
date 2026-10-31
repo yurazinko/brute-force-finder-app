@@ -1,12 +1,12 @@
 <%= turbo_stream_from @search, :results %>
 
-<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
-  <div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-5 space-y-5 sm:space-y-6">
+  <div class="bg-breeze-view p-5 sm:p-6 shadow-sm border border-breeze-border rounded-xl grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6 items-start">
 
-    <div class="lg:col-span-2 space-y-4">
+    <div class="lg:col-span-2 space-y-5">
 
-      <div class="flex items-center justify-between gap-4 mb-0">
-        <%= link_to safe_back_path(fallback:searches_path), class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60" do %>
+      <div class="flex items-center justify-between gap-4">
+        <%= link_to searches_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1.5 rounded-md border border-breeze-border/60" do %>
           <span>⬅️</span>
           <span>Back</span>
         <% end %>
@@ -14,23 +14,25 @@
         <%= render "searches/action_buttons", search: @search %>
       </div>
 
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-xl sm:text-2xl font-bold text-breeze-text break-words"><%= @search.title %></h1>
-        </div>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl sm:text-2xl font-bold text-breeze-text break-words"><%= @search.title %></h1>
+        <span class="inline-flex items-center rounded-md border px-2.5 py-1 text-[11px] font-medium tracking-normal text-breeze-muted select-none shadow-2xs"
+              title="<%= @search.strict_mode? ? 'Every keyword group must match' : 'The first group and at least one later group must match' %>">
+          <%= @search.strict_mode? ? "Strict" : "Balanced" %>
+        </span>
       </div>
 
-      <div class="flex flex-col gap-1.5">
+      <div class="flex flex-col gap-2">
         <div class="flex items-center gap-1.5 text-[11px] font-semibold text-breeze-muted uppercase tracking-wider">
           <span>🎯</span>
           <span>Target Query Filter</span>
         </div>
-        <code class="px-3 py-1.5 bg-breeze-bg text-breeze-muted rounded-lg text-xs font-mono border border-breeze-border block truncate shadow-inner" title="<%= @search.query_conditions %>">
+        <code class="px-3.5 py-2 bg-breeze-bg text-breeze-muted rounded-lg text-xs font-mono border border-breeze-border block truncate shadow-inner" title="<%= @search.query_conditions %>">
           <%= @search.query_conditions %>
         </code>
       </div>
 
-      <div id="search_lifecycle_status" class="grid grid-cols-1 sm:grid-cols-12 items-center gap-3 bg-breeze-bg p-3 rounded-xl border border-breeze-border w-full select-none">
+      <div id="search_lifecycle_status" class="grid grid-cols-1 sm:grid-cols-12 items-center gap-3 bg-breeze-bg p-3.5 rounded-xl border border-breeze-border w-full select-none">
         <%= render "searches/status_content", search: @search %>
       </div>
     </div>
@@ -39,7 +41,7 @@
       <%= form_with(url: activate_search_path(@search), method: :post) do |f| %>
         <% if @categories.present? %>
           <% selected_target_ids = @search.target_ids %>
-          <div class="flex justify-between items-center mb-2.5">
+          <div class="flex justify-between items-center mb-3">
             <div class="flex items-center gap-1.5">
               <span class="text-xs">🌐</span>
               <h2 class="text-xs sm:text-sm font-bold text-breeze-text uppercase tracking-wider">Discovery Sources</h2>
@@ -51,16 +53,16 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] lg:max-h-[140px] overflow-y-auto pr-1 mb-3 border border-breeze-border p-2 rounded-lg bg-breeze-bg/50" id="targets_selector_zone">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[190px] lg:max-h-[160px] overflow-y-auto pr-1.5 mb-4 border border-breeze-border p-2.5 rounded-lg bg-breeze-bg/50" id="targets_selector_zone">
             <% @categories.each do |category| %>
               <% active_targets = category.active_targets %>
               <% next if active_targets.empty? %>
-              <div data-pipeline-selector-target="group" class="category-group border border-breeze-border/60 rounded-md p-2 bg-breeze-view flex flex-col justify-between hover:border-breeze-border transition">
-                <div class="flex justify-between items-center border-b border-breeze-border/60 pb-1 mb-1">
+              <div data-pipeline-selector-target="group" class="category-group border border-breeze-border/60 rounded-md p-2.5 bg-breeze-view flex flex-col justify-between hover:border-breeze-border transition">
+                <div class="flex justify-between items-center border-b border-breeze-border/60 pb-1.5 mb-2">
                   <h3 class="text-[10px] font-bold text-breeze-muted uppercase tracking-wider truncate"><%= category.name %></h3>
                   <button type="button" data-pipeline-selector-target="groupButton" data-action="click->pipeline-selector#toggleGroup" data-status="true" class="group-toggle-btn text-[9px] text-breeze-accent hover:underline font-semibold cursor-pointer shrink-0">Clear Group</button>
                 </div>
-                <div class="space-y-1 max-h-[80px] sm:max-h-[70px] overflow-y-auto">
+                <div class="space-y-1.5 max-h-[90px] sm:max-h-[80px] overflow-y-auto">
                   <% active_targets.each do |target| %>
                     <label class="flex items-center space-x-2 cursor-pointer text-xs group py-0.5">
                       <%= check_box_tag "target_ids[]", target.id, selected_target_ids.include?(target.id), class: "target-checkbox rounded border-breeze-border text-breeze-accent scale-90 cursor-pointer focus:ring-0", data: { pipeline_selector_target: "checkbox" } %>
@@ -72,10 +74,10 @@
             <% end %>
           </div>
         <% else %>
-          <div class="text-center py-4 mb-3 text-breeze-muted text-xs border border-dashed border-breeze-border rounded-lg bg-breeze-bg/30">No active categories configured.</div>
+          <div class="text-center py-5 mb-4 text-breeze-muted text-xs border border-dashed border-breeze-border rounded-lg bg-breeze-bg/30">No active categories configured.</div>
         <% end %>
 
-        <%= f.submit "🚀 Run Discovery Now", class: "w-full py-2.5 sm:py-2 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg transition-all text-center cursor-pointer transform active:scale-[0.99] border border-blue-400/20" %>
+        <%= f.submit "🚀 Run Discovery Now", class: "w-full py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg transition-all text-center cursor-pointer transform active:scale-[0.99] border border-blue-400/20" %>
       <% end %>
     </div>
   </div>
@@ -83,4 +85,3 @@
   <!-- Results Pool Frame -->
   <%= render "results/results_pool", search: @search, counts: @counts, results: @results, pagy: @pagy %>
 </div>
-

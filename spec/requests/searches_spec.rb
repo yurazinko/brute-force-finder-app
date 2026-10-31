@@ -82,16 +82,26 @@ RSpec.describe "Searches", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).not_to include("Ruby Backend (Copy)")
       end
+
+      it "offers the Balanced and Strict relevance rules" do
+        get new_search_path
+
+        assert_select 'select[name="search[relevance_mode]"] option[value="balanced"]', text: /Balanced/
+        assert_select 'select[name="search[relevance_mode]"] option[value="strict"]', text: /Strict/
+      end
     end
 
     context "with valid clone_from parameter" do
-      it "pre-fills form inputs with donor attributes" do
+      it "pre-fills form inputs with donor attributes, including the relevance rule" do
+        search.update!(relevance_mode: "balanced")
+
         get new_search_path(clone_from: search.id)
 
         expect(response).to have_http_status(:ok)
 
         expect(response.body).to include("Ruby Backend (Copy)")
         expect(response.body).to include("ruby")
+        assert_select 'select[name="search[relevance_mode]"] option[value="balanced"][selected]'
       end
     end
 
@@ -120,6 +130,7 @@ RSpec.describe "Searches", type: :request do
             title: "Elixir Developer",
             query_conditions: "elixir OR phoenix",
             time_frame: "month",
+            relevance_mode: "balanced",
             status: "pending",
             target_ids: [target1.id, target2.id]
           }
@@ -133,6 +144,7 @@ RSpec.describe "Searches", type: :request do
 
         created_search = Search.last
         expect(created_search.time_frame).to eq("month")
+        expect(created_search.relevance_mode).to eq("balanced")
         expect(response).to redirect_to(search_path(created_search))
 
         follow_redirect!
@@ -165,10 +177,12 @@ RSpec.describe "Searches", type: :request do
     context "with Turbo Stream format" do
       context "with valid parameters" do
         it "updates the search and responds with proper stream updates" do
-          patch search_path(search, format: :turbo_stream), params: { search: { title: "Updated Title" } }
+          patch search_path(search, format: :turbo_stream),
+                params: { search: { title: "Updated Title", relevance_mode: "balanced" } }
 
           expect(response).to have_http_status(:ok)
           expect(search.reload.title).to eq("Updated Title")
+          expect(search.relevance_mode).to eq("balanced")
 
           assert_select "turbo-stream[action='prepend'][target='flash']"
         end

@@ -6,6 +6,7 @@
 #
 #  id                :bigint           not null, primary key
 #  query_conditions  :text
+#  relevance_mode    :string           default("strict"), not null
 #  show_acknowledged :boolean          default(FALSE), not null
 #  status            :string           default("pending")
 #  time_frame        :string
