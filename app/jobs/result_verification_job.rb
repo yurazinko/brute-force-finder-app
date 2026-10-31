@@ -16,7 +16,7 @@ class ResultVerificationJob < ApplicationJob
     if fetch_res.status == :verified
       apply_successful_verification(result, fetch_res, keyword_groups)
     else
-      apply_failed_verification(result, fetch_res)
+      apply_failed_verification(result, fetch_res, keyword_groups)
     end
   end
 
@@ -45,7 +45,13 @@ class ResultVerificationJob < ApplicationJob
   end
 
   def apply_successful_verification(result, fetch_res, keyword_groups)
-    rank_result = Results::RelevanceRanker.call(result, fetch_res.text, keyword_groups, result.url)
+    rank_result = Results::RelevanceRanker.call(
+      result,
+      fetch_res.text,
+      keyword_groups,
+      result.url,
+      strict_mode: result.search.strict_mode?
+    )
     merged_kws = (Array(result.matched_keywords) + Array(rank_result.matched_keywords)).uniq
 
     result.update!(
@@ -55,8 +61,20 @@ class ResultVerificationJob < ApplicationJob
     )
   end
 
-  def apply_failed_verification(result, fetch_res)
-    status = fetch_res.captcha_detected? ? "unverified_captcha" : "unverified_error"
-    result.update!(verification_status: status)
+  def apply_failed_verification(result, fetch_res, keyword_groups)
+    attributes = { verification_status: fetch_res.captcha_detected? ? "unverified_captcha" : "unverified_error" }
+
+    if fetch_res.captcha_detected? && Results::RelevanceRanker.captcha_candidate?(
+      result.matched_keywords,
+      keyword_groups,
+      strict_mode: result.search.strict_mode?
+    )
+      attributes[:relevance_score] = [
+        result.relevance_score.to_i,
+        Results::RelevanceRanker::CAPTCHA_SCORE_FLOOR
+      ].max
+    end
+
+    result.update!(attributes)
   end
 end

@@ -52,7 +52,12 @@ require "rails_helper"
 RSpec.describe Result, type: :model do
   let(:user) { User.create!(username: "test@example.com", password: "password") }
   let(:category) { Category.create!(name: "General", user: user) }
-  let(:search) { Search.create!(title: "Ruby Lead", query_conditions: "ruby", user: user) }
+  let(:search) do
+    Search.create!(title: "Ruby Lead", query_conditions: "ruby", user: user, relevance_mode: "balanced")
+  end
+  let(:strict_search) do
+    Search.create!(title: "Strict Ruby Lead", query_conditions: "ruby", user: user, relevance_mode: "strict")
+  end
 
   let!(:target_rails) { Target.create!(category: category, name: "Ruby on Rails", domain: "rubyonrails.org") }
   let!(:target_github) { Target.create!(category: category, name: "GitHub", domain: "github.com") }
@@ -64,7 +69,7 @@ RSpec.describe Result, type: :model do
         search: search,
         target: target_rails,
         status: "unread",
-        relevance_score: 5,
+        relevance_score: 75,
         url: "https://rubyonrails.org/1",
         url_hash: "hash_rails_1",
         created_at: 2.days.ago
@@ -73,7 +78,7 @@ RSpec.describe Result, type: :model do
         search: search,
         target: target_rails,
         status: "unread",
-        relevance_score: 3,
+        relevance_score: 50,
         url: "https://rubyonrails.org/2",
         url_hash: "hash_rails_2",
         created_at: 3.days.ago
@@ -90,13 +95,22 @@ RSpec.describe Result, type: :model do
       )
 
       Result.create!(
-        search: search,
+        search: strict_search,
         target: target_github,
         status: "garbage",
-        relevance_score: 2,
+        relevance_score: 100,
         url: "http://github.com/1",
         url_hash: "hash_github_1",
         created_at: 5.days.ago
+      )
+      Result.create!(
+        search: strict_search,
+        target: target_github,
+        status: "unread",
+        relevance_score: 50,
+        url: "http://github.com/partial",
+        url_hash: "hash_github_partial",
+        created_at: 4.days.ago
       )
 
       Result.create!(
@@ -120,7 +134,7 @@ RSpec.describe Result, type: :model do
       )
     end
 
-    it "aggregates efficiency metrics strictly for targets, filtering out unlinked, zero-relevance, and old records" do
+    it "aggregates efficiency using each search's threshold and filters out unlinked, partial strict, zero, and old records" do
       stats = described_class.top_domains_efficiency(since: 30.days.ago, limit: 5)
 
       rails_stat = stats.find { |r| r[:domain] == "rubyonrails.org" }
@@ -129,12 +143,12 @@ RSpec.describe Result, type: :model do
       orphan_stat = stats.find { |r| r[:domain] == "orphan-domain.com" }
 
       expect(rails_stat[:relevant_results_count]).to eq(2)
-      expect(rails_stat[:total_relevance_score]).to eq(8)
-      expect(rails_stat[:average_relevance_score]).to eq(4.0)
+      expect(rails_stat[:total_relevance_score]).to eq(125)
+      expect(rails_stat[:average_relevance_score]).to eq(62.5)
 
       expect(github_stat[:relevant_results_count]).to eq(1)
-      expect(github_stat[:total_relevance_score]).to eq(2)
-      expect(github_stat[:average_relevance_score]).to eq(2.0)
+      expect(github_stat[:total_relevance_score]).to eq(100)
+      expect(github_stat[:average_relevance_score]).to eq(100.0)
 
       expect(old_stat).to be_nil
       expect(orphan_stat).to be_nil

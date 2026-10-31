@@ -288,7 +288,8 @@ CREATE TABLE public.searches (
     updated_at timestamp(6) without time zone NOT NULL,
     time_frame character varying,
     show_acknowledged boolean DEFAULT false NOT NULL,
-    user_id bigint
+    user_id bigint,
+    relevance_mode character varying DEFAULT 'strict'::character varying NOT NULL
 );
 
 ALTER TABLE ONLY public.searches FORCE ROW LEVEL SECURITY;
@@ -943,6 +944,9 @@ ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261031150000'),
+('20261031140000'),
+('20261031130001'),
 ('20261028105201'),
 ('20261025171039'),
 ('20261023130803'),

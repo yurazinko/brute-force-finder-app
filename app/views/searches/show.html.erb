@@ -6,7 +6,7 @@
     <div class="lg:col-span-2 space-y-4">
 
       <div class="flex items-center justify-between gap-4 mb-0">
-        <%= link_to safe_back_path(fallback:searches_path), class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60" do %>
+        <%= link_to searches_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1 rounded-md border border-breeze-border/60" do %>
           <span>⬅️</span>
           <span>Back</span>
         <% end %>
@@ -14,10 +14,12 @@
         <%= render "searches/action_buttons", search: @search %>
       </div>
 
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-xl sm:text-2xl font-bold text-breeze-text break-words"><%= @search.title %></h1>
-        </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <h1 class="text-xl sm:text-2xl font-bold text-breeze-text break-words"><%= @search.title %></h1>
+        <span class="inline-flex items-center rounded-md border border-breeze-border bg-breeze-bg px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-breeze-muted"
+              title="<%= @search.strict_mode? ? 'Every keyword group must match' : 'The first group and at least one later group must match' %>">
+          <%= @search.strict_mode? ? "Strict relevance" : "Balanced relevance" %>
+        </span>
       </div>
 
       <div class="flex flex-col gap-1.5">
@@ -83,4 +85,3 @@
   <!-- Results Pool Frame -->
   <%= render "results/results_pool", search: @search, counts: @counts, results: @results, pagy: @pagy %>
 </div>
-

@@ -77,9 +77,12 @@ class Result < ApplicationRecord
   }
 
   def self.top_domains_efficiency(since: 30.days.ago, limit: 5)
-    joins(:target)
+    joins(:target, :search)
       .where(created_at: since..Time.current)
-      .where("results.relevance_score > 0")
+      .where(
+        "(searches.relevance_mode = 'strict' AND results.relevance_score >= 100) " \
+        "OR (searches.relevance_mode = 'balanced' AND results.relevance_score > 0)"
+      )
       .group("targets.id")
       .group("targets.domain")
       .order(Arel.sql("SUM(results.relevance_score) DESC, COUNT(*) DESC, AVG(results.relevance_score) DESC"))
