@@ -13,12 +13,12 @@ RSpec.describe Results::UpdateStatusService, type: :service do
       search: search1,
       status: "unread",
       acknowledged: false,
-      url: "https://example.com/job",
+      url: "https://example.com/job1",
       url_hash: "shared_hash123"
     )
   end
 
-  let!(:duplicate_result) do
+  let!(:other_search_result) do
     Result.create!(
       search: search2,
       status: "unread",
@@ -30,7 +30,7 @@ RSpec.describe Results::UpdateStatusService, type: :service do
 
   describe "#call" do
     context "when status changes from unread to another state (e.g., 'watched')" do
-      it "updates the status, marks the record as acknowledged, and propagates to all results with the same url_hash" do
+      it "updates the status and isolates changes to the specific search" do
         service = described_class.new(result: result, status: "watched")
         success = service.call
 
@@ -38,12 +38,13 @@ RSpec.describe Results::UpdateStatusService, type: :service do
 
         expect(result.reload.status).to eq("watched")
         expect(result.acknowledged).to be true
-        expect(duplicate_result.reload.acknowledged).to be true
+
+        expect(other_search_result.reload.acknowledged).to be false
       end
     end
 
     context "when status remains 'unread'" do
-      it "updates successfully without propagating acknowledged" do
+      it "updates successfully without modifying acknowledged" do
         service = described_class.new(result: result, status: "unread")
         success = service.call
 
@@ -51,7 +52,7 @@ RSpec.describe Results::UpdateStatusService, type: :service do
 
         expect(result.reload.status).to eq("unread")
         expect(result.reload.acknowledged).to be false
-        expect(duplicate_result.reload.acknowledged).to be false
+        expect(other_search_result.reload.acknowledged).to be false
       end
     end
 

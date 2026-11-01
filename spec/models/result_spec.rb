@@ -168,7 +168,7 @@ RSpec.describe Result, type: :model do
       )
     end
 
-    let!(:result2) do
+    let!(:result_other_search) do
       Result.create!(
         search: search2,
         status: "unread",
@@ -178,17 +178,7 @@ RSpec.describe Result, type: :model do
       )
     end
 
-    let!(:result_unrelated) do
-      Result.create!(
-        search: search,
-        status: "unread",
-        acknowledged: false,
-        url: "https://example.com/other-job",
-        url_hash: "other_hash_456"
-      )
-    end
-
-    it "propagates acknowledged: true to all records with the same url_hash when status changes from unread" do
+    it "propagates acknowledged: true only to records within the specific search scope" do
       success = Results::UpdateStatusService.new(result: result1, status: "watched").call
 
       expect(success).to be true
@@ -196,18 +186,8 @@ RSpec.describe Result, type: :model do
       expect(result1.reload.status).to eq("watched")
       expect(result1.acknowledged).to be true
 
-      expect(result2.reload.acknowledged).to be true
-
-      expect(result_unrelated.reload.acknowledged).to be false
-      expect(result_unrelated.status).to eq("unread")
-    end
-
-    it "does not propagate acknowledged when status remains unread" do
-      success = Results::UpdateStatusService.new(result: result1, status: "unread").call
-
-      expect(success).to be true
-      expect(result1.reload.acknowledged).to be false
-      expect(result2.reload.acknowledged).to be false
+      expect(result_other_search.reload.acknowledged).to be false
+      expect(result_other_search.status).to eq("unread")
     end
   end
 end

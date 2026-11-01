@@ -86,7 +86,7 @@
 
               <!-- Edit Profile Link -->
               <%= link_to edit_user_registration_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "registrations" && action_name == "edit" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
-                <span>⚙️</span>
+                <span>👤</span>
                 <span class="max-w-[120px] truncate" title="<%= current_user.username %>"><%= current_user.username %></span>
               <% end %>
 

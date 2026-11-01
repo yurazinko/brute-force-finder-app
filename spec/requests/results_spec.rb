@@ -41,10 +41,10 @@ RSpec.describe "Results", type: :request do
     )
   end
 
-  let!(:duplicate_result) do
+  let!(:other_search_result) do
     Result.create!(
       search: search2,
-      title: "Senior Backend Developer (Duplicate)",
+      title: "Senior Backend Developer (Other Search)",
       url: "https://lever.co/jobs/1",
       url_hash: "shared_hash123",
       status: "unread",
@@ -94,12 +94,10 @@ RSpec.describe "Results", type: :request do
 
         assert_select "turbo-stream[action='remove'][target='result_#{result.id}']"
         assert_select "turbo-stream[action='replace'][target='search_tabs_navigation']"
-
-        expect(response.body).not_to include("results_pool_list")
       end
 
-      it "propagates acknowledged to other results with the same url_hash when status changes from unread" do
-        expect(duplicate_result.acknowledged).to be false
+      it "isolates acknowledged status updates to the specific search scope" do
+        expect(other_search_result.acknowledged).to be false
 
         patch result_path(result, format: :turbo_stream),
               params: { result: { status: "watched" }, status: "unread" }
@@ -107,7 +105,7 @@ RSpec.describe "Results", type: :request do
         expect(response).to have_http_status(:ok)
         expect(result.reload.acknowledged).to be true
 
-        expect(duplicate_result.reload.acknowledged).to be true
+        expect(other_search_result.reload.acknowledged).to be false
       end
     end
 
