@@ -1,6 +1,5 @@
 # Brute Force Finder
-
-<img width="2006" height="1564" alt="main" src="https://github.com/user-attachments/assets/b3bc8298-55ac-45ec-b842-c3b2ce0c76fd" />
+<img width="2016" height="1555" alt="Screenshot_20261101_200612" src="https://github.com/user-attachments/assets/add1c658-216a-474e-816a-696684dd1985" />
 
 ---
 
