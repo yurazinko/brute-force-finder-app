@@ -29,7 +29,6 @@ class DegoogUpdaterJob < BaseContainerUpdaterJob
   end
 
   def fetch_smoke_test_response(service_host)
-    # Зверніть увагу на порт 4444
     url = URI("http://#{service_host}:4444/search?q=test")
 
     req = Net::HTTP::Get.new(url)
