@@ -162,6 +162,8 @@ CREATE TABLE public.categories (
     user_id bigint
 );
 
+ALTER TABLE ONLY public.categories FORCE ROW LEVEL SECURITY;
+
 
 --
 -- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
@@ -327,6 +329,8 @@ CREATE TABLE public.target_patterns (
     updated_at timestamp(6) without time zone NOT NULL
 );
 
+ALTER TABLE ONLY public.target_patterns FORCE ROW LEVEL SECURITY;
+
 
 --
 -- Name: target_patterns_id_seq; Type: SEQUENCE; Schema: public; Owner: -
@@ -361,6 +365,8 @@ CREATE TABLE public.targets (
     updated_at timestamp(6) without time zone NOT NULL,
     allow_query_strings boolean DEFAULT false NOT NULL
 );
+
+ALTER TABLE ONLY public.targets FORCE ROW LEVEL SECURITY;
 
 
 --
@@ -895,6 +901,19 @@ ALTER TABLE ONLY public.target_patterns
 
 
 --
+-- Name: categories; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: categories category_user_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY category_user_isolation ON public.categories USING ((user_id = public.current_user_id())) WITH CHECK ((user_id = public.current_user_id()));
+
+
+--
 -- Name: prompts prompt_user_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -938,12 +957,49 @@ CREATE POLICY search_user_isolation ON public.searches USING ((user_id = public.
 ALTER TABLE public.searches ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: target_patterns target_pattern_user_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY target_pattern_user_isolation ON public.target_patterns USING ((EXISTS ( SELECT 1
+   FROM (public.targets
+     JOIN public.categories ON ((categories.id = targets.category_id)))
+  WHERE ((targets.id = target_patterns.target_id) AND (categories.user_id = public.current_user_id()))))) WITH CHECK ((EXISTS ( SELECT 1
+   FROM (public.targets
+     JOIN public.categories ON ((categories.id = targets.category_id)))
+  WHERE ((targets.id = target_patterns.target_id) AND (categories.user_id = public.current_user_id())))));
+
+
+--
+-- Name: target_patterns; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.target_patterns ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: targets target_user_isolation; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY target_user_isolation ON public.targets USING ((EXISTS ( SELECT 1
+   FROM public.categories
+  WHERE ((categories.id = targets.category_id) AND (categories.user_id = public.current_user_id()))))) WITH CHECK ((EXISTS ( SELECT 1
+   FROM public.categories
+  WHERE ((categories.id = targets.category_id) AND (categories.user_id = public.current_user_id())))));
+
+
+--
+-- Name: targets; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.targets ENABLE ROW LEVEL SECURITY;
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261103204023'),
 ('20261031150000'),
 ('20261031140000'),
 ('20261031130001'),
