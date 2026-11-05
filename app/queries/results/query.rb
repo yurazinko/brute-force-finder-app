@@ -62,7 +62,7 @@ module Results
       return scope unless unread_status?
       return filter_for_search_mode(scope) if search.present?
 
-      max_score = RelevanceRanker::MAX_SCORE
+      max_score = RelevanceRanker::MAX_SCORE_WITHOUT_CAPTCHA # TODO: Implement an option to show/hide unverified results
       # A global feed may combine campaigns with different thresholds. Apply
       # each parent search's mode to its own results instead of choosing one.
       condition = if show_less_relevant?
@@ -81,7 +81,7 @@ module Results
     def filter_for_search_mode(scope)
       if search.strict_mode?
         operator = show_less_relevant? ? "<" : ">="
-        scope.where("results.relevance_score #{operator} ?", RelevanceRanker::MAX_SCORE)
+        scope.where("results.relevance_score #{operator} ?", RelevanceRanker::MAX_SCORE_WITHOUT_CAPTCHA)
       else
         operator = show_less_relevant? ? "<=" : ">"
         scope.where("results.relevance_score #{operator} 0")

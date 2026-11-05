@@ -13,6 +13,7 @@ module Results
     MAX_SCORE = 100
     FIRST_GROUP_PENALTY = 150
     CAPTCHA_SCORE_FLOOR = 25
+    MAX_SCORE_WITHOUT_CAPTCHA = MAX_SCORE - CAPTCHA_SCORE_FLOOR
 
     def self.call(result, snippet_text, keyword_groups, url, strict_mode: nil)
       new(result, snippet_text, keyword_groups, url, strict_mode: strict_mode).call

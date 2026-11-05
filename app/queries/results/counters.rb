@@ -141,7 +141,7 @@ module Results
       def less_relevant_score?(score, relevance_mode)
         return false if score.nil?
 
-        relevance_mode.to_s == "strict" ? score < RelevanceRanker::MAX_SCORE : score <= 0
+        relevance_mode.to_s == "strict" ? score < RelevanceRanker::MAX_SCORE_WITHOUT_CAPTCHA : score <= 0
       end
 
       def group_by_search_id(raw_data)
@@ -159,7 +159,7 @@ module Results
       end
 
       def less_relevant_condition(search)
-        max_score = RelevanceRanker::MAX_SCORE
+        max_score = RelevanceRanker::MAX_SCORE_WITHOUT_CAPTCHA
         if search&.strict_mode?
           Arel.sql("CASE WHEN results.relevance_score < #{max_score} THEN 1 ELSE 0 END")
         elsif search
