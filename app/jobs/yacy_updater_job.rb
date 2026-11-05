@@ -30,7 +30,8 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
     service_host = info[:service]
     url = URI("http://#{service_host}:8090/yacysearch.json?query=test")
 
-    max_retries = 10
+    max_retries = 15
+    sleep_interval = 20
 
     found = false
     max_retries.times do |attempt|
@@ -46,11 +47,11 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
       end
 
       logger.info "[YacyUpdaterJob] Waiting for HTTP server on #{service_host} (#{attempt + 1}/#{max_retries})..."
-      sleep 5
+      sleep sleep_interval
     end
 
     return if found
 
-    raise "Smoke test failed for #{service_host}: HTTP server was not ready after #{max_retries * 5} seconds"
+    raise "Smoke test failed for #{service_host}: Server was not ready after #{max_retries * sleep_interval} seconds"
   end
 end
