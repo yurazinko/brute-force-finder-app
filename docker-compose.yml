@@ -244,6 +244,10 @@ services:
     <<: *app
     container_name: finder_sidekiq
     command: bundle exec sidekiq -q scraping -q default -q search_activations -q verifications -q system -c 1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
     depends_on:
       db:
         condition: service_started
