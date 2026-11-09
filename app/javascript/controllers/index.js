@@ -4,6 +4,9 @@
 
 import { application } from "./application"
 
+import BulkActionsController from "./bulk_actions_controller"
+application.register("bulk-actions", BulkActionsController)
+
 import BulkSelectorController from "./bulk_selector_controller"
 application.register("bulk-selector", BulkSelectorController)
 

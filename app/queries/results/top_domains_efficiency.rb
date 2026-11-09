@@ -31,7 +31,9 @@ module Results
     private
 
     def relevance_condition
-      "(searches.relevance_mode = 'strict' AND results.relevance_score >= 100) " \
+      max_score = RelevanceRanker::MAX_SCORE_WITHOUT_CAPTCHA
+
+      "(searches.relevance_mode = 'strict' AND results.relevance_score >= #{max_score}) " \
         "OR (searches.relevance_mode = 'balanced' AND results.relevance_score > 0)"
     end
 

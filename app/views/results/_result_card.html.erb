@@ -9,10 +9,10 @@
 
   score = result.relevance_score.to_i
   score_badge_class = case
-                      when score >= 80 then "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                      when score >= 40 then "bg-blue-500/10 text-blue-400 border-blue-500/30"
-                      when score > 0   then "bg-amber-500/10 text-amber-400 border-amber-500/30"
-                      else                  "bg-breeze-bg text-breeze-muted border-breeze-border"
+                      when score >= 80 then "text-emerald-400 border-emerald-500/30"
+                      when score >= 40 then "text-blue-400 border-blue-500/30"
+                      when score > 0   then "text-amber-400 border-amber-500/30"
+                      else                  "text-breeze-muted border-breeze-border"
                       end
 
   keywords = Array(result.matched_keywords)

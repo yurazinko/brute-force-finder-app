@@ -3,6 +3,15 @@
 class ResultsController < ApplicationController
   include ResultFilterable
 
+  BULK_STATUS_LABELS = {
+    "unread" => "Unread",
+    "watched" => "Reviewed",
+    "interesting" => "Starred",
+    "garbage" => "Trash"
+  }.freeze
+
+  BULK_RETURN_PARAM_KEYS = %i[status d q sort show_acknowledged show_less_relevant].freeze
+
   before_action :find_result, only: :update
   before_action :set_scopes_and_options
 
@@ -34,7 +43,65 @@ class ResultsController < ApplicationController
     respond_to_successful_update
   end
 
+  def bulk_update
+    return handle_missing_search unless @search
+    return handle_invalid_bulk_action unless valid_bulk_target_status?
+
+    updated_count = Results::BulkUpdateService.new(
+      search: @search,
+      target_status: params[:target_status],
+      visible_ids: parsed_visible_ids,
+      filter_options: @filter_options
+    ).call
+
+    redirect_with_bulk_notice(updated_count)
+  end
+
   private
+
+  def handle_missing_search
+    redirect_to results_path,
+                status: :see_other,
+                alert: "Bulk actions are available only inside a search."
+  end
+
+  def handle_invalid_bulk_action
+    redirect_to search_path(@search, bulk_return_params),
+                status: :see_other,
+                alert: "Invalid bulk action."
+  end
+
+  def valid_bulk_target_status?
+    Results::BulkUpdateService::BULK_TARGET_STATUSES.include?(params[:target_status].to_s)
+  end
+
+  def redirect_with_bulk_notice(updated_count)
+    target_status = params[:target_status].to_s
+    label = BULK_STATUS_LABELS.fetch(target_status)
+
+    redirect_to search_path(@search, bulk_return_params),
+                status: :see_other,
+                notice: "Marked #{updated_count} visible results as #{label}."
+  end
+
+  def parsed_visible_ids
+    ids = Array(params[:visible_ids]).filter_map do |value|
+      id = Integer(value.to_s, 10)
+      id if id.positive?
+    rescue ArgumentError, TypeError
+      nil
+    end
+
+    ids.uniq!
+    ids || []
+  end
+
+  def bulk_return_params
+    BULK_RETURN_PARAM_KEYS.each_with_object({}) do |key, result|
+      value = params[key]
+      result[key] = value unless value.nil? || value == ""
+    end
+  end
 
   def find_result
     @result = current_user.results.find(params.expect(:id))

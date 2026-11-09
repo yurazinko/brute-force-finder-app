@@ -17,3 +17,21 @@
     <%= render partial: "results/results_pool_pagination_wrapper", formats: [:html] %>
   </template>
 </turbo-stream>
+
+<% if @search.present? %>
+  <turbo-stream action="replace" target="bulk_actions_top">
+    <template>
+      <%= render partial: "results/bulk_actions",
+                 locals: { search: @search, results: @results, position: "top" },
+                 formats: [:html] %>
+    </template>
+  </turbo-stream>
+
+  <turbo-stream action="replace" target="bulk_actions_bottom">
+    <template>
+      <%= render partial: "results/bulk_actions",
+                 locals: { search: @search, results: @results, position: "bottom" },
+                 formats: [:html] %>
+    </template>
+  </turbo-stream>
+<% end %>
