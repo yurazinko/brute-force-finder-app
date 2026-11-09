@@ -8,6 +8,9 @@
           <span class="text-lg">📬</span>
           <h2 class="text-lg sm:text-xl font-bold text-breeze-text">Discovered Results</h2>
         </div>
+        <div>
+          <%= render "results/bulk_actions", search: search, results: results, position: "top" %>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-y-3 gap-x-4 sm:gap-x-6 text-xs text-breeze-muted mb-6 bg-breeze-bg/70 p-2.5 rounded-lg border border-breeze-border/80">
@@ -86,10 +89,14 @@
         </div>
       </div>
 
-      <div id="results_pool_pagination_container" class="mt-4">
+      <div id="results_pool_pagination_container" class="mt-4 flex flex-col gap-4">
+        <% if search.present? %>
+          <div class="flex justify-end pt-2 border-t border-breeze-border/40">
+            <%= render "results/bulk_actions", search: search, results: results, position: "bottom" %>
+          </div>
+        <% end %>
         <%= render "results/results_pool_pagination_wrapper" %>
       </div>
     </div>
   <% end %>
 </div>
-

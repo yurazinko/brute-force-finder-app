@@ -15,7 +15,8 @@ RSpec.describe "Results", type: :request do
       title: "Ruby Remote Jobs",
       query_conditions: "ruby remote",
       status: "pending",
-      show_acknowledged: false
+      show_acknowledged: false,
+      relevance_mode: "strict"
     )
   end
 
@@ -41,6 +42,30 @@ RSpec.describe "Results", type: :request do
     )
   end
 
+  let!(:result2) do
+    Result.create!(
+      search: search,
+      title: "Fullstack Engineer",
+      url: "https://lever.co/jobs/2",
+      url_hash: "shared_hash456",
+      status: "unread",
+      acknowledged: false,
+      relevance_score: 120
+    )
+  end
+
+  let!(:result3) do
+    Result.create!(
+      search: search,
+      title: "Junior Developer",
+      url: "https://lever.co/jobs/3",
+      url_hash: "shared_hash789",
+      status: "unread",
+      acknowledged: false,
+      relevance_score: 50
+    )
+  end
+
   let!(:other_search_result) do
     Result.create!(
       search: search2,
@@ -59,9 +84,11 @@ RSpec.describe "Results", type: :request do
 
   describe "GET /results (index)" do
     context "when viewing globally (no search_id context)" do
-      it "returns a successful HTML response" do
+      it "returns a successful HTML response without Search-only bulk controls" do
         get results_path
         expect(response).to have_http_status(:ok)
+        assert_select "#bulk_actions_top", 0
+        assert_select "#bulk_actions_bottom", 0
       end
     end
 
@@ -79,6 +106,70 @@ RSpec.describe "Results", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Senior Backend Developer")
       end
+    end
+  end
+
+  describe "GET /searches/:id" do
+    it "renders all four bulk actions above and below the Search result list" do
+      get search_path(search)
+
+      expect(response).to have_http_status(:ok)
+      assert_select "#bulk_actions_top", 1
+      assert_select "#bulk_actions_bottom", 1
+      assert_select "#bulk_actions_top form[data-turbo='false']", 4
+      assert_select "#bulk_actions_bottom form[data-turbo='false']", 4
+      assert_select "#bulk_actions_top button[disabled]", text: /Unread/
+      assert_select "#bulk_actions_bottom button[disabled]", text: /Unread/
+      %w[Reviewed Starred Trash].each do |label|
+        assert_select "#bulk_actions_top button:not([disabled])", text: /#{Regexp.escape(label)}/
+        assert_select "#bulk_actions_bottom button:not([disabled])", text: /#{Regexp.escape(label)}/
+      end
+      %w[Unread Reviewed Starred Trash].each do |label|
+        assert_select "#bulk_actions_top button", text: /#{Regexp.escape(label)}/
+        assert_select "#bulk_actions_bottom button", text: /#{Regexp.escape(label)}/
+      end
+    end
+
+    it "disables the bulk action matching the currently selected tab" do
+      tabs = {
+        nil => "unread",
+        "watched" => "watched",
+        "interesting" => "interesting",
+        "garbage" => "garbage"
+      }
+      bulk_containers = %w[bulk_actions_top bulk_actions_bottom]
+
+      tabs.each do |tab_param, active_status|
+        result.update!(status: active_status, acknowledged: active_status != "unread")
+        get search_path(search, status: tab_param)
+
+        expect(response).to have_http_status(:ok)
+
+        bulk_containers.each do |container_id|
+          forms = response.parsed_body.css("##{container_id} form")
+          states = forms.to_h do |form|
+            target = form.at_css('input[name="target_status"]')&.[]("value")
+            [target, form.at_css("button")&.key?("disabled")]
+          end
+
+          expect(states).to eq(
+            "unread" => (active_status == "unread"),
+            "watched" => (active_status == "watched"),
+            "interesting" => (active_status == "interesting"),
+            "garbage" => (active_status == "garbage")
+          )
+        end
+      end
+    end
+
+    it "refreshes both bulk forms to the less-relevant bucket without replacing the results frame" do
+      get search_path(search, format: :turbo_stream, show_less_relevant: "true")
+
+      expect(response).to have_http_status(:ok)
+      assert_select "turbo-stream[action='replace'][target='bulk_actions_top']"
+      assert_select "turbo-stream[action='replace'][target='bulk_actions_bottom']"
+      assert_select "turbo-stream[action='replace'][target='results_pool']", 0
+      expect(response.body.scan('name="show_less_relevant" value="true"').size).to eq(8)
     end
   end
 
@@ -147,6 +238,105 @@ RSpec.describe "Results", type: :request do
         patch result_path(result), params: { result: { status: "invalid" } }
         expect(response).to have_http_status(:unprocessable_content)
       end
+    end
+  end
+
+  describe "PATCH /results/bulk_update" do
+    it "does not allow bulk updates from the global results feed" do
+      patch bulk_update_results_path,
+            params: { target_status: "watched", visible_ids: [result.id] }
+
+      expect(response).to redirect_to(results_path)
+      expect(result.reload.status).to eq("unread")
+    end
+
+    it "updates only currently eligible visible results and redirects to a clean search URL" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "watched",
+              visible_ids: [result.id, result2.id, result3.id],
+              d: "week",
+              q: "lever",
+              show_less_relevant: "false"
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(search_path(search, d: "week", q: "lever", show_less_relevant: "false"))
+
+      expect(result.reload.status).to eq("watched")
+      expect(result.reload.acknowledged).to be(true)
+      expect(result2.reload.status).to eq("watched")
+      expect(result2.reload.acknowledged).to be(true)
+
+      # Strict mode's normal bucket excludes the partial result (score 90).
+      expect(result3.reload.status).to eq("unread")
+      expect(result3.reload.acknowledged).to be(false)
+
+      location_query = Rack::Utils.parse_nested_query(URI(response.location).query)
+      expect(location_query).not_to have_key("target_status")
+      expect(location_query).not_to have_key("visible_ids")
+      expect(location_query).not_to have_key("search_id")
+    end
+
+    it "can move currently visible results back to Inbox and clears acknowledged" do
+      result.update!(status: "watched", acknowledged: true)
+
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "unread",
+              status: "watched",
+              visible_ids: [result.id]
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(search_path(search, status: "watched"))
+      expect(result.reload.status).to eq("unread")
+      expect(result.acknowledged).to be(false)
+    end
+
+    it "updates only the less-relevant bucket after Show results below this threshold" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "garbage",
+              show_less_relevant: "true",
+              visible_ids: [result.id, result3.id]
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(result.reload.status).to eq("unread")
+      expect(result3.reload.status).to eq("garbage")
+      expect(result3.reload.acknowledged).to be(true)
+    end
+
+    it "does not update results from another search even when their IDs are submitted" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "interesting",
+              status: "unread",
+              visible_ids: [other_search_result.id]
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(other_search_result.reload.status).to eq("unread")
+    end
+
+    it "ignores invalid target status and redirects without leaking bulk params" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "invalid_status",
+              visible_ids: [result.id]
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(result.reload.status).to eq("unread")
+      location_query = Rack::Utils.parse_nested_query(URI(response.location).query)
+      expect(location_query).not_to have_key("target_status")
+      expect(location_query).not_to have_key("visible_ids")
     end
   end
 end
