@@ -26,19 +26,33 @@
      class="p-4 sm:p-5 border border-breeze-border/80 rounded-xl hover:border-breeze-accent/50 hover:bg-breeze-view/40 transition-all bg-breeze-bg/40 flex flex-col gap-3 shadow-xs <%= 'opacity-50 duration-500' if should_dim %>">
 
   <div class="flex items-start justify-between gap-3">
-    <a href="<%= result.url %>"
-      target="_blank"
-      rel="noopener"
-      data-turbo="false"
-      data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
-      data-current-tab="<%= current_tab %>"
-      data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
-      data-read-status="<%= result.status %>"
-      class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate min-w-0 flex-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" title="<%= result.title.presence || 'Untitled Result' %>">
-      <%= result.title.presence || "Untitled Result" %>
-    </a>
+    <div class="flex flex-col gap-1 min-w-0 flex-1">
+      <% if @search.blank? %>
+        <% parent_search =  result.search %>
+        <div class="flex items-center gap-1.5">
+          <%= link_to search_path(parent_search),
+              data: { turbo: false },
+              class: "inline-flex items-center gap-1 text-[11px] font-medium font-mono text-breeze-muted hover:text-breeze-accent bg-breeze-view/80 hover:bg-breeze-accent/10 px-2 py-0.5 rounded border border-breeze-border/60 transition-colors w-fit truncate max-w-full",
+              title: "View search campaign: #{parent_search.title}" do %>
+            <span class="truncate"><%= parent_search.title %></span>
+          <% end %>
+        </div>
+      <% end %>
 
-    <!-- Relevance Score:-->
+      <a href="<%= result.url %>"
+        target="_blank"
+        rel="noopener"
+        data-turbo="false"
+        data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
+        data-current-tab="<%= current_tab %>"
+        data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
+        data-read-status="<%= result.status %>"
+        class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate min-w-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" title="<%= result.title.presence || 'Untitled Result' %>">
+        <%= result.title.presence || "Untitled Result" %>
+      </a>
+    </div>
+
+    <!-- Relevance Score: -->
     <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Percentage of matched keyword groups; missing the first group is penalized">
       <span>🎯</span>
       <span><%= score %></span>

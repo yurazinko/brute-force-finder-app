@@ -6,7 +6,7 @@
     <div class="lg:col-span-2 space-y-5">
 
       <div class="flex items-center justify-between gap-4">
-        <%= link_to searches_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1.5 rounded-md border border-breeze-border/60" do %>
+        <%= link_to safe_back_path(fallback: searches_path), class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition shrink-0 bg-breeze-bg/50 px-2.5 py-1.5 rounded-md border border-breeze-border/60" do %>
           <span>⬅️</span>
           <span>Back</span>
         <% end %>
