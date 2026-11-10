@@ -1,7 +1,13 @@
 <% position = local_assigns.fetch(:position, "top") %>
 <% current_tab = params[:current_tab].presence || params[:status].presence || "unread" %>
-<% active_count = if %w[unread watched interesting garbage].include?(current_tab) && counts
-                    counts.public_send(current_tab.to_sym).to_i
+<% active_count = if counts
+                    case current_tab
+                    when "unread"      then counts.unread.to_i
+                    when "watched"     then counts.watched.to_i
+                    when "interesting" then counts.interesting.to_i
+                    when "garbage"     then counts.garbage.to_i
+                    else                    0
+                    end
                   else
                     0
                   end %>
