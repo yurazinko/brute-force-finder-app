@@ -8,6 +8,7 @@
         sort: params[:sort],
         show_acknowledged: params[:show_acknowledged],
         show_less_relevant: params[:show_less_relevant],
+        bulk_scope: params[:bulk_scope],
         search_ids: params[:search_ids],
         page: @pagy.next
       }
@@ -24,6 +25,7 @@
                 data: {
                   controller: "infinite-scroll",
                   infinite_scroll_target: "link",
+                  bulk_actions_show_more_link: true,
                   turbo_stream: true
                 },
                 class: "invisible block text-center py-2 w-full" %>
@@ -38,6 +40,7 @@
           sort: params[:sort],
           show_acknowledged: params[:show_acknowledged],
           show_less_relevant: "true",
+          bulk_scope: params[:bulk_scope],
           search_ids: params[:search_ids],
           page: 1
         }
@@ -62,6 +65,7 @@
         <div>
           <%= link_to explore_path,
                       data: {
+                        bulk_actions_show_more_link: true,
                         turbo_stream: true
                       },
                       class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 transition cursor-pointer" do %>

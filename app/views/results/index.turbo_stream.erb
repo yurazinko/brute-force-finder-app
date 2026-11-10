@@ -22,7 +22,7 @@
   <turbo-stream action="replace" target="bulk_actions_top">
     <template>
       <%= render partial: "results/bulk_actions",
-                 locals: { search: @search, results: @results, position: "top" },
+                 locals: { search: @search, counts: @counts, results: @results, position: "top" },
                  formats: [:html] %>
     </template>
   </turbo-stream>
@@ -30,7 +30,7 @@
   <turbo-stream action="replace" target="bulk_actions_bottom">
     <template>
       <%= render partial: "results/bulk_actions",
-                 locals: { search: @search, results: @results, position: "bottom" },
+                 locals: { search: @search, counts: @counts, results: @results, position: "bottom" },
                  formats: [:html] %>
     </template>
   </turbo-stream>

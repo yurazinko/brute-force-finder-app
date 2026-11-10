@@ -62,7 +62,7 @@ RSpec.describe "Results", type: :request do
       url_hash: "shared_hash789",
       status: "unread",
       acknowledged: false,
-      relevance_score: 50
+      relevance_score: 74
     )
   end
 
@@ -118,6 +118,10 @@ RSpec.describe "Results", type: :request do
       assert_select "#bulk_actions_bottom", 1
       assert_select "#bulk_actions_top form[data-turbo='false']", 4
       assert_select "#bulk_actions_bottom form[data-turbo='false']", 4
+      assert_select "#bulk_actions_top select[data-bulk-actions-scope-select] option[value='visible']", 1
+      assert_select "#bulk_actions_top select[data-bulk-actions-scope-select] option[value='all_matching']", 1
+      assert_select "#bulk_actions_bottom select[data-bulk-actions-scope-select] option[value='visible']", 1
+      assert_select "#bulk_actions_bottom select[data-bulk-actions-scope-select] option[value='all_matching']", 1
       assert_select "#bulk_actions_top button[disabled]", text: /Unread/
       assert_select "#bulk_actions_bottom button[disabled]", text: /Unread/
       %w[Reviewed Starred Trash].each do |label|
@@ -277,6 +281,57 @@ RSpec.describe "Results", type: :request do
       expect(location_query).not_to have_key("target_status")
       expect(location_query).not_to have_key("visible_ids")
       expect(location_query).not_to have_key("search_id")
+    end
+
+    it "updates every matching result in the current tab when all_relevant scope is selected" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "watched",
+              bulk_scope: "all_matching",
+              visible_ids: [result.id],
+              d: "week",
+              q: "lever"
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(search_path(search, d: "week", q: "lever", bulk_scope: "all_matching"))
+
+      expect(result.reload.status).to eq("watched")
+      expect(result2.reload.status).to eq("watched")
+      expect(result3.reload.status).to eq("unread")
+      expect(other_search_result.reload.status).to eq("unread")
+    end
+
+    it "updates all results in the selected less-relevant bucket, not the normal bucket" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "garbage",
+              bulk_scope: "all_matching",
+              show_less_relevant: "true"
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(search_path(search, show_less_relevant: "true", bulk_scope: "all_matching"))
+      expect(result.reload.status).to eq("unread")
+      expect(result2.reload.status).to eq("unread")
+      expect(result3.reload.status).to eq("garbage")
+      expect(result3.reload.acknowledged).to be(true)
+    end
+
+    it "rejects an unknown bulk scope without changing any result" do
+      patch bulk_update_results_path,
+            params: {
+              search_id: search.id,
+              target_status: "watched",
+              bulk_scope: "everything_in_database",
+              visible_ids: [result.id, result2.id]
+            }
+
+      expect(response).to have_http_status(:see_other)
+      expect(result.reload.status).to eq("unread")
+      expect(result2.reload.status).to eq("unread")
     end
 
     it "can move currently visible results back to Inbox and clears acknowledged" do

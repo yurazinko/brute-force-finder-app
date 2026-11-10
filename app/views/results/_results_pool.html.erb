@@ -9,7 +9,7 @@
           <h2 class="text-lg sm:text-xl font-bold text-breeze-text">Discovered Results</h2>
         </div>
         <div>
-          <%= render "results/bulk_actions", search: search, results: results, position: "top" %>
+          <%= render "results/bulk_actions", search: search, counts: counts, results: results, position: "top" %>
         </div>
       </div>
 
@@ -92,7 +92,7 @@
       <div id="results_pool_pagination_container" class="mt-4 flex flex-col gap-4">
         <% if search.present? %>
           <div class="flex justify-end pt-2 border-t border-breeze-border/40">
-            <%= render "results/bulk_actions", search: search, results: results, position: "bottom" %>
+            <%= render "results/bulk_actions", search: search, counts: counts, results: results, position: "bottom" %>
           </div>
         <% end %>
         <%= render "results/results_pool_pagination_wrapper" %>
