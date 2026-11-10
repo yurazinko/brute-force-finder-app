@@ -70,6 +70,18 @@ RSpec.describe Results::Counters, type: :query do
       let!(:unread_partial) { create(:result, search: search, status: "unread", acknowledged: false, relevance_score: 50) }
       let!(:garbage_irrel) { create(:result, search: search, status: "garbage", acknowledged: false, relevance_score: -5) }
 
+      it "classifies a 50-point Strict result as less relevant" do
+        create(:result, search: search, status: "unread", acknowledged: false, relevance_score: 50)
+
+        normal_counts = described_class.calculate_filtered(search.results, { status: "unread" }, search)
+        less_counts = described_class.calculate_filtered(
+          search.results, { status: "unread", show_less_relevant: "true" }, search
+        )
+
+        expect(normal_counts.unread).to eq(1)
+        expect(less_counts.unread).to eq(3)
+      end
+
       context "when show_less_relevant = false" do
         let(:options) { { show_less_relevant: "false", status: "unread" } }
 

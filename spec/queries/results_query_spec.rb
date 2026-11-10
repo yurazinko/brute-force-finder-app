@@ -77,6 +77,9 @@ RSpec.describe Results::Query, type: :query do
     let!(:partial_relevant) do
       create(:result, search: search, status: "unread", acknowledged: false, relevance_score: 50, title: "Partial Match")
     end
+    let!(:near_full_partial) do
+      create(:result, search: search, status: "unread", acknowledged: false, relevance_score: 74, title: "Almost Full Match")
+    end
     let!(:irrelevant) do
       create(:result, search: search, status: "unread", acknowledged: false, relevance_score: 0, title: "No Match")
     end
@@ -94,7 +97,7 @@ RSpec.describe Results::Query, type: :query do
         search: search
       )
 
-      expect(results).to contain_exactly(partial_relevant, irrelevant)
+      expect(results).to contain_exactly(partial_relevant, near_full_partial, irrelevant)
     end
   end
   context "when the global feed contains searches with different relevance modes" do

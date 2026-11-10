@@ -44,6 +44,38 @@ RSpec.describe Results::BulkUpdateService, type: :service do
       end
     end
 
+    context "with scope_mode all_matching" do
+      it "updates every result in the active query scope without requiring visible IDs" do
+        service = described_class.new(
+          search: search,
+          target_status: "watched",
+          visible_ids: [],
+          filter_options: filter_options,
+          scope_mode: "all_matching"
+        )
+
+        expect(service.call).to eq(2)
+        expect(result1.reload.status).to eq("watched")
+        expect(result2.reload.status).to eq("watched")
+        expect(result3.reload.status).to eq("unread")
+      end
+
+      it "applies the currently selected less-relevant bucket across all matching records" do
+        service = described_class.new(
+          search: search,
+          target_status: "garbage",
+          visible_ids: [],
+          filter_options: { status: "unread", show_less_relevant: "true" },
+          scope_mode: "all_matching"
+        )
+
+        expect(service.call).to eq(1)
+        expect(result1.reload.status).to eq("unread")
+        expect(result2.reload.status).to eq("unread")
+        expect(result3.reload.status).to eq("garbage")
+      end
+    end
+
     context "with target status 'unread'" do
       before do
         result1.update!(status: "watched", acknowledged: true)
