@@ -30,8 +30,8 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
     service_host = info[:service]
     url = URI("http://#{service_host}:8090/yacysearch.json?query=test")
 
-    max_retries = 15
-    sleep_interval = 20
+    max_retries = 20
+    sleep_interval = 30
 
     found = false
     max_retries.times do |attempt|

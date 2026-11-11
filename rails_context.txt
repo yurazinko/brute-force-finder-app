@@ -1,0 +1,761 @@
+--- FILE: app/jobs/application_job.rb ---
+# frozen_string_literal: true
+
+class ApplicationJob
+  include Sidekiq::Job
+  include Rls::SidekiqSupport
+
+  private
+
+  def broadcast_turbo_render(stream_target, template, assigns = {})
+    Turbo::StreamsChannel.broadcast_render_to(
+      stream_target, :results,
+      template: template,
+      assigns: assigns
+    )
+  rescue StandardError => e
+    Rails.logger.error("[#{self.class.name}] Turbo broadcast failed: #{e.message}")
+  end
+
+  def broadcast_turbo_replace(channel, target:, partial:, locals: {})
+    Turbo::StreamsChannel.broadcast_replace_to(
+      channel,
+      target: target,
+      partial: partial,
+      locals: locals
+    )
+  rescue StandardError => e
+    Rails.logger.error("[#{self.class.name}] Turbo replace failed: #{e.message}")
+  end
+end
+
+
+--- FILE: app/jobs/prompt_processor_job.rb ---
+# frozen_string_literal: true
+
+class PromptProcessorJob < ApplicationJob
+  sidekiq_options queue: :scraping, retry: 5
+
+  sidekiq_retry_in { |count, _| [30.seconds, 2.minutes, 10.minutes, 30.minutes][count] || 1.hour }
+
+  sidekiq_retries_exhausted do |msg, error|
+    prompt_id = msg["args"].first
+    prompt = Prompt.find_by(id: prompt_id)
+    next unless prompt
+
+    Rails.logger.error("[PromptProcessorJob] Retries exhausted for Prompt##{prompt_id}: #{error.message}")
+    coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    coordinator.fail!("Retries exhausted: #{error.message}")
+  end
+
+  def perform(prompt_id, _user_id = nil)
+    prompt = fetch_and_lock_prompt(prompt_id)
+    return unless prompt
+
+    coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    execute_pipeline(prompt, coordinator)
+
+    coordinator.success!
+  rescue StandardError => e
+    handle_failure(prompt_id, prompt, e)
+    raise e
+  ensure
+    ensure_completion(prompt) if prompt
+  end
+
+  private
+
+  def fetch_and_lock_prompt(prompt_id)
+    prompt = Prompt.find_by(id: prompt_id)
+    return unless prompt
+
+    updated_count = Prompt.where(id: prompt_id, status: "pending").update_all(status: "active")
+    updated_count.positive? ? prompt : nil
+  end
+
+  def handle_failure(prompt_id, prompt, error)
+    Rails.logger.error("[PromptProcessorJob] Failed for Prompt##{prompt_id}: #{error.message}")
+    if prompt
+      coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+      coordinator.fail!(error.message)
+    end
+
+    ActiveRecord::Base.transaction(requires_new: true) do
+      Prompt.where(id: prompt_id).update_all(status: "pending")
+    end
+  end
+
+  def ensure_completion(prompt)
+    ensure_coordinator = SearchCampaigns::PipelineCoordinator.new(prompt)
+    ensure_coordinator.evaluate_completion!
+    SearchCampaigns::LifecycleNotifier.broadcast_status(prompt.search)
+  rescue StandardError
+    nil
+  end
+
+  def execute_pipeline(prompt, coordinator)
+    search = prompt.search
+    domain = extract_domain(prompt.full_query_text)
+    query_text = SearchCampaigns::DorkRandomizer.perform(prompt.full_query_text)
+
+    broadcast_live_status(search, "[#{domain}] Requesting data from Search Pipeline...")
+
+    total_metrics = fetch_search_results(prompt, search, query_text)
+
+    coordinator.fail!(total_metrics[:error]) if total_metrics[:error].present? && total_metrics[:raw_count].zero?
+
+    broadcast_handler_result(search, domain, total_metrics)
+  end
+
+  def fetch_search_results(prompt, search, query_text)
+    total_metrics = { raw_count: 0, new_count: 0 }
+    handler_errors = []
+
+    collector_summary = SearchEngines::ResultsCollector.call(
+      query_text,
+      time_range: search.time_frame,
+      dynamic_url: prompt.target&.allow_query_strings || false
+    ) do |batch_raw_results, _engine_name|
+      handler_result = SearchCampaigns::ResultHandler.call(prompt, { data: batch_raw_results })
+      accumulate_metrics!(total_metrics, handler_errors, handler_result)
+    end
+
+    total_metrics[:error] = collector_summary[:error] || handler_errors.first
+    total_metrics
+  end
+
+  def accumulate_metrics!(total_metrics, handler_errors, handler_result)
+    total_metrics[:raw_count] += handler_result[:raw_count].to_i
+    total_metrics[:new_count] += handler_result[:new_count].to_i
+    handler_errors << handler_result[:error] if handler_result[:error].present?
+  end
+
+  def broadcast_handler_result(search, domain, result)
+    if result[:error].present?
+      broadcast_live_status(search, "[#{domain}] Engine error: #{result[:error]}")
+    elsif result[:raw_count].to_i.positive?
+      broadcast_success_status(search, domain, result)
+    else
+      broadcast_live_status(search, "[#{domain}] 0 valid URLs extracted (no matches or engines temporary blocked).")
+    end
+  end
+
+  def broadcast_success_status(search, domain, result)
+    message = if result[:new_count].to_i.positive?
+                "[#{domain}] Extracted #{result[:raw_count]} links. Imported #{result[:new_count]} NEW leads!"
+              else
+                "[#{domain}] Extracted #{result[:raw_count]} links, but all of them are already processed."
+              end
+
+    broadcast_live_status(search, message)
+  end
+
+  def broadcast_live_status(search, message)
+    broadcast_turbo_render(search, "searches/update_status", message: message)
+  rescue StandardError => e
+    Rails.logger.error("Turbo broadcast failed: #{e.message}")
+  end
+
+  def extract_domain(query) = query.match(/site:(\S+)/)&.captures&.first || "target"
+end
+
+
+--- FILE: app/jobs/yacy_trigger_crawl_job.rb ---
+# frozen_string_literal: true
+
+class YacyTriggerCrawlJob < ApplicationJob
+  sidekiq_options queue: :system, retry: 3
+
+  CRAWL_LOCK_TTL = 6.hours.to_i
+
+  def perform(target_site, collection = "default", options = {})
+    options = options.symbolize_keys
+    crawl_query_urls = options.fetch(:crawl_query_urls, false)
+
+    lock_key = "yacy:crawling_lock:#{target_site}"
+
+    acquired = Sidekiq.redis do |conn|
+      conn.set(lock_key, "in_progress", ex: CRAWL_LOCK_TTL, nx: true)
+    end
+
+    return unless acquired
+
+    url = target_site.start_with?("http") ? target_site : "https://#{target_site}"
+
+    SearchEngines::Yacy::Api::Crawler.search(
+      url,
+      depth: 3,
+      max_pages: 200,
+      collection: collection,
+      crawl_query_urls: crawl_query_urls
+    )
+  end
+end
+
+
+--- FILE: app/jobs/base_container_updater_job.rb ---
+# frozen_string_literal: true
+
+require "open3"
+require "json"
+require "uri"
+require "socket"
+require "net/http"
+
+class BaseContainerUpdaterJob
+  include Sidekiq::Job
+
+  sidekiq_options queue: :default, retry: 0
+
+  PROJECT_NAME = ENV.fetch("COMPOSE_PROJECT_NAME", "brute-force-finder-app")
+
+  def perform
+    pull_latest_image
+
+    containers_to_update.each do |container_info|
+      process_container_update(container_info)
+    end
+  end
+
+  private
+
+  def before_recreate(_info); end
+
+  def image_name
+    raise NotImplementedError, "#{self.class} must implement #image_name"
+  end
+
+  def containers_to_update
+    raise NotImplementedError, "#{self.class} must implement #containers_to_update"
+  end
+
+  def run_smoke_test(_container_info); end
+
+  def pull_latest_image
+    logger.info "[#{self.class.name}] Pulling latest image: #{image_name}"
+    success = system("docker", "pull", image_name)
+
+    raise "Failed to pull image #{image_name}" unless success
+  end
+
+  def process_container_update(info) # rubocop:disable Metrics/AbcSize
+    service_name = info[:service]
+    container_name = info[:container_name]
+
+    before_recreate(info)
+
+    logger.info "[#{self.class.name}] Updating #{service_name} via Docker Compose (path: #{host_project_path})..."
+
+    raise "Failed to execute docker compose recreate for #{service_name}" unless recreate_container(service_name)
+
+    begin
+      wait_for_healthy_status(container_name)
+      run_smoke_test(info)
+      logger.info "[#{self.class.name}] Successfully updated and verified #{service_name}"
+    rescue StandardError => e
+      logger.error "[#{self.class.name}] #{service_name} update failed: #{e.message}"
+      raise e
+    end
+  end
+
+  def recreate_container(service_name)
+    local_compose_file = Rails.root.join("docker-compose.yml").to_s
+
+    system(
+      { "PWD" => host_project_path },
+      "docker", "compose",
+      "-p", PROJECT_NAME,
+      "-f", local_compose_file,
+      "--project-directory", host_project_path,
+      "up", "-d",
+      "--no-deps",
+      "--force-recreate",
+      "--remove-orphans",
+      service_name
+    )
+  end
+
+  def wait_for_healthy_status(container_name)
+    max_attempts = 30
+
+    max_attempts.times do
+      sleep 3
+
+      status = capture_cmd(
+        "docker", "inspect",
+        "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}",
+        container_name
+      ).strip
+
+      return if %w[healthy running].include?(status)
+    end
+
+    logs = capture_cmd("docker", "logs", "--tail", "20", container_name)
+    last_status = capture_cmd("docker", "inspect", "--format", "{{.State.Status}}", container_name).strip
+
+    raise "Container #{container_name} failed check (status: '#{last_status}'). Logs:\n#{logs}"
+  end
+
+  def host_project_path
+    @host_project_path ||= begin
+      hostname = Socket.gethostname
+      stdout = capture_cmd(
+        "docker", "inspect",
+        "--format", '{{range .Mounts}}{{if eq .Destination "/app"}}{{.Source}}{{end}}{{end}}',
+        hostname
+      ).strip
+
+      stdout.empty? ? "." : stdout
+    end
+  end
+
+  def capture_cmd(*args)
+    stdout, _status = Open3.capture2e(*args)
+    stdout
+  rescue StandardError => e
+    logger.error "[#{self.class.name}] Command execution error #{args.join(' ')}: #{e.message}"
+    ""
+  end
+end
+
+
+--- FILE: app/jobs/result_verification_job.rb ---
+# frozen_string_literal: true
+
+class ResultVerificationJob < ApplicationJob
+  sidekiq_options queue: :verifications, retry: 3
+
+  sidekiq_retry_in { |count, _| [30.seconds, 2.minutes, 10.minutes][count] || 30.minutes }
+
+  def perform(result_id, _user_id = nil)
+    result = Result.find_by(id: result_id)
+    return if result.nil? || result.verification_status == "verified"
+    return if throttled?(result)
+
+    keyword_groups = Results::DorkParser.parse_groups(result.search.query_conditions)
+    fetch_res = Results::StreamingPageFetcher.fetch_and_match(result.url, keyword_groups: keyword_groups)
+
+    if fetch_res.status == :verified
+      apply_successful_verification(result, fetch_res, keyword_groups)
+    else
+      apply_failed_verification(result, fetch_res, keyword_groups)
+    end
+  end
+
+  private
+
+  def throttled?(result)
+    domain = extract_domain(result.url)
+    return false unless domain
+
+    cache_key = "domain_throttle:#{domain}"
+
+    acquired = Rails.cache.write(cache_key, true, nx: true, expires_in: 3.seconds)
+
+    unless acquired
+      self.class.perform_in(rand(3..6).seconds, result.id)
+      return true
+    end
+
+    false
+  end
+
+  def extract_domain(url)
+    URI.parse(url).host
+  rescue StandardError
+    nil
+  end
+
+  def apply_successful_verification(result, fetch_res, keyword_groups)
+    rank_result = Results::RelevanceRanker.call(
+      result,
+      fetch_res.text,
+      keyword_groups,
+      result.url,
+      strict_mode: result.search.strict_mode?
+    )
+    merged_kws = (Array(result.matched_keywords) + Array(rank_result.matched_keywords)).uniq
+
+    result.update!(
+      matched_keywords: merged_kws,
+      relevance_score: rank_result.relevance_score,
+      verification_status: "verified"
+    )
+  end
+
+  def apply_failed_verification(result, fetch_res, keyword_groups)
+    attributes = { verification_status: fetch_res.captcha_detected? ? "unverified_captcha" : "unverified_error" }
+
+    if fetch_res.captcha_detected? && Results::RelevanceRanker.captcha_candidate?(
+      result.matched_keywords,
+      keyword_groups,
+      strict_mode: result.search.strict_mode?
+    )
+      attributes[:relevance_score] = [
+        result.relevance_score.to_i,
+        Results::RelevanceRanker::CAPTCHA_SCORE_FLOOR
+      ].max
+    end
+
+    result.update!(attributes)
+  end
+end
+
+
+--- FILE: app/jobs/search_activation_job.rb ---
+# frozen_string_literal: true
+
+class SearchActivationJob < ApplicationJob
+  sidekiq_options queue: :search_activations, retry: 3
+
+  sidekiq_retry_in do |count, _exception|
+    (count + 1).minutes
+  end
+
+  def perform(search_id, _user_id)
+    search = Search.find_by(id: search_id)
+    return unless search
+
+    target_ids = search.targets.active.pluck(:id)
+    SearchCampaigns::Activator.call(search, target_ids, true)
+  end
+end
+
+
+--- FILE: app/jobs/degoog_updater_job.rb ---
+# frozen_string_literal: true
+
+class DegoogUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
+  DEGOOG_IMAGE = ENV.fetch("DEGOOG_IMAGE", "ghcr.io/degoog-org/degoog:latest")
+
+  private
+
+  def image_name
+    DEGOOG_IMAGE
+  end
+
+  def containers_to_update
+    [
+      {
+        service: "degoog",
+        container_name: "finder_degoog"
+      }
+    ]
+  end
+
+  def run_smoke_test(info)
+    service_host = info[:service]
+    response = fetch_smoke_test_response(service_host)
+    validate_response!(response)
+  rescue StandardError => e
+    raise "Smoke test failed for #{service_host}: #{e.message}"
+  end
+
+  def fetch_smoke_test_response(service_host)
+    url = URI("http://#{service_host}:4444/search?q=test")
+
+    req = Net::HTTP::Get.new(url)
+    req["Accept"] = "application/json"
+
+    Net::HTTP.start(url.hostname, url.port, open_timeout: 5, read_timeout: 10) do |http|
+      http.request(req)
+    end
+  end
+
+  def validate_response!(response)
+    raise "Smoke test failed with HTTP code #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+  end
+end
+
+
+--- FILE: app/jobs/target_activation_job.rb ---
+# frozen_string_literal: true
+
+class TargetActivationJob < ApplicationJob
+  include Sidekiq::Job
+
+  sidekiq_options queue: :search_activations, retry: 3
+
+  def perform(target_id, search_ids, user_id = nil)
+    target = Target.find_by(id: target_id)
+    return unless target
+
+    user = find_user(target, user_id)
+    return unless user
+
+    searches = fetch_searches(user, search_ids)
+    synchronize_prompts!(target, searches)
+  end
+
+  private
+
+  def find_user(target, user_id)
+    User.find_by(id: user_id) || target.category.user
+  end
+
+  def fetch_searches(user, search_ids)
+    requested_ids = Array(search_ids).compact_blank.map(&:to_s)
+    user.searches.where(id: requested_ids.uniq)
+  end
+
+  def synchronize_prompts!(target, searches)
+    ActiveRecord::Base.transaction do
+      target.prompts.where.not(search_id: searches.select(:id)).destroy_all
+
+      searches.find_each do |search|
+        target.prompts.find_or_create_by!(search: search) do |prompt|
+          prompt.full_query_text = "site:#{target.domain} #{search.query_conditions}"
+        end
+      end
+    end
+  end
+end
+
+
+--- FILE: app/jobs/searxng_updater_job.rb ---
+# frozen_string_literal: true
+
+class SearxngUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
+  CONTAINER_COUNT = ENV.fetch("SEARXNG_URLS", "http://searxng_1:8080").split(",").size
+  SEARXNG_IMAGE = ENV.fetch("SEARXNG_IMAGE", "searxng/searxng:latest")
+
+  private
+
+  def image_name
+    SEARXNG_IMAGE
+  end
+
+  def containers_to_update
+    (1..CONTAINER_COUNT).map do |index|
+      {
+        service: "searxng_#{index}",
+        container_name: "finder_searxng_#{index}",
+        index: index
+      }
+    end
+  end
+
+  def run_smoke_test(info)
+    service_host = info[:service]
+    url = URI("http://#{service_host}:8080/search?q=test&format=json")
+
+    response = Net::HTTP.get_response(url)
+    raise "Smoke test failed with status code #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+    json = JSON.parse(response.body).with_indifferent_access
+    raise "Smoke test payload missing 'results' key" unless json.key?(:results)
+  rescue StandardError => e
+    raise "Smoke test failed for #{service_host}: #{e.message}"
+  end
+end
+
+
+--- FILE: app/jobs/data_export_job.rb ---
+# frozen_string_literal: true
+
+class DataExportJob < ApplicationJob
+  def perform(user_id, tables = nil)
+    user = User.find(user_id)
+
+    Database::DataExportService.new(user, tables: tables).call do |progress, message|
+      broadcast_progress("export", progress, message)
+    end
+  end
+
+  private
+
+  def broadcast_progress(dom_id, progress, message)
+    broadcast_turbo_replace(
+      "data_transfer_channel",
+      target: dom_id,
+      partial: "data_transfers/progress",
+      locals: { id: dom_id, progress: progress, message: message }
+    )
+  end
+end
+
+
+--- FILE: app/jobs/yacy_updater_job.rb ---
+# frozen_string_literal: true
+
+class YacyUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
+  YACY_IMAGE = ENV.fetch("YACY_IMAGE", "yacy/yacy_search_server:latest-alpine")
+
+  private
+
+  def image_name
+    YACY_IMAGE
+  end
+
+  def containers_to_update
+    [{ service: "yacy", container_name: "finder_yacy" }]
+  end
+
+  def before_recreate(info)
+    clean_cache(info[:container_name])
+  end
+
+  def clean_cache(container_name)
+    logger.info "[#{self.class.name}] Cleaning YaCy cache..."
+    system("docker", "exec", container_name, "rm", "-rf", "/opt/yacy_search_server/DATA/INDEX")
+  rescue StandardError => e
+    logger.error "[#{self.class.name}] Failed to clean YaCy cache: #{e.message}"
+  end
+
+  def run_smoke_test(info) # rubocop:disable Metrics/MethodLength
+    service_host = info[:service]
+    url = URI("http://#{service_host}:8090/yacysearch.json?query=test")
+
+    max_retries = 20
+    sleep_interval = 30
+
+    found = false
+    max_retries.times do |attempt|
+      begin
+        response = Net::HTTP.get_response(url)
+        if response.is_a?(Net::HTTPSuccess)
+          json = JSON.parse(response.body).with_indifferent_access
+          if json.key?(:channels)
+            found = true
+            break
+          end
+        end
+      end
+
+      logger.info "[YacyUpdaterJob] Waiting for HTTP server on #{service_host} (#{attempt + 1}/#{max_retries})..."
+      sleep sleep_interval
+    end
+
+    return if found
+
+    raise "Smoke test failed for #{service_host}: Server was not ready after #{max_retries * sleep_interval} seconds"
+  end
+end
+
+
+--- FILE: app/jobs/data_import_job.rb ---
+# frozen_string_literal: true
+
+class DataImportJob < ApplicationJob
+  def perform(file_path, user_id)
+    Database::DataImportService.new(file_path, user_id: user_id).call do |progress, message|
+      broadcast_progress("import", progress, message)
+    end
+  end
+
+  private
+
+  def broadcast_progress(dom_id, progress, message)
+    broadcast_turbo_replace(
+      "data_transfer_channel",
+      target: dom_id,
+      partial: "data_transfers/progress",
+      locals: { id: dom_id, progress: progress, message: message }
+    )
+  end
+end
+
+
+--- FILE: app/jobs/nightly_scraping_cron_job.rb ---
+# frozen_string_literal: true
+
+class NightlyScrapingCronJob < ApplicationJob
+  include Rls::Context
+
+  sidekiq_options queue: :system, retry: 3
+
+  sidekiq_retry_in do |count, _exception|
+    (count + 1) * 2.minutes
+  end
+
+  BASE_DELAY_MINUTES = 3
+
+  def perform
+    Rails.logger.info("[Cron] Nightly scraping pipeline started.")
+
+    index = 0
+
+    User.find_each(batch_size: 100) do |user|
+      with_rls_user(user.id) do
+        fetch_user_eligible_searches.each do |search_id|
+          schedule_search(search_id, user.id, index)
+          index += 1
+        end
+      end
+    end
+
+    Rails.logger.info("[Cron] Nightly scraping pipeline scheduled #{index} searches.")
+  end
+
+  private
+
+  def fetch_user_eligible_searches
+    Search.where(status: %w[completed processing pending failed]).pluck(:id)
+  end
+
+  def schedule_search(search_id, user_id, index)
+    delay_minutes = (index * BASE_DELAY_MINUTES) + (rand(30..180) / 60.0)
+    SearchActivationJob.perform_in(delay_minutes.minutes, search_id, user_id)
+  end
+end
+
+
+--- FILE: app/jobs/fourget_updater_job.rb ---
+# frozen_string_literal: true
+
+class FourgetUpdaterJob < BaseContainerUpdaterJob
+  sidekiq_options queue: :system, retry: 3
+
+  FOURGET_IMAGE = ENV.fetch("FOURGET_IMAGE", "luuul/4get:latest")
+
+  private
+
+  def image_name
+    FOURGET_IMAGE
+  end
+
+  def containers_to_update
+    [
+      {
+        service: "fourget",
+        container_name: "finder_4get"
+      }
+    ]
+  end
+
+  def run_smoke_test(info)
+    service_host = info[:service]
+    response = fetch_smoke_test_response(service_host)
+    validate_response!(response)
+  rescue StandardError => e
+    raise "Smoke test failed for #{service_host}: #{e.message}"
+  end
+
+  def fetch_smoke_test_response(service_host)
+    url = URI("http://#{service_host}:80/api/v1/web?s=test")
+
+    req = Net::HTTP::Get.new(url)
+    req["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36"
+    req["Accept"] = "application/json"
+
+    Net::HTTP.start(url.hostname, url.port, open_timeout: 5, read_timeout: 10) do |http|
+      http.request(req)
+    end
+  end
+
+  def validate_response!(response)
+    raise "Smoke test failed with HTTP code #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+    json = JSON.parse(response.body).with_indifferent_access
+    raise "Smoke test failed: status is not 'ok' (#{json[:status]})" unless json[:status] == "ok"
+    raise "Smoke test payload missing 'web' key" unless json.key?(:web)
+  end
+end
+
+

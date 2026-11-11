@@ -27,8 +27,8 @@
   <% actions = [
     {
       status: "unread",
-      label: "Unread",
-      icon: "↩️",
+      label: "Inbox",
+      icon: "📥",
       confirm_visible: "Move all visible results on this page to Inbox?",
       confirm_all_matching: "Move all matching results in this tab to Inbox?",
       active_class: "bg-breeze-view hover:bg-breeze-border/40 text-breeze-muted hover:text-breeze-text border border-breeze-border",
@@ -68,7 +68,7 @@
        class="flex flex-wrap items-center gap-2 p-2 rounded-lg border border-breeze-border/0">
     <div class="flex items-center gap-2">
       <span class="text-xs font-semibold text-breeze-muted uppercase tracking-wider hidden sm:inline">Bulk actions:</span>
-      <label for="bulk_scope_<%= position %>" class="text-xs font-medium text-breeze-muted tracking-wider">Mark</label>
+      <label for="bulk_scope_<%= position %>" class="text-xs font-medium text-breeze-muted tracking-wider">Move</label>
       <select id="bulk_scope_<%= position %>"
               data-bulk-actions-target="scope"
               data-bulk-actions-scope-select="true"
@@ -79,7 +79,7 @@
       </select>
     </div>
 
-    <span class="text-xs font-medium text-breeze-muted tracking-wider hidden sm:inline">as:</span>
+    <span class="text-xs font-medium text-breeze-muted tracking-wider hidden sm:inline">to:</span>
 
     <% actions.each do |action| %>
       <% action_disabled = !has_results || current_tab == action[:status] %>

@@ -83,7 +83,7 @@ class BaseContainerUpdaterJob
     max_attempts = 30
 
     max_attempts.times do
-      sleep 3
+      sleep 15
 
       status = capture_cmd(
         "docker", "inspect",
