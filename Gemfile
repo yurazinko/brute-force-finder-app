@@ -76,7 +76,7 @@ group :development, :test do
   gem "rubocop-thread_safety"
 
   gem "rspec-github", require: false
-  gem "rspec-rails", "~> 7.1.1"
+  gem "rspec-rails", "~> 8.1.0"
 
   gem "database_cleaner-active_record"
 
