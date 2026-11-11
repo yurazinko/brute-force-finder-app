@@ -122,13 +122,13 @@ RSpec.describe "Results", type: :request do
       assert_select "#bulk_actions_top select[data-bulk-actions-scope-select] option[value='all_matching']", 1
       assert_select "#bulk_actions_bottom select[data-bulk-actions-scope-select] option[value='visible']", 1
       assert_select "#bulk_actions_bottom select[data-bulk-actions-scope-select] option[value='all_matching']", 1
-      assert_select "#bulk_actions_top button[disabled]", text: /Unread/
-      assert_select "#bulk_actions_bottom button[disabled]", text: /Unread/
+      assert_select "#bulk_actions_top button[disabled]", text: /Inbox/
+      assert_select "#bulk_actions_bottom button[disabled]", text: /Inbox/
       %w[Reviewed Starred Trash].each do |label|
         assert_select "#bulk_actions_top button:not([disabled])", text: /#{Regexp.escape(label)}/
         assert_select "#bulk_actions_bottom button:not([disabled])", text: /#{Regexp.escape(label)}/
       end
-      %w[Unread Reviewed Starred Trash].each do |label|
+      %w[Inbox Reviewed Starred Trash].each do |label|
         assert_select "#bulk_actions_top button", text: /#{Regexp.escape(label)}/
         assert_select "#bulk_actions_bottom button", text: /#{Regexp.escape(label)}/
       end
