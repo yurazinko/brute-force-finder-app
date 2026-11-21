@@ -28,6 +28,13 @@ class SearchesController < ApplicationController
     if params[:clone_from].present?
       donor = current_user.searches.find_by(id: params[:clone_from])
       @search = donor ? build_clone_search(donor) : Search.new
+    elsif params[:quick_query].present?
+      query = params[:quick_query].to_s.strip
+      @search = current_user.searches.build(
+        title: query.truncate(120),
+        query_conditions: query,
+        relevance_mode: "balanced"
+      )
     else
       @search = Search.new
     end

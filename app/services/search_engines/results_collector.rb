@@ -9,13 +9,14 @@ module SearchEngines
       SearchEngines::Degoog::RawResultsCollector
     ].freeze
 
-    def self.call(query, options = {}, &)
-      new(query, options).collect(&)
+    def self.call(query, options = {}, on_engine_start: nil, &)
+      new(query, options, on_engine_start: on_engine_start).collect(&)
     end
 
-    def initialize(query, options = {})
+    def initialize(query, options = {}, on_engine_start: nil)
       @query = query
       @options = options
+      @on_engine_start = on_engine_start
     end
 
     def collect(&)
@@ -37,6 +38,7 @@ module SearchEngines
     private
 
     def process_collector_step(collector_class, seen_urls, failed_engines, combined_data, &)
+      notify_engine_start(collector_class)
       result = collector_class.call(@query, @options)
       failed_engines.concat(result[:failed_engines]) if result[:failed_engines].present?
 
@@ -44,6 +46,12 @@ module SearchEngines
       dispatch_batch(fresh_data, collector_class.name, combined_data, &) if fresh_data.any?
 
       result[:error]
+    end
+
+    def notify_engine_start(collector_class)
+      @on_engine_start&.call(collector_class)
+    rescue StandardError => e
+      Rails.logger.warn("[ResultsCollector] Engine progress callback failed: #{e.message}")
     end
 
     def filter_fresh_data(data, seen_urls)

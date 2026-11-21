@@ -91,6 +91,24 @@ RSpec.describe "Searches", type: :request do
       end
     end
 
+    context "with a quick_search_token parameter" do
+      let(:token) { SecureRandom.hex(16) }
+
+      before do
+        allow(QuickSearch::Store).to receive(:fetch).with(token, user_id: user.id).and_return(
+          "query" => "Ruby on Rails remote jobs"
+        )
+      end
+
+      it "prefills the campaign title and query from the quick search" do
+        get new_search_path(quick_search_token: token)
+
+        expect(response).to have_http_status(:ok)
+        assert_select 'input[name="search[title]"][value="Ruby on Rails remote jobs"]'
+        expect(response.body).to include("Ruby on Rails remote jobs")
+      end
+    end
+
     context "with valid clone_from parameter" do
       it "pre-fills form inputs with donor attributes, including the relevance rule" do
         search.update!(relevance_mode: "balanced")

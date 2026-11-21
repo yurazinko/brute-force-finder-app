@@ -62,6 +62,33 @@ RSpec.describe SearchEngines::ResultsCollector do
     end
   end
 
+  describe ".call with engine-start callback" do
+    it "notifies before each collector is called" do
+      events = []
+      allow(SearchEngines::Yacy::RawResultsCollector).to receive(:call) do
+        events << :yacy_called
+        { data: [], failed_engines: [], error: nil }
+      end
+      allow(SearchEngines::Searxng::RawResultsCollector).to receive(:call) do
+        events << :searxng_called
+        { data: [], failed_engines: [], error: nil }
+      end
+      allow(SearchEngines::Fourget::RawResultsCollector).to receive(:call)
+        .and_return(data: [], failed_engines: [], error: nil)
+      allow(SearchEngines::Degoog::RawResultsCollector).to receive(:call)
+        .and_return(data: [], failed_engines: [], error: nil)
+
+      described_class.call(query, options, on_engine_start: ->(collector) { events << collector })
+
+      expect(events.first(4)).to eq([
+                                      SearchEngines::Yacy::RawResultsCollector,
+                                      :yacy_called,
+                                      SearchEngines::Searxng::RawResultsCollector,
+                                      :searxng_called
+                                    ])
+    end
+  end
+
   describe ".call without block (accumulative mode)" do
     before do
       allow(SearchEngines::Yacy::RawResultsCollector).to receive(:call)

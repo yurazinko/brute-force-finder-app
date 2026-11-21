@@ -1,0 +1,5 @@
+<% quick_search = defined?(@quick_search) ? @quick_search : local_assigns[:quick_search] %>
+<% token = defined?(@token) ? @token : local_assigns[:token] %>
+<%= turbo_stream.update "quick_search_status" do %>
+  <%= render "quick_searches/status_content", quick_search: quick_search, token: token %>
+<% end %>
