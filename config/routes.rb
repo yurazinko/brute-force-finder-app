@@ -18,6 +18,12 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  resources :quick_searches, only: %i[create show], param: :token do
+    member do
+      get :status
+    end
+  end
+
   resources :searches, only: %i[index show new edit update create destroy] do
     member do
       post :activate
@@ -47,5 +53,5 @@ Rails.application.routes.draw do
     end
   end
 
-  root "searches#index"
+  root "quick_searches#show"
 end

@@ -47,8 +47,12 @@
 
               <!-- Main Links -->
               <div class="hidden md:flex items-center space-x-1 font-medium text-xs sm:text-sm">
+                <%= link_to root_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "quick_searches" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Quick Search
+                <% end %>
+
                 <%= link_to searches_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "searches" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
-                  Searches
+                  Campaigns
                 <% end %>
 
                 <%= link_to results_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "results" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
