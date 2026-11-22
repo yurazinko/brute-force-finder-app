@@ -11,92 +11,91 @@ module QuickSearch
       matched_keywords verification_status created_at
     ].freeze
 
-    UPDATE_SCRIPT = <<~LUA
-      local raw = redis.call('GET', KEYS[1])
-      if not raw then return nil end
-      local data = cjson.decode(raw)
-      if data['status'] == 'cleared' then return nil end
-      local attributes = cjson.decode(ARGV[1])
-      for key, value in pairs(attributes) do
-        data[key] = value
-      end
-      local encoded = cjson.encode(data)
-      redis.call('SET', KEYS[1], encoded, 'EX', ARGV[2])
-      return encoded
-    LUA
+    module Keys
+      module_function
 
-    COMPLETE_VERIFICATION_SCRIPT = <<~LUA
-      local raw = redis.call('GET', KEYS[1])
-      if not raw then return nil end
+      def data(token) = "quick_search:v1:#{token}:data"
 
-      local data = cjson.decode(raw)
-      if data['status'] == 'cleared' then return nil end
+      def results(token) = "quick_search:v1:#{token}:results"
 
-      local claimed = redis.call('SET', KEYS[2], '1', 'NX', 'EX', ARGV[1])
-      if not claimed then return nil end
+      def verification_done(token, url_hash) = "quick_search:v1:#{token}:verification:#{url_hash}"
+    end
 
-      local completed = tonumber(data['verification_completed_count'] or 0) + 1
-      local pending = math.max(tonumber(data['verification_pending_count'] or 0) - 1, 0)
-      local total = tonumber(data['verification_total_count'] or 0)
+    module Scripts
+      UPDATE = <<~LUA
+        local raw = redis.call('GET', KEYS[1])
+        if not raw then return nil end
+        local data = cjson.decode(raw)
+        if data['status'] == 'cleared' then return nil end
+        local attributes = cjson.decode(ARGV[1])
+        for key, value in pairs(attributes) do
+          data[key] = value
+        end
+        local encoded = cjson.encode(data)
+        redis.call('SET', KEYS[1], encoded, 'EX', ARGV[2])
+        return encoded
+      LUA
 
-      data['verification_completed_count'] = completed
-      data['verification_pending_count'] = pending
+      COMPLETE_VERIFICATION = <<~LUA
+        local raw = redis.call('GET', KEYS[1])
+        if not raw then return nil end
 
-      if pending == 0 and data['engines_finished'] then
-        data['status'] = 'completed'
-        data['active_engine'] = cjson.null
-        data['message'] = 'Search complete — ' .. tostring(tonumber(data['results_count'] or 0)) .. ' results found.'
-      else
-        data['status'] = 'verifying'
-        data['active_engine'] = 'Verification'
-        data['message'] = 'Verifying results (' .. tostring(completed) .. '/' .. tostring(total) .. ')…'
-      end
+        local data = cjson.decode(raw)
+        if data['status'] == 'cleared' then return nil end
 
-      local encoded = cjson.encode(data)
-      redis.call('SET', KEYS[1], encoded, 'EX', ARGV[1])
-      return encoded
-    LUA
+        local claimed = redis.call('SET', KEYS[2], '1', 'NX', 'EX', ARGV[1])
+        if not claimed then return nil end
 
-    APPEND_RESULTS_SCRIPT = <<~LUA
-      local raw = redis.call('GET', KEYS[1])
-      if not raw then return 0 end
+        local completed = tonumber(data['verification_completed_count'] or 0) + 1
+        local pending = math.max(tonumber(data['verification_pending_count'] or 0) - 1, 0)
+        local total = tonumber(data['verification_total_count'] or 0)
 
-      local data = cjson.decode(raw)
-      if data['status'] == 'cleared' then return 0 end
+        data['verification_completed_count'] = completed
+        data['verification_pending_count'] = pending
 
-      for index = 2, #ARGV do
-        redis.call('RPUSH', KEYS[2], ARGV[index])
-      end
-      redis.call('EXPIRE', KEYS[2], ARGV[1])
-      return #ARGV - 1
-    LUA
+        if pending == 0 and data['engines_finished'] then
+          data['status'] = 'completed'
+          data['active_engine'] = cjson.null
+          data['message'] = 'Search complete — ' .. tostring(tonumber(data['results_count'] or 0)) .. ' results found.'
+        else
+          data['status'] = 'verifying'
+          data['active_engine'] = 'Verification'
+          data['message'] = 'Verifying results (' .. tostring(completed) .. '/' .. tostring(total) .. ')…'
+        end
+
+        local encoded = cjson.encode(data)
+        redis.call('SET', KEYS[1], encoded, 'EX', ARGV[1])
+        return encoded
+      LUA
+
+      APPEND_RESULTS = <<~LUA
+        local raw = redis.call('GET', KEYS[1])
+        if not raw then return 0 end
+
+        local data = cjson.decode(raw)
+        if data['status'] == 'cleared' then return 0 end
+
+        for index = 2, #ARGV do
+          redis.call('RPUSH', KEYS[2], ARGV[index])
+        end
+        redis.call('EXPIRE', KEYS[2], ARGV[1])
+        return #ARGV - 1
+      LUA
+    end
 
     class << self
       def create!(token:, user_id:, query:)
         validate_token!(token)
-        data = {
-          "token" => token,
-          "user_id" => user_id,
-          "query" => query,
-          "status" => "queued",
-          "message" => "Preparing your search…",
-          "active_engine" => nil,
-          "results_count" => 0,
-          "failed_engines" => [],
-          "engines_finished" => false,
-          "verification_total_count" => 0,
-          "verification_completed_count" => 0,
-          "verification_pending_count" => 0
-        }
+        payload = initial_payload(token: token, user_id: user_id, query: query)
 
         Sidekiq.redis do |redis|
           redis.multi do |transaction|
-            transaction.set(data_key(token), JSON.generate(data), ex: TTL)
-            transaction.del(results_key(token))
+            transaction.set(Keys.data(token), JSON.generate(payload), ex: TTL)
+            transaction.del(Keys.results(token))
           end
         end
 
-        data
+        payload
       end
 
       def fetch(token, user_id: :any)
@@ -116,28 +115,23 @@ module QuickSearch
         serialized = Sidekiq.redis do |redis|
           eval_script(
             redis,
-            UPDATE_SCRIPT,
-            keys: [data_key(token)],
+            Scripts::UPDATE,
+            keys: [Keys.data(token)],
             argv: [JSON.generate(attributes.stringify_keys), TTL]
           )
         end
-        serialized.present? ? JSON.parse(serialized) : nil
-      rescue JSON::ParserError
-        nil
+        parse_json_or_nil(serialized)
       end
 
       def append_results(token, records)
         return if records.blank? || !valid_token?(token)
 
-        serialized = records.map do |record|
-          record.stringify_keys.slice(*RESULT_FIELDS).to_json
-        end
-
+        serialized = records.map { |record| record.stringify_keys.slice(*RESULT_FIELDS).to_json }
         Sidekiq.redis do |redis|
           eval_script(
             redis,
-            APPEND_RESULTS_SCRIPT,
-            keys: [data_key(token), results_key(token)],
+            Scripts::APPEND_RESULTS,
+            keys: [Keys.data(token), Keys.results(token)],
             argv: [TTL, *serialized]
           )
         end
@@ -155,7 +149,7 @@ module QuickSearch
           results_count: 0,
           verification_pending_count: 0
         )
-        keys = [results_key(token), *hashes.map { |url_hash| verification_done_key(token, url_hash) }]
+        keys = [Keys.results(token), *hashes.map { |url_hash| Keys.verification_done(token, url_hash) }]
         Sidekiq.redis { |redis| redis.del(*keys) }
         updated.present?
       end
@@ -163,12 +157,8 @@ module QuickSearch
       def results(token, user_id: :any)
         return [] unless fetch(token, user_id: user_id)
 
-        entries = Sidekiq.redis { |redis| redis.lrange(results_key(token), 0, -1) }
-        entries.filter_map do |entry|
-          JSON.parse(entry)
-        rescue JSON::ParserError
-          nil
-        end
+        entries = Sidekiq.redis { |redis| redis.lrange(Keys.results(token), 0, -1) }
+        entries.filter_map { |entry| parse_json_or_nil(entry) }
       end
 
       def result(token, url_hash:, user_id: :any)
@@ -178,21 +168,13 @@ module QuickSearch
       def update_result!(token, url_hash:, attributes:)
         return unless valid_token?(token)
 
-        updated_record = nil
         Sidekiq.redis do |redis|
-          entries = redis.lrange(results_key(token), 0, -1)
-          index = entries.index do |entry|
-            JSON.parse(entry)["url_hash"] == url_hash
-          rescue JSON::ParserError
-            false
-          end
+          entries = redis.lrange(Keys.results(token), 0, -1)
+          index = find_result_index(entries, url_hash)
           next unless index
 
-          updated_record = JSON.parse(entries[index]).merge(attributes.stringify_keys)
-          redis.lset(results_key(token), index, JSON.generate(updated_record))
-          redis.expire(results_key(token), TTL)
+          replace_result_at(redis, token, entries[index], index, attributes)
         end
-        updated_record
       rescue JSON::ParserError
         nil
       end
@@ -216,17 +198,38 @@ module QuickSearch
         serialized = Sidekiq.redis do |redis|
           eval_script(
             redis,
-            COMPLETE_VERIFICATION_SCRIPT,
-            keys: [data_key(token), verification_done_key(token, url_hash)],
+            Scripts::COMPLETE_VERIFICATION,
+            keys: [Keys.data(token), Keys.verification_done(token, url_hash)],
             argv: [TTL]
           )
         end
-        serialized.present? ? JSON.parse(serialized) : nil
-      rescue JSON::ParserError
-        nil
+        parse_json_or_nil(serialized)
       end
 
       private
+
+      def initial_payload(token:, user_id:, query:)
+        {
+          "token" => token, "user_id" => user_id, "query" => query,
+          "status" => "queued", "message" => "Preparing your search…",
+          "active_engine" => nil, "results_count" => 0, "failed_engines" => [],
+          "engines_finished" => false, "verification_total_count" => 0,
+          "verification_completed_count" => 0, "verification_pending_count" => 0
+        }
+      end
+
+      def find_result_index(entries, url_hash)
+        entries.index do |entry|
+          parse_json_or_nil(entry)&.dig("url_hash") == url_hash
+        end
+      end
+
+      def replace_result_at(redis, token, raw_entry, index, attributes)
+        updated_record = JSON.parse(raw_entry).merge(attributes.stringify_keys)
+        redis.lset(Keys.results(token), index, JSON.generate(updated_record))
+        redis.expire(Keys.results(token), TTL)
+        updated_record
+      end
 
       # Sidekiq 8 uses RedisClient rather than redis-rb. Its compatibility
       # adapter forwards unknown commands as raw Redis commands, so the
@@ -237,17 +240,16 @@ module QuickSearch
       end
 
       def read_data(token)
-        serialized = Sidekiq.redis { |redis| redis.get(data_key(token)) }
-        serialized.present? ? JSON.parse(serialized) : nil
+        parse_json_or_nil(Sidekiq.redis { |redis| redis.get(Keys.data(token)) })
+      end
+
+      def parse_json_or_nil(raw)
+        return nil if raw.blank?
+
+        JSON.parse(raw)
       rescue JSON::ParserError
         nil
       end
-
-      def data_key(token) = "quick_search:v1:#{token}:data"
-
-      def results_key(token) = "quick_search:v1:#{token}:results"
-
-      def verification_done_key(token, url_hash) = "quick_search:v1:#{token}:verification:#{url_hash}"
 
       def valid_token?(token) = token.to_s.match?(/\A[a-f0-9]{32}\z/)
 

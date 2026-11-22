@@ -4,46 +4,44 @@ class QuickSearchResultVerificationJob < ApplicationJob
   sidekiq_options queue: :verifications, retry: 0
 
   def perform(token, user_id, url_hash)
-    quick_search = QuickSearch::Store.fetch(token, user_id: user_id)
-    return unless quick_search
+    @token = token
+    @user_id = user_id
+    @url_hash = url_hash
+    @search = nil
 
-    attributes = QuickSearch::Store.result(token, url_hash: url_hash, user_id: user_id)
-    return unless attributes && attributes["verification_status"] == "pending"
+    return unless pending_verification_needed?
 
-    search = build_transient_search(quick_search, user_id)
-    result = Result.new(attributes).tap { |record| record.search = search }
-    keyword_groups = Results::DorkParser.parse_groups(search.query_conditions)
+    @search = build_transient_search
+    result = build_result(load_attributes)
+    keyword_groups = Results::DorkParser.parse_groups(@search.query_conditions)
 
-    publish_progress(quick_search, token)
-
-    updated_attributes = verification_attributes(result, keyword_groups)
-    updated = QuickSearch::Store.update_result!(token, url_hash: url_hash, attributes: updated_attributes)
-    if updated
-      verified_result = Result.new(updated).tap { |record| record.search = search }
-      QuickSearch::Broadcaster.replace_result(token, verified_result)
-    end
+    publish_progress
+    persist_and_broadcast(verification_attributes(result, keyword_groups))
   rescue StandardError => e
-    Rails.logger.warn(
-      "[QuickSearchResultVerificationJob] Verification failed for #{url_hash}: #{e.class}: #{e.message}"
-    )
-    updated = QuickSearch::Store.update_result!(
-      token,
-      url_hash: url_hash,
-      attributes: { verification_status: "unverified_error" }
-    )
-    if updated && defined?(search) && search
-      QuickSearch::Broadcaster.replace_result(token, Result.new(updated).tap { |record| record.search = search })
-    end
+    handle_verification_error(e)
   ensure
-    state = QuickSearch::Store.complete_verification!(token, url_hash: url_hash) if token.present? && url_hash.present?
-    QuickSearch::Broadcaster.status(token, state) if state
+    finalize_verification
   end
 
   private
 
-  def build_transient_search(quick_search, user_id)
-    user = User.find_by(id: user_id) if user_id.present?
-    query = quick_search.fetch("query")
+  attr_reader :token, :user_id, :url_hash, :search
+
+  def pending_verification_needed?
+    @quick_search = QuickSearch::Store.fetch(token, user_id: user_id)
+    return false unless @quick_search
+
+    attributes = load_attributes
+    attributes.present? && attributes["verification_status"] == "pending"
+  end
+
+  def load_attributes
+    QuickSearch::Store.result(token, url_hash: url_hash, user_id: user_id)
+  end
+
+  def build_transient_search
+    user = user_id.present? ? User.find_by(id: user_id) : nil
+    query = @quick_search.fetch("query")
 
     Search.new(
       user: user,
@@ -53,9 +51,13 @@ class QuickSearchResultVerificationJob < ApplicationJob
     )
   end
 
-  def publish_progress(quick_search, token)
-    total = quick_search.fetch("verification_total_count", 0).to_i
-    completed = quick_search.fetch("verification_completed_count", 0).to_i
+  def build_result(attributes)
+    Result.new(attributes).tap { |record| record.search = search }
+  end
+
+  def publish_progress
+    total = @quick_search.fetch("verification_total_count", 0).to_i
+    completed = @quick_search.fetch("verification_completed_count", 0).to_i
     state = QuickSearch::Store.update!(
       token,
       status: "verifying",
@@ -76,19 +78,24 @@ class QuickSearchResultVerificationJob < ApplicationJob
     elsif fetch_result.error?
       { verification_status: "unverified_error" }
     else
-      rank = Results::RelevanceRanker.call(
-        result,
-        fetch_result.text,
-        keyword_groups,
-        result.url,
-        strict_mode: result.search.strict_mode?
-      )
-      {
-        relevance_score: rank.relevance_score,
-        matched_keywords: (Array(result.matched_keywords) + Array(rank.matched_keywords)).uniq,
-        verification_status: "verified"
-      }
+      verified_attributes(result, fetch_result, keyword_groups)
     end
+  end
+
+  def verified_attributes(result, fetch_result, keyword_groups)
+    rank = Results::RelevanceRanker.call(
+      result,
+      fetch_result.text,
+      keyword_groups,
+      result.url,
+      strict_mode: result.search.strict_mode?
+    )
+
+    {
+      relevance_score: rank.relevance_score,
+      matched_keywords: (Array(result.matched_keywords) + Array(rank.matched_keywords)).uniq,
+      verification_status: "verified"
+    }
   end
 
   def captcha_attributes(result, keyword_groups)
@@ -105,5 +112,26 @@ class QuickSearchResultVerificationJob < ApplicationJob
       ].max
     end
     attributes
+  end
+
+  def persist_and_broadcast(attributes)
+    updated = QuickSearch::Store.update_result!(token, url_hash: url_hash, attributes: attributes)
+    return unless updated && search
+
+    QuickSearch::Broadcaster.replace_result(token, build_result(updated))
+  end
+
+  def handle_verification_error(error)
+    Rails.logger.warn(
+      "[QuickSearchResultVerificationJob] Verification failed for #{url_hash}: #{error.class}: #{error.message}"
+    )
+    persist_and_broadcast(verification_status: "unverified_error")
+  end
+
+  def finalize_verification
+    return unless token.present? && url_hash.present?
+
+    state = QuickSearch::Store.complete_verification!(token, url_hash: url_hash)
+    QuickSearch::Broadcaster.status(token, state) if state
   end
 end

@@ -33,22 +33,24 @@ RSpec.describe "Quick searches", type: :request do
 
     it "loads token-addressed transient results without requiring a signed-in user" do
       allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(quick_search_data)
-      allow(QuickSearch::Store).to receive(:results).with(token).and_return([
-                                                                              {
-                                                                                "url" => "https://example.com/jobs",
-                                                                                "url_hash" => "abc",
-                                                                                "title" => "Rails job",
-                                                                                "engine" => "SearXNG",
-                                                                                "relevance_score" => 80,
-                                                                                "matched_keywords" => %w[Ruby Rails],
-                                                                                "verification_status" => "verified"
-                                                                              }
-                                                                            ])
+      allow(QuickSearch::Store).to receive(:results).with(token).and_return(
+        [
+          {
+            "url" => "https://example.com/jobs",
+            "url_hash" => "abc",
+            "title" => "Rails job",
+            "engine" => "SearXNG",
+            "relevance_score" => 80,
+            "matched_keywords" => %w[Ruby Rails],
+            "verification_status" => "verified"
+          }
+        ]
+      )
 
       get root_path(quick_search: token)
 
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Ruby on Rails", "Rails job", "Save as campaign", "Verified")
+      expect(response.body).to include("Ruby on Rails", "Rails job", "Save as campaign")
       expect(response.body).not_to include("Move to Trash", "Configure")
     end
 

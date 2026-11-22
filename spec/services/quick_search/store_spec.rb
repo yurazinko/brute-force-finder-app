@@ -16,7 +16,7 @@ RSpec.describe QuickSearch::Store, type: :service do
 
       expect(redis).to receive(:call).with(
         "EVAL",
-        described_class::UPDATE_SCRIPT,
+        described_class::Scripts::UPDATE,
         "1",
         "quick_search:v1:#{token}:data",
         JSON.generate("status" => "processing", "message" => "Searching…"),
@@ -34,7 +34,7 @@ RSpec.describe QuickSearch::Store, type: :service do
 
       expect(redis).to receive(:call).with(
         "EVAL",
-        described_class::COMPLETE_VERIFICATION_SCRIPT,
+        described_class::Scripts::COMPLETE_VERIFICATION,
         "2",
         "quick_search:v1:#{token}:data",
         "quick_search:v1:#{token}:verification:#{url_hash}",
@@ -52,7 +52,7 @@ RSpec.describe QuickSearch::Store, type: :service do
 
       expect(redis).to receive(:call).with(
         "EVAL",
-        described_class::APPEND_RESULTS_SCRIPT,
+        described_class::Scripts::APPEND_RESULTS,
         "2",
         "quick_search:v1:#{token}:data",
         "quick_search:v1:#{token}:results",

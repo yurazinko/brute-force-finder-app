@@ -47,45 +47,49 @@ module Results
     def groups_from_clause(clause_text)
       return [] if clause_text.blank?
 
-      tokens = clause_text.to_enum(:scan, TOKEN_PATTERN).map do
+      tokens = tokenize_clause(clause_text)
+      state = { groups: [], alternatives: [], expecting_or_term: false }
+
+      tokens.each_with_index do |token_info, index|
+        consume_token(token_info, tokens[index + 1], state)
+      end
+
+      flush_alternatives(state[:groups], state[:alternatives])
+      state[:groups]
+    end
+
+    def tokenize_clause(clause_text)
+      clause_text.to_enum(:scan, TOKEN_PATTERN).map do
         match = Regexp.last_match
         [match[1] || match[2], !match[1].nil?]
       end
+    end
 
-      groups = []
-      alternatives = []
-      expecting_or_term = false
+    def consume_token((token, quoted), next_token, state)
+      operator = quoted ? nil : token.upcase
+      return state[:expecting_or_term] = true if operator == "OR"
 
-      tokens.each_with_index do |(token, quoted), index|
-        operator = quoted ? nil : token.upcase
-
-        if operator == "OR"
-          expecting_or_term = true
-          next
-        end
-
-        if %w[AND NOT].include?(operator)
-          flush_alternatives(groups, alternatives)
-          expecting_or_term = false
-          next
-        end
-
-        next if !quoted && STOP_WORDS.include?(token.downcase)
-
-        next_token = tokens[index + 1]
-        next_is_or = next_token && !next_token[1] && next_token[0].casecmp("OR").zero?
-
-        if expecting_or_term || next_is_or
-          alternatives << token
-          expecting_or_term = false
-          flush_alternatives(groups, alternatives) unless next_is_or
-        else
-          groups << [token]
-        end
+      if %w[AND NOT].include?(operator)
+        flush_alternatives(state[:groups], state[:alternatives])
+        state[:expecting_or_term] = false
+        return
       end
 
-      flush_alternatives(groups, alternatives)
-      groups
+      return if !quoted && STOP_WORDS.include?(token.downcase)
+
+      append_term(token, next_token, state)
+    end
+
+    def append_term(token, next_token, state)
+      next_is_or = next_token && !next_token[1] && next_token[0].casecmp("OR").zero?
+
+      if state[:expecting_or_term] || next_is_or
+        state[:alternatives] << token
+        state[:expecting_or_term] = false
+        flush_alternatives(state[:groups], state[:alternatives]) unless next_is_or
+      else
+        state[:groups] << [token]
+      end
     end
 
     def flush_alternatives(groups, alternatives)

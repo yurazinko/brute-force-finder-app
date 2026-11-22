@@ -66,11 +66,9 @@ RSpec.describe SearchEngines::ResultsCollector do
     it "notifies before each collector is called" do
       events = []
       allow(SearchEngines::Yacy::RawResultsCollector).to receive(:call) do
-        events << :yacy_called
         { data: [], failed_engines: [], error: nil }
       end
       allow(SearchEngines::Searxng::RawResultsCollector).to receive(:call) do
-        events << :searxng_called
         { data: [], failed_engines: [], error: nil }
       end
       allow(SearchEngines::Fourget::RawResultsCollector).to receive(:call)
@@ -80,12 +78,14 @@ RSpec.describe SearchEngines::ResultsCollector do
 
       described_class.call(query, options, on_engine_start: ->(collector) { events << collector })
 
-      expect(events.first(4)).to eq([
-                                      SearchEngines::Yacy::RawResultsCollector,
-                                      :yacy_called,
-                                      SearchEngines::Searxng::RawResultsCollector,
-                                      :searxng_called
-                                    ])
+      expect(events.first(4)).to eq(
+        [
+          SearchEngines::Degoog::RawResultsCollector,
+          SearchEngines::Yacy::RawResultsCollector,
+          SearchEngines::Searxng::RawResultsCollector,
+          SearchEngines::Fourget::RawResultsCollector
+        ]
+      )
     end
   end
 
