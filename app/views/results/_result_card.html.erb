@@ -1,6 +1,6 @@
 <%
   quick_search = local_assigns[:quick_search] == true
-  current_tab = params[:current_tab].presence || params[:status].presence || "unread"
+  current_tab = quick_search ? "unread" : (params[:current_tab].presence || params[:status].presence || "unread")
   is_on_inbox_tab = [nil, "unread"].include?(current_tab)
 
   is_watched = result.status == 'watched' || result.acknowledged?
@@ -21,7 +21,12 @@
 %>
 
 <div id="<%= card_id %>"
-     <% unless quick_search %>
+     <% if quick_search %>
+       data-quick-result="true"
+       data-relevance-score="<%= score %>"
+       data-verification-status="<%= result.verification_status %>"
+       data-matched-count="<%= keywords.size %>"
+     <% else %>
        data-result-card-id="<%= result.id %>"
        data-controller="read-status result-card"
        data-read-status-url-value="<%= result_path(result) %>"
@@ -58,13 +63,11 @@
       </a>
     </div>
 
-    <!-- Relevance Score: -->
-    <% unless quick_search %>
-      <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Percentage of matched keyword groups; missing the first group is penalized">
-        <span>🎯</span>
-        <span><%= score %></span>
-      </div>
-    <% end %>
+    <!-- Relevance Score -->
+    <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Percentage of matched keyword groups; missing the first group is penalized">
+      <span>🎯</span>
+      <span><%= score %></span>
+    </div>
   </div>
 
   <div class="text-xs text-breeze-muted font-mono flex items-stretch justify-between w-full min-w-0 bg-breeze-view/60 rounded-md border border-breeze-border/40 group overflow-hidden">
@@ -90,7 +93,6 @@
     </p>
   </div>
 
-  <% unless quick_search %>
   <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
     <div class="flex flex-wrap items-center gap-1.5">
       <span class="text-[11px] text-breeze-muted font-semibold uppercase tracking-wider">Matches:</span>
@@ -113,12 +115,10 @@
       </span>
     <% elsif status.start_with?("unverified") %>
       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-2xs" title="Full page fetching failed or required captcha verification">
-        ⚠️ <%= "Unverified: #{status.split('_').last}" %>
+        ⚠️ <%= status == "unverified_captcha" ? "CAPTCHA — not verified" : "Unverified: #{status.split('_').last}" %>
       </span>
     <% end %>
   </div>
-
-  <% end %>
 
   <div class="mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-breeze-border/60">
     <% unless quick_search %>
@@ -191,7 +191,7 @@
     <div class="flex items-center gap-2 <%= quick_search ? 'ml-auto' : 'order-1 sm:order-2 self-start sm:self-auto' %> text-[11px] text-breeze-muted font-medium bg-breeze-view/40 px-2.5 py-1 rounded-md border border-breeze-border/30">
       <span class="font-mono text-breeze-text/80"><%= engine %></span>
       <span class="text-breeze-border">•</span>
-      <span>Discovered <%= time_ago_in_words(result.created_at) %> ago</span>
+      <span><% if result.created_at.present? %>Discovered <%= time_ago_in_words(result.created_at) %> ago<% else %>Discovered recently<% end %></span>
     </div>
   </div>
 </div>

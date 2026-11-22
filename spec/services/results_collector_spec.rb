@@ -89,6 +89,23 @@ RSpec.describe SearchEngines::ResultsCollector do
     end
   end
 
+  describe "disabled_engines option" do
+    it "skips disabled collectors and does not pass the option to enabled collectors" do
+      allow(SearchEngines::Yacy::RawResultsCollector).to receive(:call)
+      allow(SearchEngines::Searxng::RawResultsCollector).to receive(:call)
+        .and_return(data: [{ url: "https://example.com/1" }], failed_engines: [], error: nil)
+      allow(SearchEngines::Fourget::RawResultsCollector).to receive(:call)
+        .and_return(data: [], failed_engines: [], error: nil)
+      allow(SearchEngines::Degoog::RawResultsCollector).to receive(:call)
+        .and_return(data: [], failed_engines: [], error: nil)
+
+      described_class.call(query, disabled_engines: [:yacy])
+
+      expect(SearchEngines::Yacy::RawResultsCollector).not_to have_received(:call)
+      expect(SearchEngines::Searxng::RawResultsCollector).to have_received(:call).with(query, {})
+    end
+  end
+
   describe ".call without block (accumulative mode)" do
     before do
       allow(SearchEngines::Yacy::RawResultsCollector).to receive(:call)

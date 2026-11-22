@@ -3,19 +3,20 @@
 module SearchEngines
   class ResultsCollector
     COLLECTORS = [
+      SearchEngines::Degoog::RawResultsCollector,
       SearchEngines::Yacy::RawResultsCollector,
       SearchEngines::Searxng::RawResultsCollector,
-      SearchEngines::Fourget::RawResultsCollector,
-      SearchEngines::Degoog::RawResultsCollector
+      SearchEngines::Fourget::RawResultsCollector
     ].freeze
 
-    def self.call(query, options = {}, on_engine_start: nil, &)
-      new(query, options, on_engine_start: on_engine_start).collect(&)
+    def self.call(query, options = {}, on_engine_start: nil, **keyword_options, &)
+      merged_options = options.to_h.merge(keyword_options)
+      new(query, merged_options, on_engine_start: on_engine_start).collect(&)
     end
 
     def initialize(query, options = {}, on_engine_start: nil)
       @query = query
-      @options = options
+      @options = options || {}
       @on_engine_start = on_engine_start
     end
 
@@ -26,7 +27,7 @@ module SearchEngines
       streaming = block_given?
       combined_data = streaming ? nil : []
 
-      COLLECTORS.each do |collector_class|
+      enabled_collectors.each do |collector_class|
         err = process_collector_step(collector_class, seen_urls, failed_engines, combined_data, &)
         last_error = err if err.present?
       end
@@ -37,9 +38,25 @@ module SearchEngines
 
     private
 
+    def enabled_collectors
+      disabled = Array(@options[:disabled_engines]).map { |engine| normalize_engine_name(engine) }
+      COLLECTORS.reject { |collector| disabled.include?(normalize_engine_name(collector)) }
+    end
+
+    def normalize_engine_name(engine)
+      name = engine.is_a?(Class) ? engine.name : engine.to_s
+      parts = name.split("::")
+      name = parts[-2] if parts.last.to_s.end_with?("RawResultsCollector") && parts.size > 1
+      name.to_s.delete_suffix("RawResultsCollector").downcase
+    end
+
+    def collector_options
+      @options.except(:disabled_engines)
+    end
+
     def process_collector_step(collector_class, seen_urls, failed_engines, combined_data, &)
       notify_engine_start(collector_class)
-      result = collector_class.call(@query, @options)
+      result = collector_class.call(@query, collector_options)
       failed_engines.concat(result[:failed_engines]) if result[:failed_engines].present?
 
       fresh_data = filter_fresh_data(result[:data], seen_urls)

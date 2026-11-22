@@ -20,10 +20,21 @@ class YacyUpdaterJob < BaseContainerUpdaterJob
   end
 
   def clean_cache(container_name)
-    logger.info "[#{self.class.name}] Cleaning YaCy cache..."
-    system("docker", "exec", container_name, "rm", "-rf", "/opt/yacy_search_server/DATA/INDEX")
+    logger.info "[#{self.class.name}] Cleaning YaCy index cache..."
+
+    if container_running?(container_name)
+      system("docker", "exec", container_name, "sh", "-c", "rm -rf /opt/yacy_search_server/DATA/INDEX/*")
+    else
+      volume_name = "#{PROJECT_NAME}_yacy_data"
+      system("docker", "run", "--rm", "-v", "#{volume_name}:/data", "alpine:latest", "sh", "-c",
+             "rm -rf /data/INDEX/*")
+    end
   rescue StandardError => e
     logger.error "[#{self.class.name}] Failed to clean YaCy cache: #{e.message}"
+  end
+
+  def container_running?(container_name)
+    capture_cmd("docker", "inspect", "--format", "{{.State.Running}}", container_name).strip == "true"
   end
 
   def run_smoke_test(info) # rubocop:disable Metrics/MethodLength

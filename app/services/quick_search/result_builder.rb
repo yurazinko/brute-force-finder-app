@@ -21,9 +21,14 @@ module QuickSearch
         normalized_url = Utils::UrlNormalizer.normalize(item[:url])
         next if normalized_url.blank?
 
+        item[:url] = normalized_url
+        filter = Results::ResultFilter.new(item, @prompt, @search)
+        next unless filter.valid?
+
         url_hash = Utils::UrlNormalizer.hash(normalized_url)
         next unless url_hash.present? && @seen_hashes.add?(url_hash)
 
+        rank = filter.rank_result
         result = Result.new(
           url: normalized_url,
           url_hash: url_hash,
@@ -32,9 +37,9 @@ module QuickSearch
           engine: item[:engine],
           status: "unread",
           acknowledged: false,
-          relevance_score: 0,
-          matched_keywords: [],
-          verification_status: "not_requested",
+          relevance_score: rank.relevance_score,
+          matched_keywords: rank.matched_keywords,
+          verification_status: rank.verification_status,
           created_at: Time.current,
           updated_at: Time.current
         )

@@ -25,16 +25,28 @@ class SearchesController < ApplicationController
   end
 
   def new
+    @form_back_path = searches_path
+    @form_back_label = "⬅️ Back to List"
+
     if params[:clone_from].present?
       donor = current_user.searches.find_by(id: params[:clone_from])
       @search = donor ? build_clone_search(donor) : Search.new
-    elsif params[:quick_query].present?
-      query = params[:quick_query].to_s.strip
-      @search = current_user.searches.build(
-        title: query.truncate(120),
-        query_conditions: query,
-        relevance_mode: "balanced"
-      )
+    elsif params[:quick_search_token].present?
+      quick_search = QuickSearch::Store.fetch(params[:quick_search_token])
+      if quick_search
+        query = quick_search.fetch("query")
+        token = quick_search.fetch("token", params[:quick_search_token])
+        @form_back_path = root_path(quick_search: token)
+        @form_back_label = "⬅️ Back to Quick Search Results"
+        @search = current_user.searches.build(
+          title: "Search for #{query}".truncate(120),
+          query_conditions: QuickSearch::QueryFormatter.call(query),
+          relevance_mode: Search::DEFAULT_RELEVANCE_MODE
+        )
+      else
+        @search = Search.new
+        flash.now[:alert] = "This quick search session has expired. Run the search again."
+      end
     else
       @search = Search.new
     end

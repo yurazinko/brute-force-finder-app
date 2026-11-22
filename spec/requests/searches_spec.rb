@@ -95,8 +95,8 @@ RSpec.describe "Searches", type: :request do
       let(:token) { SecureRandom.hex(16) }
 
       before do
-        allow(QuickSearch::Store).to receive(:fetch).with(token, user_id: user.id).and_return(
-          "query" => "Ruby on Rails remote jobs"
+        allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(
+          "query" => 'Ruby "on Rails" remote jobs'
         )
       end
 
@@ -104,8 +104,12 @@ RSpec.describe "Searches", type: :request do
         get new_search_path(quick_search_token: token)
 
         expect(response).to have_http_status(:ok)
-        assert_select 'input[name="search[title]"][value="Ruby on Rails remote jobs"]'
-        expect(response.body).to include("Ruby on Rails remote jobs")
+        title_input = css_select('input[name="search[title]"]').first
+        expect(title_input["value"]).to eq('Search for Ruby "on Rails" remote jobs')
+        expect(response.body).to include(root_path(quick_search: token))
+        builder = css_select("[data-react-portal-initial-value-value]").first
+        expect(builder["data-react-portal-initial-value-value"])
+          .to eq('"Ruby" "on Rails" "remote" "jobs"')
       end
     end
 

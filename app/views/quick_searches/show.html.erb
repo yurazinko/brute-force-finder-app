@@ -5,7 +5,7 @@
       <p class="text-sm text-breeze-muted">Search the web across all configured search engines.</p>
     </div>
 
-    <%= form_with url: quick_searches_path, method: :post, class: "flex flex-col sm:flex-row items-stretch gap-2 max-w-3xl mx-auto" do %>
+    <%= form_with url: quick_searches_path, method: :post, class: "flex flex-col sm:flex-row items-stretch gap-2 mx-auto" do %>
       <%= text_field_tag :query, @query, required: true, maxlength: QuickSearch::Store::MAX_QUERY_LENGTH,
                          placeholder: "Search the web…", autocomplete: "off", autofocus: true,
                          class: "flex-1 min-w-0 min-h-12 rounded-xl border border-breeze-border bg-breeze-view px-4 py-3 text-base text-breeze-text placeholder:text-breeze-muted/60 shadow-sm focus:border-breeze-accent focus:outline-none focus:ring-2 focus:ring-breeze-accent/30" %>
@@ -16,16 +16,29 @@
   <% if @quick_search %>
     <%= turbo_stream_from @quick_search_token, :results %>
 
-    <section class="space-y-4">
-      <div id="quick_search_status" class="rounded-xl border border-breeze-border bg-breeze-view px-4 py-3 shadow-sm" aria-live="polite">
-        <%= render "quick_searches/status_content", quick_search: @quick_search, token: @quick_search_token %>
-      </div>
+    <div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl min-h-[500px] flex flex-col">
+      <section class="space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div id="quick_search_status" class="min-w-0 flex-1 rounded-xl border border-breeze-border bg-breeze-view/40 px-4 py-3 shadow-sm" aria-live="polite">
+            <%= render "quick_searches/status_content", quick_search: @quick_search, token: @quick_search_token %>
+          </div>
 
-      <div id="quick_search_results" class="space-y-4">
-        <% @results.each do |result| %>
-          <%= render "results/result_card", result: result, quick_search: true %>
-        <% end %>
-      </div>
-    </section>
+          <%= button_to "Clear results",
+                        clear_quick_searches_path,
+                        method: :delete,
+                        form: { class: "shrink-0", data: { turbo_confirm: "Clear this temporary search and its results?" } },
+                        class: "w-full sm:w-auto min-h-12 rounded-xl border bg-red-500/10 hover:bg-red-600 bg-red-500/10 px-4 py-3 text-xs font-semibold text-red-400 transition border-red-500/20 hover:border-red-600  hover:text-white cursor-pointer" %>
+        </div>
+
+        <div id="quick_search_results" class="space-y-4" data-controller="quick-search-results">
+          <% @results.each do |result| %>
+            <%= render "results/result_card", result: result, quick_search: true %>
+          <% end %>
+        </div>
+      </section>
+    </div>
   <% end %>
 </div>
+
+
+

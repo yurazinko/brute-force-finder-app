@@ -115,10 +115,28 @@ RSpec.describe Results::ResultFilter, type: :service do
         groups = Results::DorkParser.parse_groups(query)
 
         expect(groups).to contain_exactly(
-          ["ruby on rails", "ruby"],
+          ["ruby", "ruby on rails"],
           %w[krakow cracow],
           ["developer"]
         )
+      end
+
+      it "groups top-level OR alternatives and preserves quoted phrases as one keyword" do
+        expect(Results::DorkParser.parse_groups('"мостиська" OR "городок"'))
+          .to eq([%w[мостиська городок]])
+        expect(Results::DorkParser.parse_groups("мостиська OR городок"))
+          .to eq([%w[мостиська городок]])
+
+        expect(Results::DorkParser.parse_groups('"ruby on rails" developer'))
+          .to eq([["ruby on rails"], ["developer"]])
+        expect(Results::DorkParser.parse_groups("ruby developer"))
+          .to eq([["ruby"], ["developer"]])
+      end
+
+      it "ignores supported search operators while extracting keyword groups" do
+        query = 'site:example.com intitle:ruby inurl:careers (rails OR "ruby on rails")'
+
+        expect(Results::DorkParser.parse_groups(query)).to eq([["rails", "ruby on rails"]])
       end
 
       it "handles lowercased operators like or/and/not without treating them as keywords" do
@@ -129,6 +147,16 @@ RSpec.describe Results::ResultFilter, type: :service do
           %w[react vue],
           ["senior"]
         )
+      end
+
+      it "preserves keyword-group order around parenthesized alternatives" do
+        query = 'first (ruby OR "ruby on rails") last'
+
+        expect(Results::DorkParser.parse_groups(query)).to eq([
+                                                                ["first"],
+                                                                ["ruby", "ruby on rails"],
+                                                                ["last"]
+                                                              ])
       end
     end
 

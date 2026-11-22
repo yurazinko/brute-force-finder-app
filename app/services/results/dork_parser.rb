@@ -3,6 +3,11 @@
 module Results
   class DorkParser
     STOP_WORDS = %w[or and not in on at to for of with by is are be].freeze
+    TOKEN_PATTERN = /"([^"]+)"|([^\s,;]+)/
+    SEARCH_OPERATORS = %w[
+      site tld from inurl allinurl intitle allintitle intext allintext
+      filetype ext after before cache related define
+    ].freeze
 
     def self.parse_groups(query_text)
       new(query_text).parse_groups
@@ -17,39 +22,77 @@ module Results
 
       text = sanitize_query(@query_text)
       groups = []
+      cursor = 0
 
-      text.gsub!(/\(([^)]+)\)/) do
-        extracted = extract_tokens_from_clause(Regexp.last_match(1))
-        groups << extracted if extracted.any?
-        ""
+      text.to_enum(:scan, /\(([^()]*)\)/).each do
+        match = Regexp.last_match
+        groups.concat(groups_from_clause(text[cursor...match.begin(0)]))
+        groups.concat(groups_from_clause(match[1]))
+        cursor = match.end(0)
       end
 
-      remaining = extract_tokens_from_clause(text)
-      remaining.each { |kw| groups << [kw] }
-
+      groups.concat(groups_from_clause(text[cursor..]))
       groups.reject(&:empty?)
     end
 
     private
 
     def sanitize_query(text)
+      operator_pattern = Regexp.union(SEARCH_OPERATORS)
       text.dup
-          .gsub(/\b(site|tld|from):[^\s]+/i, "")
-          .gsub(%r{/\w+}, "")
+          .gsub(/\b(?:#{operator_pattern}):(?:"[^"]*"|'[^']*'|[^\s]+)/i, " ")
+          .gsub(%r{/\w+}, " ")
     end
 
-    def extract_tokens_from_clause(clause_text)
+    def groups_from_clause(clause_text)
       return [] if clause_text.blank?
 
-      quoted_phrases = clause_text.scan(/"([^"]+)"/).flatten
-      clean_unquoted = clause_text.gsub(/"[^"]+"/, "")
-                                  .gsub(/\b(OR|AND|NOT)\b/i, " ")
-                                  .tr(",;", "  ")
+      tokens = clause_text.to_enum(:scan, TOKEN_PATTERN).map do
+        match = Regexp.last_match
+        [match[1] || match[2], !match[1].nil?]
+      end
 
-      unquoted_words = clean_unquoted.split(/\s+/)
-                                     .reject { |w| w.length < 2 || STOP_WORDS.include?(w.downcase) }
+      groups = []
+      alternatives = []
+      expecting_or_term = false
 
-      (quoted_phrases + unquoted_words).uniq
+      tokens.each_with_index do |(token, quoted), index|
+        operator = quoted ? nil : token.upcase
+
+        if operator == "OR"
+          expecting_or_term = true
+          next
+        end
+
+        if %w[AND NOT].include?(operator)
+          flush_alternatives(groups, alternatives)
+          expecting_or_term = false
+          next
+        end
+
+        next if !quoted && STOP_WORDS.include?(token.downcase)
+
+        next_token = tokens[index + 1]
+        next_is_or = next_token && !next_token[1] && next_token[0].casecmp("OR").zero?
+
+        if expecting_or_term || next_is_or
+          alternatives << token
+          expecting_or_term = false
+          flush_alternatives(groups, alternatives) unless next_is_or
+        else
+          groups << [token]
+        end
+      end
+
+      flush_alternatives(groups, alternatives)
+      groups
+    end
+
+    def flush_alternatives(groups, alternatives)
+      return if alternatives.empty?
+
+      groups << alternatives.uniq
+      alternatives.clear
     end
   end
 end

@@ -19,8 +19,12 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
   resources :quick_searches, only: %i[create show], param: :token do
+    collection do
+      delete :clear
+    end
+
     member do
-      get :status
+      get :save_as_campaign
     end
   end
 

@@ -25,6 +25,18 @@ module QuickSearch
       rescue StandardError => e
         Rails.logger.error("[QuickSearch::Broadcaster] Result broadcast failed: #{e.message}")
       end
+
+      def replace_result(token, result)
+        Turbo::StreamsChannel.broadcast_replace_to(
+          token,
+          :results,
+          target: "quick_result_#{result.url_hash}",
+          partial: "results/result_card",
+          locals: { result: result, quick_search: true }
+        )
+      rescue StandardError => e
+        Rails.logger.error("[QuickSearch::Broadcaster] Result update broadcast failed: #{e.message}")
+      end
     end
   end
 end

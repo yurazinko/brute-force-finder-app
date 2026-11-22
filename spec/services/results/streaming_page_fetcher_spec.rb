@@ -21,6 +21,10 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
   describe "#fetch" do
     subject(:fetch) { described_class.new(target_url, keyword_groups: keyword_groups).fetch }
 
+    before do
+      allow(Resolv).to receive(:getaddresses).with("example.com").and_return(["93.184.216.34"])
+    end
+
     context "when stream contains all keyword groups early" do
       let(:first_chunk) { "<html><body><h1>Senior Ruby Developer</h1><p>Position: Remote / Fulltime</p>" }
       let(:second_chunk) { "<div>#{'A' * 50_000}</div></body></html>" }
@@ -72,6 +76,88 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
       end
     end
 
+    context "when the server returns a CAPTCHA or challenge status" do
+      [403, 429, 503].each do |status_code|
+        it "returns a CAPTCHA status for HTTP #{status_code} even without a body marker" do
+          stub_request(:get, target_url).to_return(status: status_code, body: "temporarily unavailable")
+
+          expect(fetch).to be_captcha_detected
+        end
+      end
+    end
+
+    context "when Cloudflare returns a non-success response" do
+      before do
+        stub_request(:get, target_url)
+          .to_return(status: 502, headers: { "Server" => "cloudflare" }, body: "challenge")
+      end
+
+      it "treats the response as a CAPTCHA challenge" do
+        expect(fetch).to be_captcha_detected
+      end
+    end
+
+    context "when a large first chunk contains a CAPTCHA marker" do
+      before do
+        body = "<html><body>#{'a' * 20_000} cf-turnstile#{'b' * 20_000}</body></html>"
+        stub_request(:get, target_url).to_return(body: body)
+      end
+
+      it "checks the first 32 KB even when the first chunk exceeds that size" do
+        result = fetch
+
+        expect(result).to be_captcha_detected
+        expect(result.text).to be_empty
+      end
+    end
+
+    context "when the destination resolves to a private IP address" do
+      before do
+        allow(Resolv).to receive(:getaddresses).with("127.0.0.1").and_return(["127.0.0.1"])
+      end
+
+      it "blocks the request before making an HTTP call" do
+        expect(HTTParty).not_to receive(:get)
+
+        result = described_class.new("http://127.0.0.1/admin", keyword_groups: keyword_groups).fetch
+
+        expect(result).to be_error
+      end
+    end
+
+    context "when a safe result redirects to a private address" do
+      let(:private_redirect) { "http://127.0.0.1:3000/admin" }
+
+      before do
+        allow(Resolv).to receive(:getaddresses).with("127.0.0.1").and_return(["127.0.0.1"])
+        stub_request(:get, target_url).to_return(status: 302, headers: { "Location" => private_redirect })
+      end
+
+      it "rejects the redirect before requesting the private address" do
+        result = fetch
+
+        expect(result).to be_error
+        expect(a_request(:get, private_redirect)).not_to have_been_made
+      end
+    end
+
+    context "when following a safe redirect" do
+      let(:redirect_url) { "https://example.com/redirected_page" }
+
+      before do
+        stub_request(:get, target_url).to_return(status: 302, headers: { "Location" => redirect_url })
+        stub_request(:get, redirect_url)
+          .to_return(status: 200, body: "<html><body>Ruby Remote jobs</body></html>")
+      end
+
+      it "follows the redirect and extracts the final page" do
+        result = fetch
+
+        expect(result).to be_verified
+        expect(result.text).to include("ruby remote jobs")
+      end
+    end
+
     context "when response exceeds MAX_BYTES limit" do
       let(:huge_chunk) { "<html><body>#{'a' * (described_class::MAX_BYTES + 500)}</body></html>" }
 
@@ -79,11 +165,11 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
         stub_request(:get, target_url).to_return(body: huge_chunk)
       end
 
-      it "aborts stream safely and returns partial normalized text" do
+      it "aborts stream safely and keeps the buffered response within the size limit" do
         result = fetch
 
         expect(result).to be_verified
-        expect(result.text.bytesize).to be >= described_class::MAX_BYTES
+        expect(result.text.bytesize).to be <= described_class::MAX_BYTES
       end
     end
 

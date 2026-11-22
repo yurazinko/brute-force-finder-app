@@ -17,6 +17,8 @@ class ApplicationController < ActionController::Base
   private
 
   def check_alerts
+    return unless current_user
+
     @dead_targets_alert = Alerts::DeadTargetsChecker.new(current_user).show_alert?
   end
 
