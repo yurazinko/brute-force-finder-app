@@ -1,7 +1,7 @@
 <div class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4 sm:space-y-6">
   <div class="bg-breeze-view p-4 sm:p-6 shadow-sm border border-breeze-border rounded-xl">
     <%= link_to back_path, class: "inline-flex items-center gap-1.5 text-xs font-semibold text-breeze-muted hover:text-breeze-text transition-colors bg-breeze-bg/60 hover:bg-breeze-bg px-2.5 py-1.5 rounded-lg border border-breeze-border/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent/60 mb-3" do %>
-      <span><%= back_label %></span>
+      <span><%= "⬅️ #{back_label}" %></span>
     <% end %>
     <h1 class="text-xl sm:text-2xl font-bold text-breeze-text tracking-tight"><%= title %></h1>
     <p class="text-xs sm:text-sm text-breeze-muted mt-1">Define the search query, time range, and target websites for this campaign.</p>

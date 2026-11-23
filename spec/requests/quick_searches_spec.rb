@@ -28,7 +28,7 @@ RSpec.describe "Quick searches", type: :request do
       expect(response).to have_http_status(:ok)
       assert_select "form[action='#{quick_searches_path}']"
       assert_select "input[name='query']"
-      assert_select "input[type='submit'][value='Search']"
+      assert_select "input[type='submit'][value='🔍 Search']"
     end
 
     it "loads token-addressed transient results without requiring a signed-in user" do

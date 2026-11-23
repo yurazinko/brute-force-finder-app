@@ -9,7 +9,7 @@
       <%= text_field_tag :query, @query, required: true, maxlength: QuickSearch::Store::MAX_QUERY_LENGTH,
                          placeholder: "Search the web…", autocomplete: "off", autofocus: true,
                          class: "flex-1 min-w-0 min-h-12 rounded-xl border border-breeze-border bg-breeze-view px-4 py-3 text-base text-breeze-text placeholder:text-breeze-muted/60 shadow-sm focus:border-breeze-accent focus:outline-none focus:ring-2 focus:ring-breeze-accent/30" %>
-      <%= submit_tag "Search", class: "min-h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3 text-sm font-bold text-white shadow-sm transition hover:from-blue-500 hover:to-indigo-500 cursor-pointer" %>
+      <%= submit_tag "🔍 Search", class: "min-h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3 text-sm font-bold text-white shadow-sm transition hover:from-blue-500 hover:to-indigo-500 cursor-pointer" %>
     <% end %>
   </section>
 
@@ -23,7 +23,7 @@
             <%= render "quick_searches/status_content", quick_search: @quick_search, token: @quick_search_token %>
           </div>
 
-          <%= button_to "Clear results",
+          <%= button_to "🧹 Clear results",
                         clear_quick_searches_path,
                         method: :delete,
                         form: { class: "shrink-0", data: { turbo_confirm: "Clear this temporary search and its results?" } },

@@ -29,7 +29,7 @@ module SearchCampaigns
       FormState.new(
         search: Search.new,
         back_path: list_path,
-        back_label: "⬅️ Back to List",
+        back_label: "Back to List",
         alert: nil
       )
     end
@@ -41,7 +41,7 @@ module SearchCampaigns
       FormState.new(
         search: search,
         back_path: list_path,
-        back_label: "⬅️ Back to List",
+        back_label: "Back to List",
         alert: nil
       )
     end
@@ -56,7 +56,7 @@ module SearchCampaigns
       FormState.new(
         search: build_search_from_query(query),
         back_path: root_path.call(quick_search: token),
-        back_label: "⬅️ Back to Quick Search Results",
+        back_label: "Back to Quick Search Results",
         alert: nil
       )
     end
@@ -65,7 +65,7 @@ module SearchCampaigns
       FormState.new(
         search: Search.new,
         back_path: list_path,
-        back_label: "⬅️ Back to List",
+        back_label: "Back to List",
         alert: "This quick search session has expired. Run the search again."
       )
     end
