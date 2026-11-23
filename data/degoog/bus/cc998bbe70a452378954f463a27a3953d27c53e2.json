@@ -1,10 +1,10 @@
 {
-  "id": "ee624e6c-f5cb-4690-8021-b50e85323073",
-  "at": 1795454103637,
+  "id": "4c6e62b5-3c4f-4862-b410-13ca19701f9e",
+  "at": 1795458805983,
   "seq": 1,
   "payload": {
     "scope": "cache-clear",
     "key": "favicon-miss",
-    "origin": "1f7b5455d6e1657f"
+    "origin": "f10581337a1091c1"
   }
 }
