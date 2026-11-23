@@ -1,11 +1,26 @@
 <%
   quick_search = local_assigns[:quick_search] == true
+  quick_search_token = local_assigns[:quick_search_token].presence || @quick_search_token
   current_tab = quick_search ? "unread" : (params[:current_tab].presence || params[:status].presence || "unread")
   is_on_inbox_tab = [nil, "unread"].include?(current_tab)
 
   is_watched = result.status == 'watched' || result.acknowledged?
-  should_dim = !quick_search && is_watched && is_on_inbox_tab
+  should_dim = is_watched && is_on_inbox_tab
   card_id = quick_search ? "quick_result_#{result.url_hash}" : dom_id(result)
+  read_status_url = if quick_search
+                      if quick_search_token.present?
+                        mark_as_read_quick_search_path(quick_search_token, url_hash: result.url_hash)
+                      end
+                    else
+                      result_path(
+                        result,
+                        status: params[:status],
+                        current_tab: current_tab,
+                        d: params[:d],
+                        show_acknowledged: params[:show_acknowledged],
+                        show_less_relevant: params[:show_less_relevant]
+                      )
+                    end
 
   engine = result.engine.presence || "N/A"
 
@@ -21,6 +36,7 @@
 %>
 
 <div id="<%= card_id %>"
+     data-controller="<%= quick_search ? 'read-status' : 'read-status result-card' %>"
      <% if quick_search %>
        data-quick-result="true"
        data-relevance-score="<%= score %>"
@@ -28,7 +44,6 @@
        data-matched-count="<%= keywords.size %>"
      <% else %>
        data-result-card-id="<%= result.id %>"
-       data-controller="read-status result-card"
        data-read-status-url-value="<%= result_path(result) %>"
        data-read-status-current-status-value="<%= result.status %>"
      <% end %>
@@ -52,12 +67,10 @@
         target="_blank"
         rel="noopener"
         data-turbo="false"
-        <% unless quick_search %>
-          data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
-          data-current-tab="<%= current_tab %>"
-          data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
-          data-read-status="<%= result.status %>"
-        <% end %>
+        data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead auxclick->read-status#markAsRead"
+        data-current-tab="<%= current_tab %>"
+        data-read-url="<%= read_status_url %>"
+        data-read-status="<%= result.status %>"
         class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate min-w-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" title="<%= result.title.presence || 'Untitled Result' %>">
         <%= result.title.presence || "Untitled Result" %>
       </a>

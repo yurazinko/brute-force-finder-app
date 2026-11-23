@@ -3,7 +3,7 @@
 class QuickSearchesController < ApplicationController
   SESSION_TOKEN_KEY = :quick_search_token
 
-  skip_before_action :authenticate_user!, only: %i[show create save_as_campaign clear]
+  skip_before_action :authenticate_user!, only: %i[show create save_as_campaign mark_as_read clear]
 
   def show
     token = requested_token || session[SESSION_TOKEN_KEY]
@@ -39,6 +39,20 @@ class QuickSearchesController < ApplicationController
 
     session[SESSION_TOKEN_KEY] = token
     redirect_to_campaign_creation(new_search_path(quick_search_token: token))
+  end
+
+  def mark_as_read
+    token = params[:token].to_s
+    return head :not_found unless token.present? && session[SESSION_TOKEN_KEY].to_s == token
+    return head :not_found unless QuickSearch::Store.fetch(token)
+
+    updated_result = QuickSearch::Store.update_result!(
+      token,
+      url_hash: params[:url_hash],
+      attributes: { status: "watched", acknowledged: true }
+    )
+
+    head(updated_result ? :no_content : :not_found)
   end
 
   def clear

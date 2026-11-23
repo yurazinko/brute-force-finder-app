@@ -32,13 +32,13 @@
 
         <div id="quick_search_results" class="space-y-4" data-controller="quick-search-results">
           <% @results.each do |result| %>
-            <%= render "results/result_card", result: result, quick_search: true %>
+            <%= render "results/result_card",
+                       result: result,
+                       quick_search: true,
+                       quick_search_token: @quick_search_token %>
           <% end %>
         </div>
       </section>
     </div>
   <% end %>
 </div>
-
-
-

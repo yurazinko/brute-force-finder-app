@@ -20,7 +20,7 @@ module QuickSearch
           :results,
           target: "quick_search_results",
           partial: "results/result_card",
-          locals: { result: result, quick_search: true }
+          locals: { result: result, quick_search: true, quick_search_token: token }
         )
       rescue StandardError => e
         Rails.logger.error("[QuickSearch::Broadcaster] Result broadcast failed: #{e.message}")
@@ -32,7 +32,7 @@ module QuickSearch
           :results,
           target: "quick_result_#{result.url_hash}",
           partial: "results/result_card",
-          locals: { result: result, quick_search: true }
+          locals: { result: result, quick_search: true, quick_search_token: token }
         )
       rescue StandardError => e
         Rails.logger.error("[QuickSearch::Broadcaster] Result update broadcast failed: #{e.message}")

@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import { renderStreamMessage } from "@hotwired/turbo"
 
 export default class extends Controller {
   markAsRead(event: MouseEvent) {
@@ -11,8 +10,14 @@ export default class extends Controller {
     if (!url) return
 
     if (event.type === "click") {
+      if (event.button !== 0) return
+
       event.preventDefault()
       window.open(link.getAttribute("href") || "", "_blank", "noopener,noreferrer")
+    } else if (event.type === "auxclick") {
+      // Middle-click opens the link in a new tab through the browser's native behavior.
+      // Do not preventDefault or call window.open here; only update its read status.
+      if (event.button !== 1) return
     } else if (event.type === "contextmenu") {
       event.stopPropagation()
     } else {
@@ -55,6 +60,7 @@ export default class extends Controller {
       }
       return response.text()
     })
+    .catch(error => console.error("Could not mark result as read:", error))
   }
 
   private optimisticUpdateCounters(): void {

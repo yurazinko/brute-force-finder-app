@@ -2,7 +2,7 @@
 
 module SearchCampaigns
   class FormBuilder
-    FormState = Struct.new(:search, :back_path, :back_label, :alert, keyword_init: true)
+    FormState = Struct.new(:search, :back_path, :back_label, :alert, :quick_search_token, keyword_init: true)
 
     def initialize(user:, params:, root_path:, list_path:)
       @user = user
@@ -57,7 +57,8 @@ module SearchCampaigns
         search: build_search_from_query(query),
         back_path: root_path.call(quick_search: token),
         back_label: "Back to Quick Search Results",
-        alert: nil
+        alert: nil,
+        quick_search_token: token
       )
     end
 
