@@ -28,6 +28,9 @@ application.register("path-builder", PathBuilderController)
 import PipelineSelectorController from "./pipeline_selector_controller"
 application.register("pipeline-selector", PipelineSelectorController)
 
+import QuickSearchResultsController from "./quick_search_results_controller"
+application.register("quick-search-results", QuickSearchResultsController)
+
 import ReactPortalController from "./react_portal_controller"
 application.register("react-portal", ReactPortalController)
 
@@ -45,3 +48,4 @@ application.register("targets-selector", TargetsSelectorController)
 
 import FlashController from "./flash_controller"
 application.register("flash", FlashController)
+

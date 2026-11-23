@@ -79,22 +79,28 @@ class BaseContainerUpdaterJob
     )
   end
 
-  def wait_for_healthy_status(container_name)
+  def wait_for_healthy_status(container_name) # rubocop:disable Metrics/MethodLength
     max_attempts = 30
 
     max_attempts.times do
       sleep 15
 
-      status = capture_cmd(
+      state_status = capture_cmd("docker", "inspect", "--format", "{{.State.Status}}", container_name).strip
+      health_status = capture_cmd(
         "docker", "inspect",
         "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}",
         container_name
       ).strip
 
-      return if %w[healthy running].include?(status)
+      return if %w[healthy running].include?(health_status) && state_status == "running"
+
+      if state_status == "exited"
+        logs = capture_cmd("docker", "logs", "--tail", "40", container_name)
+        raise "Container #{container_name} exited unexpectedly. Logs:\n#{logs}"
+      end
     end
 
-    logs = capture_cmd("docker", "logs", "--tail", "20", container_name)
+    logs = capture_cmd("docker", "logs", "--tail", "40", container_name)
     last_status = capture_cmd("docker", "inspect", "--format", "{{.State.Status}}", container_name).strip
 
     raise "Container #{container_name} failed check (status: '#{last_status}'). Logs:\n#{logs}"

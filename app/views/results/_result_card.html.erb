@@ -1,9 +1,11 @@
 <%
-  current_tab = params[:current_tab].presence || params[:status].presence || "unread"
+  quick_search = local_assigns[:quick_search] == true
+  current_tab = quick_search ? "unread" : (params[:current_tab].presence || params[:status].presence || "unread")
   is_on_inbox_tab = [nil, "unread"].include?(current_tab)
 
   is_watched = result.status == 'watched' || result.acknowledged?
-  should_dim = is_watched && is_on_inbox_tab
+  should_dim = !quick_search && is_watched && is_on_inbox_tab
+  card_id = quick_search ? "quick_result_#{result.url_hash}" : dom_id(result)
 
   engine = result.engine.presence || "N/A"
 
@@ -18,16 +20,23 @@
   keywords = Array(result.matched_keywords)
 %>
 
-<div id="<%= dom_id(result) %>"
-     data-result-card-id="<%= result.id %>"
-     data-controller="read-status result-card"
-     data-read-status-url-value="<%= result_path(result) %>"
-     data-read-status-current-status-value="<%= result.status %>"
+<div id="<%= card_id %>"
+     <% if quick_search %>
+       data-quick-result="true"
+       data-relevance-score="<%= score %>"
+       data-verification-status="<%= result.verification_status %>"
+       data-matched-count="<%= keywords.size %>"
+     <% else %>
+       data-result-card-id="<%= result.id %>"
+       data-controller="read-status result-card"
+       data-read-status-url-value="<%= result_path(result) %>"
+       data-read-status-current-status-value="<%= result.status %>"
+     <% end %>
      class="p-4 sm:p-5 border border-breeze-border/80 rounded-xl hover:border-breeze-accent/50 hover:bg-breeze-view/40 transition-all bg-breeze-bg/40 flex flex-col gap-3 shadow-xs <%= 'opacity-50 duration-500' if should_dim %>">
 
   <div class="flex items-start justify-between gap-3">
     <div class="flex flex-col gap-1 min-w-0 flex-1">
-      <% if @search.blank? %>
+      <% if !quick_search && @search.blank? %>
         <% parent_search =  result.search %>
         <div class="flex items-center gap-1.5">
           <%= link_to search_path(parent_search),
@@ -43,16 +52,18 @@
         target="_blank"
         rel="noopener"
         data-turbo="false"
-        data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
-        data-current-tab="<%= current_tab %>"
-        data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
-        data-read-status="<%= result.status %>"
+        <% unless quick_search %>
+          data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead"
+          data-current-tab="<%= current_tab %>"
+          data-read-url="<%= result_path(result, status: params[:status], current_tab: current_tab, d: params[:d], show_acknowledged: params[:show_acknowledged], show_less_relevant: params[:show_less_relevant]) %>"
+          data-read-status="<%= result.status %>"
+        <% end %>
         class="text-breeze-accent font-bold hover:underline text-base sm:text-lg leading-snug block truncate min-w-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent rounded-sm" title="<%= result.title.presence || 'Untitled Result' %>">
         <%= result.title.presence || "Untitled Result" %>
       </a>
     </div>
 
-    <!-- Relevance Score: -->
+    <!-- Relevance Score -->
     <div class="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium border <%= score_badge_class %>" title="Percentage of matched keyword groups; missing the first group is penalized">
       <span>🎯</span>
       <span><%= score %></span>
@@ -66,11 +77,13 @@
         </span>
       </div>
 
-      <%= link_to new_target_pattern_path(result_id: result.id, redirect_to: request.path),
-          data: { turbo_frame: "modal" },
-          class: "shrink-0 self-stretch opacity-85 hover:opacity-100 text-[11px] font-sans font-semibold bg-breeze-accent/10 hover:bg-breeze-accent/20 text-breeze-accent px-3 border-l border-breeze-accent/30 transition flex items-center gap-1.5 cursor-pointer rounded-r-md" do %>
-        <span>✨</span>
-        <span>Configure</span>
+      <% unless quick_search %>
+        <%= link_to new_target_pattern_path(result_id: result.id, redirect_to: request.path),
+            data: { turbo_frame: "modal" },
+            class: "shrink-0 self-stretch opacity-85 hover:opacity-100 text-[11px] font-sans font-semibold bg-breeze-accent/10 hover:bg-breeze-accent/20 text-breeze-accent px-3 border-l border-breeze-accent/30 transition flex items-center gap-1.5 cursor-pointer rounded-r-md" do %>
+          <span>✨</span>
+          <span>Configure</span>
+        <% end %>
       <% end %>
     </div>
 
@@ -102,12 +115,13 @@
       </span>
     <% elsif status.start_with?("unverified") %>
       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-2xs" title="Full page fetching failed or required captcha verification">
-        ⚠️ <%= "Unverified: #{status.split('_').last}" %>
+        ⚠️ <%= status == "unverified_captcha" ? "CAPTCHA — not verified" : "Unverified: #{status.split('_').last}" %>
       </span>
     <% end %>
   </div>
 
   <div class="mt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-breeze-border/60">
+    <% unless quick_search %>
     <div class="flex flex-wrap items-center gap-2 order-2 sm:order-1 w-full sm:w-auto">
 
       <% unless result.status == "interesting" %>
@@ -172,10 +186,12 @@
 
     </div>
 
-    <div class="flex items-center gap-2 order-1 sm:order-2 self-start sm:self-auto text-[11px] text-breeze-muted font-medium bg-breeze-view/40 px-2.5 py-1 rounded-md border border-breeze-border/30">
+    <% end %>
+
+    <div class="flex items-center gap-2 <%= quick_search ? 'ml-auto' : 'order-1 sm:order-2 self-start sm:self-auto' %> text-[11px] text-breeze-muted font-medium bg-breeze-view/40 px-2.5 py-1 rounded-md border border-breeze-border/30">
       <span class="font-mono text-breeze-text/80"><%= engine %></span>
       <span class="text-breeze-border">•</span>
-      <span>Discovered <%= time_ago_in_words(result.created_at) %> ago</span>
+      <span><% if result.created_at.present? %>Discovered <%= time_ago_in_words(result.created_at) %> ago<% else %>Discovered recently<% end %></span>
     </div>
   </div>
 </div>

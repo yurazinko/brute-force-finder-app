@@ -25,12 +25,17 @@ class SearchesController < ApplicationController
   end
 
   def new
-    if params[:clone_from].present?
-      donor = current_user.searches.find_by(id: params[:clone_from])
-      @search = donor ? build_clone_search(donor) : Search.new
-    else
-      @search = Search.new
-    end
+    state = SearchCampaigns::FormBuilder.new(
+      user: current_user,
+      params: params,
+      root_path: ->(query = {}) { root_path(query) },
+      list_path: searches_path
+    ).call
+
+    @search = state.search
+    @form_back_path = state.back_path
+    @form_back_label = state.back_label
+    flash.now[:alert] = state.alert if state.alert.present?
   end
 
   def edit; end

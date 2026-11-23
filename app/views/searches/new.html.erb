@@ -1,6 +1,7 @@
 <%= render 'form',
            search: @search,
            title: 'Create New Search Campaign',
-           back_path: searches_path,
-           back_label: '⬅️ Back to List',
+           back_path: @form_back_path || searches_path,
+           back_label: @form_back_label || 'Back to List',
            submit_label: 'Save Criteria' %>
+

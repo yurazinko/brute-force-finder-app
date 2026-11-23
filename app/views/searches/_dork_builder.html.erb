@@ -4,8 +4,15 @@
   </label>
 
   <div data-controller="react-portal"
-       data-react-portal-initial-value-value="<%= initial_value %>"
-       data-react-portal-input-name-value="<%= input_name %>">
+       data-react-portal-initial-value-value="<%= initial_value.to_s %>"
+       data-react-portal-input-name-value="<%= input_name.to_s %>">
+
+    <!-- Raw fallback remains available if the React portal cannot mount. -->
+    <textarea name="<%= input_name %>"
+              rows="4"
+              data-react-portal-fallback
+              aria-label="Raw search query"
+              class="w-full rounded-xl border border-breeze-border bg-breeze-bg px-3 py-2.5 font-mono text-sm text-breeze-text focus:border-breeze-accent focus:outline-none focus:ring-2 focus:ring-breeze-accent/30"><%= initial_value %></textarea>
 
     <!-- Loading Skeleton during React Portal Hydration -->
     <div class="animate-pulse bg-breeze-bg/80 border border-breeze-border/80 rounded-xl p-4 space-y-4 h-[350px]">
@@ -27,3 +34,4 @@
     </p>
   <% end %>
 </div>
+

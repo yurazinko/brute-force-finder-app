@@ -47,21 +47,25 @@
 
               <!-- Main Links -->
               <div class="hidden md:flex items-center space-x-1 font-medium text-xs sm:text-sm">
-                <%= link_to searches_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "searches" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
-                  Searches
+                <%= link_to root_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{controller_name == "quick_searches" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Quick Search
                 <% end %>
 
-                <%= link_to results_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "results" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                <%= link_to searches_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{controller_name == "searches" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  Campaigns
+                <% end %>
+
+                <%= link_to results_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{controller_name == "results" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                   Results
                 <% end %>
 
-                <%= link_to categories_path, class: "px-3 py-1.5 rounded-lg transition-all #{%w[categories targets target_patterns].include?(controller_name) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                <%= link_to categories_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{%w[categories targets target_patterns].include?(controller_name) ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                   Targets
                 <% end %>
 
                 <!-- Statistics Link with Dead Targets Alert Badge -->
                 <div class="relative inline-flex items-center">
-                  <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "dashboards" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
+                  <%= link_to dashboard_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{controller_name == "dashboards" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'}" do %>
                     Statistics
                   <% end %>
 
@@ -79,13 +83,13 @@
             <!-- Right Group: Sync, Profile Settings & Logout -->
             <div class="flex items-center space-x-1 font-medium text-xs sm:text-sm">
               <!-- Data Sync Link -->
-              <%= link_to data_transfers_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "data_transfers" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
+              <%= link_to data_transfers_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{controller_name == "data_transfers" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
                 <span>🔄</span>
                 <span>Sync</span>
               <% end %>
 
               <!-- Edit Profile Link -->
-              <%= link_to edit_user_registration_path, class: "px-3 py-1.5 rounded-lg transition-all #{controller_name == "registrations" && action_name == "edit" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border border-breeze-accent/30 shadow-xs' : 'text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
+              <%= link_to edit_user_registration_path, class: "px-3 py-1.5 rounded-lg border transition-colors #{controller_name == "registrations" && action_name == "edit" ? 'bg-breeze-accent/15 text-breeze-accent font-semibold border-breeze-accent/30 shadow-xs' : 'border-transparent text-breeze-muted hover:text-breeze-text hover:bg-breeze-bg/60'} flex items-center gap-1.5" do %>
                 <span>👤</span>
                 <span class="max-w-[120px] truncate" title="<%= current_user.username %>"><%= current_user.username %></span>
               <% end %>
@@ -95,7 +99,7 @@
               <!-- Log out Button -->
               <%= link_to destroy_user_session_path,
                           data: { turbo_method: :delete },
-                          class: "px-3 py-1.5 rounded-lg transition-all text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-1.5",
+                          class: "px-3 py-1.5 rounded-lg border border-transparent transition-colors text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-1.5",
                           title: "Log out" do %>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
