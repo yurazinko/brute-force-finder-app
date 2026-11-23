@@ -25,6 +25,7 @@ Rails.application.routes.draw do
 
     member do
       get :save_as_campaign
+      patch :mark_as_read
     end
   end
 

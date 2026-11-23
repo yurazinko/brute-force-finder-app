@@ -52,6 +52,9 @@ RSpec.describe "Quick searches", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Ruby on Rails", "Rails job", "Save as campaign")
       expect(response.body).not_to include("Move to Trash", "Configure")
+      assert_select "#quick_result_abc[data-controller='read-status']"
+      assert_select "#quick_result_abc a[data-action*='auxclick->read-status#markAsRead']"
+      assert_select "#quick_result_abc a[data-read-url='#{mark_as_read_quick_search_path(token, url_hash: 'abc')}']"
     end
 
     it "restores the most recent search from the browser session when root is opened without a token" do
@@ -86,6 +89,29 @@ RSpec.describe "Quick searches", type: :request do
       get root_path
       expect(QuickSearch::Store).to have_received(:fetch).with(token).once
     end
+  end
+
+  it "renders already-read quick-search results dimmed" do
+    allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(quick_search_data)
+    allow(QuickSearch::Store).to receive(:results).with(token).and_return(
+      [
+        {
+          "url" => "https://example.com/read-job",
+          "url_hash" => "read-hash",
+          "title" => "Already viewed Rails job",
+          "status" => "watched",
+          "acknowledged" => true,
+          "relevance_score" => 80,
+          "matched_keywords" => ["Ruby"],
+          "verification_status" => "verified"
+        }
+      ]
+    )
+
+    get root_path(quick_search: token)
+
+    expect(response).to have_http_status(:ok)
+    assert_select "#quick_result_read-hash.opacity-50"
   end
 
   describe "POST /quick_searches" do
@@ -148,6 +174,33 @@ RSpec.describe "Quick searches", type: :request do
       get save_as_campaign_quick_search_path(token)
 
       expect(response).to redirect_to(new_search_path(quick_search_token: token))
+    end
+  end
+
+  describe "PATCH /quick_searches/:token/mark_as_read" do
+    it "marks a transient result as watched in the current quick-search session" do
+      allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(quick_search_data)
+      allow(QuickSearch::Store).to receive(:results).with(token).and_return([])
+      get root_path(quick_search: token)
+
+      expect(QuickSearch::Store).to receive(:update_result!).with(
+        token,
+        url_hash: "result-hash",
+        attributes: { status: "watched", acknowledged: true }
+      ).and_return({ "status" => "watched", "acknowledged" => true })
+
+      patch mark_as_read_quick_search_path(token, url_hash: "result-hash")
+
+      expect(response).to have_http_status(:no_content)
+    end
+
+    it "rejects updates for a token that is not stored in the browser session" do
+      allow(QuickSearch::Store).to receive(:update_result!)
+
+      patch mark_as_read_quick_search_path(token, url_hash: "result-hash")
+
+      expect(response).to have_http_status(:not_found)
+      expect(QuickSearch::Store).not_to have_received(:update_result!)
     end
   end
 

@@ -8,6 +8,9 @@
   </div>
 
   <%= form_with(model: search, data: { turbo: false }, class: "space-y-5 sm:space-y-6 bg-breeze-view p-4 sm:p-6 border border-breeze-border rounded-xl shadow-sm") do |f| %>
+    <% if local_assigns[:quick_search_token].present? %>
+      <%= hidden_field_tag :quick_search_token, local_assigns[:quick_search_token] %>
+    <% end %>
 
     <% if search.errors.any? %>
       <div class="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300" role="alert" aria-live="polite">

@@ -107,6 +107,7 @@ RSpec.describe "Searches", type: :request do
         title_input = css_select('input[name="search[title]"]').first
         expect(title_input["value"]).to eq('Search for Ruby "on Rails" remote jobs')
         expect(response.body).to include(root_path(quick_search: token))
+        assert_select "input[name='quick_search_token'][value='#{token}']"
         builder = css_select("[data-react-portal-initial-value-value]").first
         expect(builder["data-react-portal-initial-value-value"])
           .to eq('"Ruby" "on Rails" "remote" "jobs"')
@@ -171,6 +172,68 @@ RSpec.describe "Searches", type: :request do
 
         follow_redirect!
         expect(response.body).to include("Search criteria was successfully created.")
+      end
+    end
+
+    context "when created from Quick Search" do
+      let(:quick_token) { SecureRandom.hex(16) }
+      let(:quick_search_data) do
+        {
+          "token" => quick_token,
+          "user_id" => nil,
+          "query" => "Ruby on Rails",
+          "status" => "completed"
+        }
+      end
+      let(:quick_search_results) do
+        [
+          {
+            "url" => "https://example.com/rails-job",
+            "url_hash" => "quick-result-hash",
+            "title" => "Rails developer",
+            "content" => "Ruby on Rails role",
+            "engine" => "SearXNG",
+            "status" => "watched",
+            "acknowledged" => true,
+            "relevance_score" => 95,
+            "matched_keywords" => %w[Ruby Rails],
+            "verification_status" => "verified",
+            "created_at" => 2.hours.ago.iso8601
+          }
+        ]
+      end
+
+      before do
+        allow(QuickSearch::Store).to receive(:fetch).with(quick_token).and_return(quick_search_data)
+        allow(QuickSearch::Store).to receive(:results).with(quick_token).and_return(quick_search_results)
+        get new_search_path(quick_search_token: quick_token)
+      end
+
+      it "copies transient results and preserves their read status in the saved campaign" do
+        expect do
+          post searches_path,
+               params: {
+                 quick_search_token: quick_token,
+                 search: {
+                   title: "Search for Ruby on Rails",
+                   query_conditions: '"Ruby" "on" "Rails"',
+                   relevance_mode: "balanced"
+                 }
+               }
+        end.to change(Result, :count).by(1)
+
+        created_search = user.searches.order(:id).last
+        imported_result = created_search.results.find_by!(url_hash: "quick-result-hash")
+
+        expect(imported_result.status).to eq("watched")
+        expect(imported_result.acknowledged).to be(true)
+        expect(imported_result.relevance_score).to eq(95)
+        expect(imported_result.matched_keywords).to eq(%w[Ruby Rails])
+        expect(imported_result.verification_status).to eq("verified")
+        expect(response).to redirect_to(search_path(created_search))
+
+        follow_redirect!
+        expect(response.body).to include("1 Quick Search result transferred.")
       end
     end
 
