@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
 class DataImportJob < ApplicationJob
+  sidekiq_options queue: :default, retry: 5
+
+  sidekiq_retries_exhausted do |message, error|
+    file_path = message.dig("args", 0)
+    FileUtils.rm_f(file_path) if file_path.present?
+    Rails.logger.error("[DataImportJob] Retries exhausted: #{error.class}: #{error.message}")
+  end
+
   def perform(file_path, user_id)
     Database::DataImportService.new(file_path, user_id: user_id).call do |progress, message|
       broadcast_progress("import", progress, message)

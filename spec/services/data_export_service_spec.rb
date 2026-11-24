@@ -11,105 +11,135 @@ RSpec.describe Database::DataExportService do
 
   let!(:user_category) { create(:category, user: user) }
   let!(:user_target) { create(:target, category: user_category) }
+  let!(:user_pattern) do
+    TargetPattern.create!(target: user_target, path_pattern: "/jobs", is_active: false)
+  end
   let!(:user_search) { create(:search, user: user) }
-  let!(:user_prompt) { create(:prompt, search: user_search) }
-  let!(:user_result) { create(:result, search: user_search) }
+  let!(:user_prompt) { create(:prompt, search: user_search, target: user_target) }
+  let!(:user_result) { create(:result, search: user_search, target: user_target) }
 
-  # Foreign records (must be excluded from export)
   let!(:other_category) { create(:category, user: other_user) }
   let!(:other_target) { create(:target, category: other_category) }
+  let!(:other_pattern) { TargetPattern.create!(target: other_target, path_pattern: "/private") }
   let!(:other_search) { create(:search, user: other_user) }
-  let!(:other_prompt) { create(:prompt, search: other_search) }
-  let!(:other_result) { create(:result, search: other_search) }
+  let!(:other_prompt) { create(:prompt, search: other_search, target: other_target) }
+  let!(:other_result) { create(:result, search: other_search, target: other_target) }
 
   describe "#call" do
-    it "attaches a valid JSON export to the user via Active Storage by default" do
-      expect(service.call).to be true
+    it "exports every registered table, including target patterns" do
+      expect(service.call).to be(true)
       expect(user.data_export).to be_attached
 
       exported_data = JSON.parse(user.data_export.download)
-      expect(exported_data.keys).to match_array(%w[categories targets searches prompts results])
+      expect(exported_data.keys).to match_array(Database::DataTransferRegistry.table_names)
+      expect(exported_data.fetch("target_patterns").pluck("id")).to contain_exactly(user_pattern.id)
     end
 
-    it "preserves the relevance mode in the exported search record" do
+    it "preserves all data fields serialized by Active Record" do
       user_search.update!(relevance_mode: "balanced")
+      user_result.update!(verification_status: "verified", target_id: user_target.id)
 
-      expect(service.call).to be(true)
-      exported_data = JSON.parse(user.data_export.download)
-
-      expect(exported_data.fetch("searches").first.fetch("relevance_mode")).to eq("balanced")
-    end
-
-    it "exports only records belonging to the given user" do
       service.call
       exported_data = JSON.parse(user.data_export.download)
 
-      category_ids = exported_data["categories"].pluck("id")
-      target_ids   = exported_data["targets"].pluck("id")
-      search_ids   = exported_data["searches"].pluck("id")
-      prompt_ids   = exported_data["prompts"].pluck("id")
-      result_ids   = exported_data["results"].pluck("id")
+      expect(exported_data.fetch("searches").first.fetch("relevance_mode")).to eq("balanced")
+      expect(exported_data.fetch("results").first.fetch("verification_status")).to eq("verified")
+    end
 
-      expect(category_ids).to contain_exactly(user_category.id)
-      expect(target_ids).to contain_exactly(user_target.id)
-      expect(search_ids).to contain_exactly(user_search.id)
-      expect(prompt_ids).to contain_exactly(user_prompt.id)
-      expect(result_ids).to contain_exactly(user_result.id)
+    it "exports only records owned by the given user, including nested target patterns" do
+      service.call
+      exported_data = JSON.parse(user.data_export.download)
 
-      expect(category_ids).not_to include(other_category.id)
-      expect(target_ids).not_to include(other_target.id)
+      expected_ids = {
+        "categories" => [user_category.id],
+        "targets" => [user_target.id],
+        "target_patterns" => [user_pattern.id],
+        "searches" => [user_search.id],
+        "prompts" => [user_prompt.id],
+        "results" => [user_result.id]
+      }
+
+      expected_ids.each do |table, ids|
+        expect(exported_data.fetch(table).pluck("id")).to match_array(ids)
+      end
+
+      expect(exported_data.fetch("target_patterns").pluck("id")).not_to include(other_pattern.id)
+      expect(exported_data.fetch("results").pluck("id")).not_to include(other_result.id)
     end
 
     context "when specific tables are requested" do
       let(:selected_tables) { %w[categories searches] }
 
-      it "exports only the selected tables" do
+      it "exports only the requested tables when no dependencies are needed" do
         service.call
         exported_data = JSON.parse(user.data_export.download)
 
         expect(exported_data.keys).to match_array(%w[categories searches])
-        expect(exported_data).not_to have_key("targets")
-        expect(exported_data).not_to have_key("prompts")
-        expect(exported_data).not_to have_key("results")
       end
 
-      it "yields progress tracking corresponding to the number of selected tables" do
+      it "tracks progress for the selected table count and completion" do
         yielded_steps = []
+        service.call { |progress, message| yielded_steps << [progress, message] }
 
-        service.call do |progress, message|
-          yielded_steps << [progress, message]
-        end
+        expect(yielded_steps.size).to eq(3)
+        expect(yielded_steps.last.first).to eq(100)
+      end
+    end
 
-        expect(yielded_steps.size).to eq(3) # 2 tables + 1 final completion message
+    context "when a child table is selected" do
+      let(:selected_tables) { %w[target_patterns] }
+
+      it "automatically includes the required parent tables" do
+        service.call
+        exported_data = JSON.parse(user.data_export.download)
+
+        expect(exported_data.keys).to eq(%w[categories targets target_patterns])
+      end
+    end
+
+    context "when an empty table list is explicitly requested" do
+      let(:selected_tables) { [] }
+
+      it "exports an empty object rather than silently exporting the whole database" do
+        service.call
+        expect(JSON.parse(user.data_export.download)).to eq({})
+      end
+    end
+
+    context "when a relation contains more rows than one fetch batch" do
+      let(:selected_tables) { %w[results] }
+
+      before do
+        stub_const("Database::DataExportService::BATCH_SIZE", 1)
+        create_list(:result, 3, search: user_search)
+      end
+
+      it "exports every database row rather than a hardcoded sample or first batch" do
+        service.call
+        exported_data = JSON.parse(user.data_export.download)
+
+        expect(exported_data.fetch("results").size).to eq(4)
       end
     end
 
     context "when invalid or unpermitted tables are passed" do
       let(:selected_tables) { %w[categories users non_existent_table] }
 
-      it "filters out unpermitted tables and exports only valid ones" do
+      it "filters out unpermitted tables" do
         service.call
         exported_data = JSON.parse(user.data_export.download)
-
         expect(exported_data.keys).to eq(%w[categories])
       end
     end
 
-    context "when a block is given for progress tracking" do
-      it "yields progress updates and returns the final HTML download link with signed URL" do
-        yielded_steps = []
+    it "reports progress for every registered table and a final completion message" do
+      yielded_steps = []
+      service.call { |progress, message| yielded_steps << [progress, message] }
 
-        service.call do |progress, message|
-          yielded_steps << [progress, message]
-        end
-
-        expect(yielded_steps.size).to eq(6) # 5 tables + 1 final completion message
-
-        last_progress, last_message = yielded_steps.last
-        expect(last_progress).to eq(100)
-        expect(last_message).to include("Done! Click <a href=")
-        expect(last_message).to include("rails/active_storage")
-      end
+      expect(yielded_steps.size).to eq(Database::DataTransferRegistry.table_names.size + 1)
+      expect(yielded_steps.last.first).to eq(100)
+      expect(yielded_steps.last.last).to include("Done! Click <a href=")
+      expect(yielded_steps.last.last).to include("rails/active_storage")
     end
   end
 end

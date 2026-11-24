@@ -26,10 +26,12 @@
 #  fk_rails_...  (target_id => targets.id)
 #
 class Prompt < ApplicationRecord
+  ALLOWED_STATUSES = %w[pending active failed success].freeze
+
   belongs_to :search
   belongs_to :target, optional: true
 
-  validates :status, presence: true, inclusion: { in: %w[pending active failed success] }
+  validates :status, presence: true, inclusion: { in: ALLOWED_STATUSES }
 
   validates :full_query_text, presence: true
 

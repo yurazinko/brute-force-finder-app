@@ -48,10 +48,14 @@
 #  fk_rails_...  (target_id => targets.id)
 #
 class Result < ApplicationRecord
+  ALLOWED_STATUSES = %w[unread watched garbage interesting].freeze
+  ALLOWED_VERIFICATION_STATUSES = %w[pending verified unverified_captcha unverified_error].freeze
+
   belongs_to :search
   belongs_to :target, optional: true
 
-  validates :status, inclusion: { in: %w[unread watched garbage interesting] }
+  validates :status, inclusion: { in: ALLOWED_STATUSES }
+  validates :verification_status, inclusion: { in: ALLOWED_VERIFICATION_STATUSES }
 
   scope :without_garbage, -> { where.not(status: "garbage") }
   scope :by_status, ->(status) { where(status: status) }

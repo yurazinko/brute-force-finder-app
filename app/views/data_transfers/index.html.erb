@@ -25,11 +25,12 @@
           <h2 class="text-base sm:text-lg font-bold text-breeze-text">Export Database to JSON</h2>
         </div>
         <p class="text-xs text-breeze-muted mb-4">
-          Select specific database entities or export everything into a structured JSON backup.
+          Choose data tables for export. Required parent tables are included automatically so the backup can be restored safely.
         </p>
 
         <div id="export">
           <%= form_with url: export_data_transfers_path, method: :post, local: false, class: "space-y-4" do |f| %>
+            <%= hidden_field_tag "tables[]", "" %>
 
             <!-- Advanced Options Dropdown -->
             <details class="group bg-breeze-bg/40 rounded-xl border border-breeze-border/60 overflow-hidden">
@@ -44,7 +45,7 @@
               </summary>
 
               <div class="p-3.5 pt-1 border-t border-breeze-border/40 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <% %w[categories targets target_patterns searches prompts results].each do |table| %>
+                <% @export_tables.each do |table| %>
                   <label class="flex items-center gap-2 p-2 rounded-lg bg-breeze-bg/80 border border-breeze-border/40 hover:border-breeze-border cursor-pointer transition text-xs">
                     <%= check_box_tag "tables[]", table, true, class: "rounded border-breeze-border bg-breeze-view text-breeze-accent focus:ring-breeze-accent cursor-pointer h-3.5 w-3.5" %>
                     <span class="capitalize text-breeze-text font-medium truncate"><%= table %></span>
@@ -86,4 +87,5 @@
     </div>
   </div>
 </div>
+
 

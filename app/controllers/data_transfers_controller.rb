@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 class DataTransfersController < ApplicationController
-  def index; end
+  def index
+    @export_tables = Database::DataTransferRegistry.table_names
+  end
 
   def export
-    DataExportJob.perform_async(current_user.id, params[:tables]&.reject(&:blank?))
+    selected_tables = if params.key?(:tables)
+                        Array(params[:tables]).reject(&:blank?)
+                      end
+    DataExportJob.perform_async(current_user.id, selected_tables)
 
     render_progress_stream("export", "Starting export job...")
   end
