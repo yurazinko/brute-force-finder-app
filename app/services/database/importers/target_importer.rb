@@ -4,44 +4,39 @@ module Database
   module Importers
     class TargetImporter < BaseImporter
       def call
-        records.each do |record|
-          target = find_or_initialize_target(record[:domain])
-          target.assign_attributes(target_attributes(record))
-          target.save!
-
-          id_maps[:targets][record[:id]] = target.id
-        end
+        records.each { |record| import_record(record) }
       end
 
       private
 
-      def find_or_initialize_target(domain)
-        Target.joins(:category)
-              .where(categories: { user_id: target_user_id })
-              .find_by(domain: domain) || Target.new(domain: domain)
+      def import_record(record)
+        category_id = mapped_id(:categories, record[:category_id])
+        if category_id.blank?
+          raise ArgumentError,
+                "Target #{record[:id].inspect} references a category that was not imported."
+        end
+
+        domain = normalized_domain(record)
+        target = Target.find_or_initialize_by(category_id: category_id, domain: domain)
+        assign_target_attributes(target, record)
+        target.save!
+        imported_id_map(:targets, record[:id], target.id)
       end
 
-      def resolve_category_id(old_cat_id)
-        return nil if old_cat_id.blank?
+      def normalized_domain(record)
+        domain = Target.new(domain: record[:domain]).domain
+        raise ArgumentError, "Target #{record[:id].inspect} has no valid domain." if domain.blank?
 
-        new_cat_id = id_maps[:categories][old_cat_id]
-        category = Category.find_by(id: new_cat_id, user_id: target_user_id) if new_cat_id.present?
-
-        return category.id if category
-
-        raise StandardError,
-              "Category #{old_cat_id} (mapped to #{new_cat_id}) does not belong to user #{target_user_id}"
+        domain
       end
 
-      def target_attributes(record)
-        category_id = resolve_category_id(record[:category_id])
-
-        {
+      def assign_target_attributes(target, record)
+        target.assign_attributes(
           name: record[:name],
-          category_id: category_id.presence,
-          allow_query_strings: record[:allow_query_strings],
-          is_active: record[:is_active]
-        }.compact
+          allow_query_strings: record[:allow_query_strings].nil? ? false : record[:allow_query_strings],
+          is_active: record[:is_active].nil? || record[:is_active]
+        )
+        apply_timestamps(target, record)
       end
     end
   end

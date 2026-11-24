@@ -5,19 +5,43 @@ require "rails_helper"
 RSpec.describe Database::DataImportService, type: :service do
   let(:user) { create(:user) }
   let(:temp_file_path) { Rails.root.join("tmp", "test_import_#{SecureRandom.hex}.json") }
+  let(:timestamp) { "2026-06-15T10:00:00.000Z" }
 
   let(:valid_json_data) do
     {
       "categories" => [
-        { "id" => 1, "name" => "Tech", "created_at" => "2026-06-15T10:00:00Z", "updated_at" => "2026-06-15T10:00:00Z" }
+        { "id" => 1, "name" => "Tech", "created_at" => timestamp, "updated_at" => timestamp }
       ],
       "targets" => [
-        { "id" => 1, "category_id" => 1, "domain" => "example.com", "name" => "Example", "is_active" => true, "created_at" => "2026-06-15T10:00:00Z", "updated_at" => "2026-06-15T10:00:00Z" }
+        {
+          "id" => 2, "category_id" => 1, "domain" => "example.com", "name" => "Example",
+          "is_active" => true, "allow_query_strings" => false, "created_at" => timestamp, "updated_at" => timestamp
+        }
       ],
-      "searches" => [],
-      "prompts" => [],
-      "results" => []
+      "target_patterns" => [
+        { "id" => 3, "target_id" => 2, "path_pattern" => "/jobs", "is_active" => false,
+          "created_at" => timestamp, "updated_at" => timestamp }
+      ],
+      "searches" => [
+        { "id" => 4, "title" => "Ruby Search", "query_conditions" => "ruby", "status" => "completed",
+          "show_acknowledged" => false, "time_frame" => "week", "relevance_mode" => "balanced",
+          "created_at" => timestamp, "updated_at" => timestamp }
+      ],
+      "prompts" => [
+        { "id" => 5, "search_id" => 4, "target_id" => 2, "full_query_text" => "site:example.com ruby",
+          "status" => "failed", "error_message" => "429", "created_at" => timestamp, "updated_at" => timestamp }
+      ],
+      "results" => [
+        { "id" => 6, "search_id" => 4, "target_id" => 2, "title" => "Ruby job",
+          "url" => "https://example.com/jobs/1", "url_hash" => "result-hash", "status" => "watched",
+          "acknowledged" => true, "verification_status" => "verified", "relevance_score" => 91,
+          "matched_keywords" => ["ruby"], "created_at" => timestamp, "updated_at" => timestamp }
+      ]
     }
+  end
+
+  before do
+    File.write(temp_file_path, JSON.generate(valid_json_data))
   end
 
   after do
@@ -25,55 +49,107 @@ RSpec.describe Database::DataImportService, type: :service do
   end
 
   describe "#call" do
-    context "when file does not exist" do
-      it "returns false" do
-        service = described_class.new("non_existent_file.json", user_id: user.id)
-        expect(service.call).to be false
-      end
+    def run_import
+      described_class.new(temp_file_path, user_id: user.id).call
     end
 
-    context "when file exists" do
-      before do
-        File.write(temp_file_path, JSON.generate(valid_json_data))
-      end
+    it "returns false when the file does not exist" do
+      service = described_class.new("non_existent_file.json", user_id: user.id)
+      expect(service.call).to be(false)
+    end
 
-      it "imports data into the database" do
-        expect do
-          described_class.new(temp_file_path, user_id: user.id).call
-        end.to change(Category, :count).by(1)
-                                       .and change(Target, :count).by(1)
+    it "creates one record per model in the dependency graph" do
+      expect { run_import }
+        .to change(Category, :count).by(1)
+        .and change(Target, :count).by(1)
+        .and change(TargetPattern, :count).by(1)
+        .and change(Search, :count).by(1)
+        .and change(Prompt, :count).by(1)
+        .and change(Result, :count).by(1)
+    end
 
-        category = Category.find_by!(user_id: user.id, name: "Tech")
-        expect(category.name).to eq("Tech")
-      end
+    it "preserves imported attributes across all entities" do
+      run_import
 
-      it "performs an upsert if the record already exists" do
-        Category.create!(user_id: user.id, name: "Tech")
+      category = Category.find_by!(user_id: user.id, name: "Tech")
+      target = Target.find_by!(category: category, domain: "example.com")
+      search = Search.find_by!(user_id: user.id, title: "Ruby Search")
+      pattern = TargetPattern.find_by!(target: target, path_pattern: "/jobs")
+      prompt = Prompt.find_by!(search: search, target: target)
+      result = Result.find_by!(search: search, url_hash: "result-hash")
 
-        expect do
-          described_class.new(temp_file_path, user_id: user.id).call
-        end.not_to change(Category, :count)
+      expect(pattern.is_active).to be(false)
+      expect(prompt).to have_attributes(status: "failed", error_message: "429")
+      expect(result).to have_attributes(
+        target_id: target.id,
+        status: "watched",
+        acknowledged: true,
+        verification_status: "verified",
+        relevance_score: 91,
+        matched_keywords: ["ruby"]
+      )
+    end
 
-        expect(Category.find_by(user_id: user.id, name: "Tech")).to be_present
-      end
+    it "is idempotent when the same backup is imported more than once" do
+      importer = -> { described_class.new(temp_file_path, user_id: user.id).call }
+      importer.call
+      counts_after_first_import = [Category, Target, TargetPattern, Search, Prompt, Result].map(&:count)
 
-      it "tracks progress via block execution" do
-        yielded_progress = []
+      File.write(temp_file_path, JSON.generate(valid_json_data))
+      importer.call
 
-        described_class.new(temp_file_path, user_id: user.id).call do |progress, message|
-          yielded_progress << { progress: progress, message: message }
-        end
+      expect([Category, Target, TargetPattern, Search, Prompt, Result].map(&:count)).to eq(counts_after_first_import)
+    end
 
-        expect(yielded_progress.first[:message]).to eq("Importing categories...")
-        expect(yielded_progress.last[:progress]).to eq(100)
-        expect(yielded_progress.last[:message]).to eq("Import completed successfully!")
-      end
+    it "maps equal domains independently within different categories" do
+      second_category_id = 11
+      second_target_id = 12
+      data = valid_json_data.deep_dup
+      data["categories"] << { "id" => second_category_id, "name" => "Other", "created_at" => timestamp,
+                              "updated_at" => timestamp }
+      data["targets"] << { "id" => second_target_id, "category_id" => second_category_id,
+                           "domain" => "example.com", "name" => "Other Example", "created_at" => timestamp,
+                           "updated_at" => timestamp }
+      File.write(temp_file_path, JSON.generate(data))
 
-      it "deletes the file after processing" do
-        expect(File.exist?(temp_file_path)).to be true
+      described_class.new(temp_file_path, user_id: user.id).call
+
+      targets = Target.joins(:category).where(categories: { user_id: user.id }, domain: "example.com")
+      expect(targets.count).to eq(2)
+      expect(targets.map(&:name)).to contain_exactly("Example", "Other Example")
+    end
+
+    it "rolls back the entire import and keeps the file when a dependency is missing" do
+      broken_data = valid_json_data.except("categories")
+      File.write(temp_file_path, JSON.generate(broken_data))
+
+      expect do
         described_class.new(temp_file_path, user_id: user.id).call
-        expect(File.exist?(temp_file_path)).to be false
+      end.to raise_error(ArgumentError, /category that was not imported/)
+
+      expect(Category.where(user_id: user.id)).to be_empty
+      expect(Target.joins(:category).where(categories: { user_id: user.id })).to be_empty
+      expect(File.exist?(temp_file_path)).to be(true)
+    end
+
+    it "rejects malformed table payloads instead of silently importing partial data" do
+      File.write(temp_file_path, JSON.generate("categories" => { "id" => 1, "name" => "Tech" }))
+
+      expect do
+        described_class.new(temp_file_path, user_id: user.id).call
+      end.to raise_error(ArgumentError, /must contain an array of objects/)
+      expect(Category.where(user_id: user.id)).to be_empty
+    end
+
+    it "tracks progress and deletes the file after successful import" do
+      yielded_progress = []
+      described_class.new(temp_file_path, user_id: user.id).call do |progress, message|
+        yielded_progress << [progress, message]
       end
+
+      expect(yielded_progress.first.last).to eq("Importing categories...")
+      expect(yielded_progress.last).to eq([100, "Import completed successfully!"])
+      expect(File.exist?(temp_file_path)).to be(false)
     end
   end
 end

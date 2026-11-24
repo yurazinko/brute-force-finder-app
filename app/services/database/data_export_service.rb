@@ -1,50 +1,86 @@
 # frozen_string_literal: true
 
+require "tempfile"
+
 module Database
   class DataExportService
-    attr_reader :user, :requested_tables
+    BATCH_SIZE = 1_000
 
-    ALL_TABLES = %w[categories targets target_patterns searches prompts results].freeze
+    attr_reader :user, :requested_tables
 
     def initialize(user, tables: nil)
       @user = user
-      @requested_tables = tables.present? ? (tables & ALL_TABLES) : ALL_TABLES
+      @requested_tables = DataTransferRegistry.resolve_selection(tables)
     end
 
-    def call(&)
+    def call(&progress_callback)
       datasets = scoped_datasets
-      json_string = generate_export_json(datasets, &)
-      attach_export_file(json_string)
-      notify_completion(&) if block_given?
 
+      Tempfile.create(["database-export-", ".json"], Rails.root.join("tmp")) do |file|
+        generate_export_json(file, datasets, &progress_callback)
+        file.flush
+        file.rewind
+        attach_export_file(file)
+      end
+
+      notify_completion(&progress_callback) if progress_callback
       true
     end
 
     private
 
-    def generate_export_json(datasets, &)
-      export_data = {}
-      total_steps = datasets.size
-
-      datasets.each_with_index do |(table_name, scope), index|
-        notify_progress(index, total_steps, table_name, &) if block_given?
-        export_data[table_name] = scope.as_json
+    def scoped_datasets
+      requested_tables.map do |table_name|
+        entry = DataTransferRegistry.fetch(table_name)
+        [table_name, entry.scope.call(user)]
       end
-
-      JSON.pretty_generate(export_data)
     end
 
-    def attach_export_file(json_string)
+    # Write each record as it is fetched instead of materializing every table in
+    # memory with Relation#as_json. This exports every matching row in batches.
+    def generate_export_json(io, datasets, &)
+      io.write("{")
+
+      datasets.each_with_index do |(table_name, scope), index|
+        notify_progress(index, datasets.size, table_name, &) if block_given?
+        io.write(",") unless index.zero?
+        io.write(JSON.generate(table_name))
+        io.write(":")
+        write_relation_rows(io, scope)
+      end
+
+      io.write("}")
+    end
+
+    def write_relation_rows(io, relation)
+      io.write("[")
+      first_record = true
+
+      relation.find_each(batch_size: BATCH_SIZE) do |record|
+        io.write(",") unless first_record
+        io.write(JSON.generate(record.as_json))
+        first_record = false
+      end
+
+      io.write("]")
+    end
+
+    def attach_export_file(io)
       filename = "export-user-#{user.id}-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.json"
 
       user.data_export.attach(
-        io: StringIO.new(json_string),
+        io: io,
         filename: filename,
         content_type: "application/json"
       )
     end
 
-    def notify_completion(&)
+    def notify_progress(index, total_steps, table_name)
+      progress = total_steps.zero? ? 95 : ((index.to_f / total_steps) * 95).to_i
+      yield(progress, "Exporting #{table_name}...")
+    end
+
+    def notify_completion
       download_url = Rails.application.routes.url_helpers.rails_blob_path(
         user.data_export.blob,
         expires_in: 1.hour,
@@ -55,28 +91,6 @@ module Database
       html = "Done! Click <a href='#{download_url}' download class='text-breeze-accent " \
              "underline font-semibold'>here</a> to download (link expires in 1 hour)."
       yield(100, html)
-    end
-
-    def scoped_datasets
-      user_categories = user.categories
-      user_searches   = user.searches
-
-      all_datasets = {
-        categories: user_categories,
-        targets: Target.where(category_id: user_categories.select(:id)),
-        searches: user_searches,
-        prompts: Prompt.where(search_id: user_searches.select(:id)),
-        results: Result.where(search_id: user_searches.select(:id))
-      }
-
-      # `tables` comes from request values and remains string-based at the boundary.
-      # The in-memory dataset registry uses symbols; JSON export keys remain strings on the wire.
-      all_datasets.slice(*requested_tables.map(&:to_sym)).to_a
-    end
-
-    def notify_progress(index, total_steps, table_name, &)
-      progress = ((index.to_f / total_steps) * 100).to_i
-      yield(progress, "Exporting #{table_name}...")
     end
   end
 end

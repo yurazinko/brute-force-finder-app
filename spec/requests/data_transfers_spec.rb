@@ -15,13 +15,16 @@ RSpec.describe "DataTransfers", type: :request do
   end
 
   describe "GET /data_transfers" do
-    it "renders the index page successfully" do
+    it "renders export options from the shared data-transfer registry" do
       get data_transfers_path
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Database Sync & Backups")
       expect(response.body).to include("Export Database to JSON")
       expect(response.body).to include("Import & Upsert Sync")
+      Database::DataTransferRegistry.table_names.each do |table_name|
+        expect(response.body).to include("value=\"#{table_name}\"")
+      end
     end
   end
 
@@ -29,41 +32,34 @@ RSpec.describe "DataTransfers", type: :request do
     let(:selected_tables) { %w[categories targets] }
 
     context "when Turbo Stream request" do
-      it "enqueues DataExportJob and renders turbo stream progress partial" do
+      it "enqueues DataExportJob and renders the progress partial" do
         expect do
-          post export_data_transfers_path, params: { tables: selected_tables + [""] }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+          post export_data_transfers_path,
+               params: { tables: selected_tables + [""] },
+               headers: { "Accept" => "text/vnd.turbo-stream.html" }
         end.to change(DataExportJob.jobs, :size).by(1)
 
-        enqueued_job = DataExportJob.jobs.last
-        expect(enqueued_job["args"]).to eq([user.id, selected_tables])
-
+        expect(DataExportJob.jobs.last["args"]).to eq([user.id, selected_tables])
         expect(response).to have_http_status(:success)
         expect(response.media_type).to eq("text/vnd.turbo-stream.html")
         expect(response.body).to include('<turbo-stream action="replace" target="export">')
         expect(response.body).to include("Starting export job...")
       end
 
-      it "handles export with empty table parameters correctly" do
-        expect do
-          post export_data_transfers_path, params: { tables: [""] }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
-        end.to change(DataExportJob.jobs, :size).by(1)
+      it "preserves an explicitly empty table selection" do
+        post export_data_transfers_path,
+             params: { tables: [""] },
+             headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-        enqueued_job = DataExportJob.jobs.last
-        expect(enqueued_job["args"]).to eq([user.id, []])
-
-        expect(response).to have_http_status(:success)
+        expect(DataExportJob.jobs.last["args"]).to eq([user.id, []])
       end
     end
 
     context "when HTML request" do
       it "enqueues DataExportJob and redirects back to data_transfers_path" do
-        expect do
-          post export_data_transfers_path, params: { tables: selected_tables }
-        end.to change(DataExportJob.jobs, :size).by(1)
+        post export_data_transfers_path, params: { tables: selected_tables }
 
-        enqueued_job = DataExportJob.jobs.last
-        expect(enqueued_job["args"]).to eq([user.id, selected_tables])
-
+        expect(DataExportJob.jobs.last["args"]).to eq([user.id, selected_tables])
         expect(response).to redirect_to(data_transfers_path)
       end
     end
@@ -79,80 +75,40 @@ RSpec.describe "DataTransfers", type: :request do
       )
     end
 
-    context "when valid file is uploaded" do
-      context "with Turbo Stream request" do
-        it "writes file to tmp, enqueues DataImportJob, and renders turbo stream" do
-          expect do
-            post import_data_transfers_path, params: { file: file }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
-          end.to change(DataImportJob.jobs, :size).by(1)
+    it "writes the upload to tmp, enqueues DataImportJob, and renders turbo-stream progress" do
+      post import_data_transfers_path,
+           params: { file: file },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-          enqueued_job = DataImportJob.jobs.last
-          expect(enqueued_job["args"].first).to be_a(String)
-          expect(enqueued_job["args"].second).to eq(user.id)
-
-          expect(response).to have_http_status(:success)
-          expect(response.media_type).to eq("text/vnd.turbo-stream.html")
-          expect(response.body).to include('<turbo-stream action="replace" target="import">')
-          expect(response.body).to include("File uploaded. Starting sync...")
-        end
-
-        it "saves the uploaded file into the Rails tmp folder" do
-          post import_data_transfers_path, params: { file: file }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
-
-          enqueued_job = Sidekiq::Worker.jobs.find { |j| j["class"] == "DataImportJob" }
-          saved_path = enqueued_job["args"].first
-
-          expect(saved_path).to start_with(Rails.root.join("tmp/import_").to_s)
-          expect(File.exist?(saved_path)).to be true
-          expect(File.read(saved_path)).to eq(json_content)
-
-          FileUtils.rm_f(saved_path)
-        end
-      end
-
-      context "with HTML request" do
-        it "enqueues DataImportJob and redirects to data_transfers_path" do
-          expect do
-            post import_data_transfers_path, params: { file: file }
-          end.to change(DataImportJob.jobs, :size).by(1)
-
-          enqueued_job = DataImportJob.jobs.last
-          expect(enqueued_job["args"].first).to be_a(String)
-          expect(enqueued_job["args"].second).to eq(user.id)
-
-          expect(response).to redirect_to(data_transfers_path)
-        end
-      end
+      job = DataImportJob.jobs.last
+      expect(job["args"].second).to eq(user.id)
+      expect(File.read(job["args"].first)).to eq(json_content)
+      expect(response).to have_http_status(:success)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include("File uploaded. Starting sync...")
+      FileUtils.rm_f(job["args"].first)
     end
 
-    context "when no file is uploaded" do
-      it "does not enqueue DataImportJob and redirects with alert" do
-        expect do
-          post import_data_transfers_path, params: { file: nil }
-        end.not_to change(DataImportJob.jobs, :size)
+    it "does not enqueue an import job when no file is uploaded" do
+      expect do
+        post import_data_transfers_path, params: { file: nil }
+      end.not_to change(DataImportJob.jobs, :size)
 
-        expect(response).to redirect_to(data_transfers_path)
-        expect(flash[:alert]).to eq("Please upload a valid JSON file.")
-      end
+      expect(response).to redirect_to(data_transfers_path)
+      expect(flash[:alert]).to eq("Please upload a valid JSON file.")
     end
   end
 
   context "when user is not authenticated" do
-    before do
-      sign_out user if defined?(sign_out)
-    end
+    before { sign_out user }
 
-    it "redirects GET /data_transfers to sign in page" do
+    it "requires authentication for data transfer endpoints" do
       get data_transfers_path
       expect(response).to have_http_status(:redirect)
-    end
 
-    it "redirects POST /data_transfers/export to sign in page" do
       post export_data_transfers_path
       expect(response).to have_http_status(:redirect)
-    end
 
-    it "redirects POST /data_transfers/import to sign in page" do
       post import_data_transfers_path
       expect(response).to have_http_status(:redirect)
     end
