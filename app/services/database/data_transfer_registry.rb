@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
-
 module Database
   # One allow-list for both UI selection and import/export. Only user-owned,
   # application data is included; users, Active Storage, and infrastructure tables
@@ -46,7 +44,10 @@ module Database
         importer: Importers::ResultImporter,
         dependencies: %w[categories targets searches]
       )
-    ].each { |entry| entry.dependencies.freeze; entry.freeze }.freeze
+    ].each do |entry|
+      entry.dependencies.freeze
+      entry.freeze
+    end.freeze
 
     BY_NAME = ENTRIES.index_by(&:name).freeze
 
@@ -77,19 +78,23 @@ module Database
         return table_names if requested_tables.nil?
 
         selected = Array(requested_tables).map(&:to_s).select { |name| include?(name) }.to_set
+        expand_dependencies(selected)
+
+        table_names.select { |name| selected.include?(name) }
+      end
+
+      private
+
+      def expand_dependencies(selected)
         queue = selected.to_a
 
         until queue.empty?
-          name = queue.shift
-          fetch(name).dependencies.each do |dependency|
-            next if selected.include?(dependency)
+          fetch(queue.shift).dependencies.each do |dependency|
+            next unless selected.add?(dependency)
 
-            selected << dependency
             queue << dependency
           end
         end
-
-        table_names.select { |name| selected.include?(name) }
       end
     end
   end

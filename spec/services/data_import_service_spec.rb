@@ -49,20 +49,27 @@ RSpec.describe Database::DataImportService, type: :service do
   end
 
   describe "#call" do
+    def run_import
+      described_class.new(temp_file_path, user_id: user.id).call
+    end
+
     it "returns false when the file does not exist" do
       service = described_class.new("non_existent_file.json", user_id: user.id)
       expect(service.call).to be(false)
     end
 
-    it "imports the full dependency graph and preserves data attributes" do
-      expect do
-        described_class.new(temp_file_path, user_id: user.id).call
-      end.to change(Category, :count).by(1)
-       .and change(Target, :count).by(1)
-       .and change(TargetPattern, :count).by(1)
-       .and change(Search, :count).by(1)
-       .and change(Prompt, :count).by(1)
-       .and change(Result, :count).by(1)
+    it "creates one record per model in the dependency graph" do
+      expect { run_import }
+        .to change(Category, :count).by(1)
+        .and change(Target, :count).by(1)
+        .and change(TargetPattern, :count).by(1)
+        .and change(Search, :count).by(1)
+        .and change(Prompt, :count).by(1)
+        .and change(Result, :count).by(1)
+    end
+
+    it "preserves imported attributes across all entities" do
+      run_import
 
       category = Category.find_by!(user_id: user.id, name: "Tech")
       target = Target.find_by!(category: category, domain: "example.com")
@@ -72,14 +79,15 @@ RSpec.describe Database::DataImportService, type: :service do
       result = Result.find_by!(search: search, url_hash: "result-hash")
 
       expect(pattern.is_active).to be(false)
-      expect(prompt.status).to eq("failed")
-      expect(prompt.error_message).to eq("429")
-      expect(result.target_id).to eq(target.id)
-      expect(result.status).to eq("watched")
-      expect(result.acknowledged).to be(true)
-      expect(result.verification_status).to eq("verified")
-      expect(result.relevance_score).to eq(91)
-      expect(result.matched_keywords).to eq(["ruby"])
+      expect(prompt).to have_attributes(status: "failed", error_message: "429")
+      expect(result).to have_attributes(
+        target_id: target.id,
+        status: "watched",
+        acknowledged: true,
+        verification_status: "verified",
+        relevance_score: 91,
+        matched_keywords: ["ruby"]
+      )
     end
 
     it "is idempotent when the same backup is imported more than once" do

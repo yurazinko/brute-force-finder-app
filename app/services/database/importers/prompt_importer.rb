@@ -21,26 +21,40 @@ module Database
       private
 
       def build_prompt_row(record)
-        search_id = mapped_id(:searches, record[:search_id])
-        raise ArgumentError, "Prompt #{record[:id].inspect} references a search that was not imported." if search_id.blank?
+        search_id = resolve_search_id(record)
         raise ArgumentError, "Prompt #{record[:id].inspect} has no query text." if record[:full_query_text].blank?
 
-        source_target_id = record[:target_id]
-        target_id = mapped_id(:targets, source_target_id) if source_target_id.present?
-        if source_target_id.present? && target_id.blank?
-          raise ArgumentError, "Prompt #{record[:id].inspect} references a target that was not imported."
-        end
-
-        status = Prompt::ALLOWED_STATUSES.include?(record[:status].to_s) ? record[:status].to_s : "pending"
         {
           search_id: search_id,
-          target_id: target_id,
+          target_id: resolve_target_id(record),
           full_query_text: record[:full_query_text],
-          status: status,
+          status: normalize_status(record[:status]),
           error_message: record[:error_message],
           created_at: imported_timestamp(record[:created_at]),
           updated_at: imported_timestamp(record[:updated_at])
         }
+      end
+
+      def resolve_search_id(record)
+        search_id = mapped_id(:searches, record[:search_id])
+        return search_id if search_id.present?
+
+        raise ArgumentError, "Prompt #{record[:id].inspect} references a search that was not imported."
+      end
+
+      def resolve_target_id(record)
+        source_target_id = record[:target_id]
+        return nil if source_target_id.blank?
+
+        target_id = mapped_id(:targets, source_target_id)
+        return target_id if target_id.present?
+
+        raise ArgumentError, "Prompt #{record[:id].inspect} references a target that was not imported."
+      end
+
+      def normalize_status(raw_status)
+        status = raw_status.to_s
+        Prompt::ALLOWED_STATUSES.include?(status) ? status : "pending"
       end
 
       def upsert_rows(rows, unique_index)

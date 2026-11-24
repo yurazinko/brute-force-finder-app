@@ -6,9 +6,7 @@ class DataTransfersController < ApplicationController
   end
 
   def export
-    selected_tables = if params.key?(:tables)
-                        Array(params[:tables]).reject(&:blank?)
-                      end
+    selected_tables = (Array(params[:tables]).compact_blank if params.key?(:tables))
     DataExportJob.perform_async(current_user.id, selected_tables)
 
     render_progress_stream("export", "Starting export job...")

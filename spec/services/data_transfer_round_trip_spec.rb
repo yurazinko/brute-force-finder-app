@@ -11,7 +11,7 @@ RSpec.describe "Database data-transfer round trip", type: :service do
     target = create(:target, category: category, name: "Example", domain: "example.com")
     pattern = TargetPattern.create!(target: target, path_pattern: "/careers", is_active: false)
     search = create(:search, user: source_user, title: "Ruby roles", query_conditions: "ruby", relevance_mode: "balanced")
-    prompt = create(:prompt, search: search, target: target, full_query_text: "site:example.com ruby", status: "failed")
+    create(:prompt, search: search, target: target, full_query_text: "site:example.com ruby", status: "failed")
     result = create(
       :result,
       search: search,
@@ -53,9 +53,11 @@ RSpec.describe "Database data-transfer round trip", type: :service do
       File.write(import_path, backup)
       expect do
         Database::DataImportService.new(import_path, user_id: destination_user.id).call
-      end.not_to change { destination_user.reload.categories.count + destination_user.searches.count +
-                          restored_category.targets.count + restored_search.prompts.count +
-                          restored_search.results.count + TargetPattern.where(target_id: restored_target.id).count }
+      end.not_to(change do
+                   destination_user.reload.categories.count + destination_user.searches.count +
+                                      restored_category.targets.count + restored_search.prompts.count +
+                                      restored_search.results.count + TargetPattern.where(target_id: restored_target.id).count
+                 end)
     ensure
       FileUtils.rm_f(import_path)
     end

@@ -11,19 +11,10 @@ module Database
       @import_succeeded = false
     end
 
-    def call(&progress_callback)
+    def call(&)
       return false unless validate_file_exists
 
-      raw_data = load_and_sanitize_data
-      target_user_id = determine_target_user_id
-
-      with_rls_user(target_user_id) do
-        ActiveRecord::Base.transaction do
-          process_import(raw_data, target_user_id, &progress_callback)
-        end
-      end
-
-      progress_callback&.call(100, "Import completed successfully!")
+      execute_import(load_and_sanitize_data, determine_target_user_id, &)
       @import_succeeded = true
       true
     rescue StandardError => e
@@ -36,6 +27,16 @@ module Database
     end
 
     private
+
+    def execute_import(raw_data, target_user_id, &progress_callback)
+      with_rls_user(target_user_id) do
+        ActiveRecord::Base.transaction do
+          process_import(raw_data, target_user_id, &progress_callback)
+        end
+      end
+
+      progress_callback&.call(100, "Import completed successfully!")
+    end
 
     def validate_file_exists
       Rails.logger.info("[DataImportService] Starting import from: #{@file_path}")
@@ -61,7 +62,7 @@ module Database
         table_name = raw_table_name.to_s.strip
         next unless DataTransferRegistry.include?(table_name)
 
-        unless records.is_a?(Array) && records.all? { |record| record.is_a?(Hash) }
+        unless records.is_a?(Array) && records.all?(Hash)
           raise ArgumentError, "Backup table '#{table_name}' must contain an array of objects."
         end
 

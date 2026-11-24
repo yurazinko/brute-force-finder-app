@@ -7,9 +7,7 @@ module Database
 
       def initialize(records, target_user_id, id_maps)
         @records = Array(records).map.with_index do |record, index|
-          unless record.is_a?(Hash)
-            raise ArgumentError, "Import record ##{index + 1} must be an object."
-          end
+          raise ArgumentError, "Import record ##{index + 1} must be an object." unless record.is_a?(Hash)
 
           record.with_indifferent_access
         end
