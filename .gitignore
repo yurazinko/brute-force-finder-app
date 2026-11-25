@@ -37,5 +37,8 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 
+dump_context.sh
+rails_context.txt
+
 # /yacy/yacy.conf
 coverage

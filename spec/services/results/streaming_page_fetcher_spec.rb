@@ -16,6 +16,19 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
 
       described_class.fetch_and_match(target_url, keyword_groups: keyword_groups)
     end
+
+    it "routes all requests through TorHttpClient with TorSocksConnectionAdapter and without local DNS" do
+      expect(Results::TorHttpClient.default_options[:connection_adapter])
+        .to eq(Results::TorSocksConnectionAdapter)
+      expect(Resolv).not_to receive(:getaddress)
+      expect(Resolv).not_to receive(:getaddresses)
+      expect(HTTParty).not_to receive(:get)
+
+      stub_request(:get, target_url).to_return(status: 200, body: "<html><body>Ruby Remote jobs</body></html>")
+
+      result = described_class.new(target_url, keyword_groups: keyword_groups).fetch
+      expect(result).to be_verified
+    end
   end
 
   describe "#fetch" do
@@ -117,7 +130,7 @@ RSpec.describe Results::StreamingPageFetcher, type: :service do
       end
 
       it "blocks the request before making an HTTP call" do
-        expect(HTTParty).not_to receive(:get)
+        expect(Results::TorHttpClient).not_to receive(:get)
 
         result = described_class.new("http://127.0.0.1/admin", keyword_groups: keyword_groups).fetch
 

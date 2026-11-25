@@ -1,15 +1,9 @@
 # frozen_string_literal: true
 
-require "httparty"
-require "resolv"
-require "ipaddr"
+require "uri"
 
 module Results
   class PageFetcher
-    include HTTParty
-
-    connection_adapter Results::TorSocksConnectionAdapter
-
     MAX_BODY_SIZE = 2 * 1024 * 1024
 
     CAPTCHA_INDICATORS = [
@@ -66,34 +60,12 @@ module Results
 
     private
 
-    def safe_url?(url_string)
-      uri = URI.parse(url_string)
-      return false unless %w[http https].include?(uri.scheme)
-      return false if uri.host.blank?
-
-      ip_address = Resolv.getaddress(uri.host)
-      !private_or_restricted_ip?(IPAddr.new(ip_address))
-    rescue StandardError
-      false
-    end
-
-    def private_or_restricted_ip?(ip)
-      ip.loopback? || ip.private? || ip.link_local? || ip == IPAddr.new("169.254.169.254")
-    end
-
     def fetch_with_safe_redirects(current_url, limit = 3)
       raise "Too many HTTP redirects or unsafe redirect chain" if limit <= 0
-      raise "SSRF blocked: unsafe URL destination (#{current_url})" unless safe_url?(current_url)
+      raise "SSRF blocked: unsafe URL destination (#{current_url})" unless Results::SafeUrlValidator.safe?(current_url)
 
       uri = URI.parse(current_url)
-
-      options = {
-        headers: headers,
-        timeout: 8,
-        follow_redirects: false
-      }
-
-      response = self.class.get(uri, options)
+      response = Results::TorHttpClient.get(uri, headers: headers, timeout: 8, follow_redirects: false)
 
       if response.code.in?([301, 302, 303, 307, 308]) && response.headers["location"]
         redirect_url = URI.join(uri, response.headers["location"]).to_s
