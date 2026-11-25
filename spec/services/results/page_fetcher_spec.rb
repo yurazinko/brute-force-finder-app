@@ -33,6 +33,19 @@ RSpec.describe Results::PageFetcher, type: :service do
 
     let(:default_headers) { { "Content-Type" => "text/html" } }
 
+    it "routes all requests through TorHttpClient with TorSocksConnectionAdapter and without local DNS" do
+      expect(Results::TorHttpClient.default_options[:connection_adapter])
+        .to eq(Results::TorSocksConnectionAdapter)
+      expect(Resolv).not_to receive(:getaddress)
+      expect(Resolv).not_to receive(:getaddresses)
+      expect(HTTParty).not_to receive(:get)
+
+      stub_request(:get, target_url).to_return(status: 200, body: "<html><body>Ruby Remote jobs</body></html>")
+
+      result = described_class.new(target_url).fetch
+      expect(result).to be_verified
+    end
+
     context "when request is successful and contains valid HTML" do
       let(:html_body) do
         <<~HTML

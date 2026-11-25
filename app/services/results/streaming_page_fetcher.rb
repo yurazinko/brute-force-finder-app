@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "httparty"
-require "ipaddr"
-require "resolv"
 require "uri"
 
 module Results
@@ -46,7 +43,7 @@ module Results
 
     def stream_page_content(current_url, redirects_remaining = MAX_REDIRECTS)
       raise "Too many HTTP redirects" if redirects_remaining.negative?
-      raise "SSRF blocked: unsafe URL destination (#{current_url})" unless safe_url?(current_url)
+      raise "SSRF blocked: unsafe URL destination (#{current_url})" unless Results::SafeUrlValidator.safe?(current_url)
 
       uri = URI.parse(current_url)
       state = initial_stream_state
@@ -69,7 +66,7 @@ module Results
     end
 
     def perform_stream_request(uri, state)
-      HTTParty.get(
+      Results::TorHttpClient.get(
         uri,
         headers: headers,
         timeout: 8,
@@ -133,23 +130,6 @@ module Results
     def follow_redirect(uri, response, redirects_remaining)
       redirect_url = URI.join(uri, response_header(response, "location")).to_s
       stream_page_content(redirect_url, redirects_remaining - 1)
-    end
-
-    def safe_url?(url_string)
-      uri = URI.parse(url_string)
-      return false unless %w[http https].include?(uri.scheme)
-      return false if uri.host.blank? || uri.userinfo.present?
-
-      addresses = Resolv.getaddresses(uri.host)
-      return false if addresses.empty?
-
-      addresses.none? { |address| private_or_restricted_ip?(IPAddr.new(address)) }
-    rescue StandardError
-      false
-    end
-
-    def private_or_restricted_ip?(ip)
-      ip.loopback? || ip.private? || ip.link_local? || ip == IPAddr.new("169.254.169.254")
     end
 
     def fragment_http_response(chunk)
