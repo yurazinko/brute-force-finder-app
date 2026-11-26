@@ -17,12 +17,17 @@ module Database
 
     def call(&progress_callback)
       datasets = scoped_datasets
+      path = Rails.root.join("tmp", "database-export-#{user.id}-#{SecureRandom.hex(8)}.ndjson")
 
-      Tempfile.create(["database-export-", ".ndjson"], Rails.root.join("tmp")) do |file|
-        generate_export(file, datasets, &progress_callback)
-        file.flush
-        file.rewind
-        attach_export_file(file)
+      begin
+        File.open(path, "wb") do |file|
+          generate_export(file, datasets, &progress_callback)
+          file.flush
+        end
+
+        attach_export_file(path)
+      ensure
+        FileUtils.rm_f(path)
       end
 
       notify_completion(&progress_callback) if progress_callback
@@ -59,12 +64,13 @@ module Database
       io.write("\n")
     end
 
-    def attach_export_file(io)
+    def attach_export_file(path)
       previous_blob = user.data_export.blob if user.data_export.attached?
       filename = "export-user-#{user.id}-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.ndjson"
+      buffer = StringIO.new(File.binread(path))
 
       user.data_export.attach(
-        io: io,
+        io: buffer,
         filename: filename,
         content_type: "application/x-ndjson"
       )

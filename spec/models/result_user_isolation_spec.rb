@@ -30,7 +30,7 @@ RSpec.describe "Result tenant ownership", type: :model do
   end
 
   it "uses a direct tenant equality policy rather than an EXISTS subquery" do
-    policy = ActiveRecord::Base.connection.select_value(<<~SQL)
+    policy = ActiveRecord::Base.connection.select_value(<<~SQL.squish)
       SELECT pg_catalog.pg_get_expr(polqual, polrelid)
         FROM pg_catalog.pg_policy
        WHERE polname = 'result_user_isolation'

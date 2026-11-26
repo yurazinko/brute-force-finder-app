@@ -3,7 +3,16 @@
 module SearchCampaigns
   class LifecycleNotifier
     def self.broadcast_metrics(search, counts, new_results: [])
-      new(search).broadcast_metrics(counts, new_results: new_results)
+      broadcast_new_results(search, new_results)
+      broadcast_counters(search, counts)
+    end
+
+    def self.broadcast_new_results(search, new_results)
+      new(search).broadcast_new_results(new_results)
+    end
+
+    def self.broadcast_counters(search, counts)
+      new(search).broadcast_counters(counts)
     end
 
     def self.broadcast_status(search, message = nil)
@@ -14,11 +23,31 @@ module SearchCampaigns
       @search = search
     end
 
-    def broadcast_metrics(counts, new_results: [])
-      broadcast_counters(counts)
-      broadcast_new_results(new_results) if new_results.present?
+    def broadcast_new_results(new_results)
+      result_ids = Array(new_results).filter_map(&:id)
+      return if result_ids.empty?
+
+      records = Result.includes(:search).where(id: result_ids).index_by(&:id)
+      persisted_results = result_ids.filter_map { |id| records[id] }
+      return if persisted_results.empty?
+
+      Turbo::StreamsChannel.broadcast_render_to(
+        @search, :results,
+        template: "searches/broadcast_new_results",
+        assigns: { search: @search, new_results: persisted_results }
+      )
     rescue StandardError => e
-      Rails.logger.error("[SearchCampaigns::LifecycleNotifier] Metrics broadcast failed: #{e.message}")
+      Rails.logger.error("[SearchCampaigns::LifecycleNotifier] Result batch broadcast failed: #{e.message}")
+    end
+
+    def broadcast_counters(counts)
+      Turbo::StreamsChannel.broadcast_render_to(
+        @search, :results,
+        template: "searches/broadcast_counters",
+        assigns: { counts: counts }
+      )
+    rescue StandardError => e
+      Rails.logger.error("[SearchCampaigns::LifecycleNotifier] Counter broadcast failed: #{e.message}")
     end
 
     def broadcast_status(message = nil)
@@ -32,53 +61,20 @@ module SearchCampaigns
 
     def broadcast_status_content
       Turbo::StreamsChannel.broadcast_update_to(
-        @search,
-        :results,
+        @search, :results,
         target: "search_lifecycle_status",
         html: ApplicationController.render(
-          partial: "searches/status_content",
-          locals: { search: @search }
+          partial: "searches/status_content", locals: { search: @search }
         )
       )
     end
 
     def broadcast_message_update(message)
       Turbo::StreamsChannel.broadcast_render_to(
-        @search,
-        :results,
+        @search, :results,
         template: "searches/update_status",
         assigns: { message: message }
       )
-    end
-
-    def broadcast_counters(counts)
-      targets = {
-        counter_unread: counts.unread,
-        counter_interesting: counts.interesting,
-        counter_watched: counts.watched,
-        counter_garbage: counts.garbage
-      }
-
-      targets.each do |target_id, value|
-        Turbo::StreamsChannel.broadcast_update_to(
-          @search,
-          :results,
-          target: target_id.to_s,
-          html: value.to_i.to_s
-        )
-      end
-    end
-
-    def broadcast_new_results(new_results)
-      new_results.each do |result|
-        Turbo::StreamsChannel.broadcast_prepend_to(
-          @search,
-          :results,
-          target: "results_pool_list",
-          partial: "results/result_card",
-          locals: { result: result }
-        )
-      end
     end
   end
 end

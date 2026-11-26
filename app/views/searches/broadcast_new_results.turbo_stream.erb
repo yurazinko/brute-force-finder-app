@@ -1,0 +1,5 @@
+<% if new_results.present? %>
+  <%= turbo_stream.append "results_pool_list" do %>
+    <%= render partial: "results/result_card", collection: new_results, as: :result %>
+  <% end %>
+<% end %>

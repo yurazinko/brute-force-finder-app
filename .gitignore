@@ -42,3 +42,9 @@ rails_context.txt
 
 # /yacy/yacy.conf
 coverage
+
+/.kamal/secrets
+/data/degoog/settings-tokens.json
+/data/degoog/bus/*.json
+/data/searxng/searxng_*/settings.yml
+/.yarn/install-state.gz
