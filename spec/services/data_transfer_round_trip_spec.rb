@@ -27,7 +27,7 @@ RSpec.describe "Database data-transfer round trip", type: :service do
 
     expect(Database::DataExportService.new(source_user).call).to be(true)
     backup = source_user.data_export.download
-    import_path = Rails.root.join("tmp", "round_trip_#{SecureRandom.hex}.json")
+    import_path = Rails.root.join("tmp", "round_trip_#{SecureRandom.hex}.ndjson")
 
     begin
       File.write(import_path, backup)

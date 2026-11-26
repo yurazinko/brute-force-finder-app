@@ -25,14 +25,41 @@ RSpec.describe Database::DataExportService do
   let!(:other_prompt) { create(:prompt, search: other_search, target: other_target) }
   let!(:other_result) { create(:result, search: other_search, target: other_target) }
 
+  def read_exported_data
+    lines = user.data_export.download.each_line.reject { |line| line.strip.empty? }
+    header = JSON.parse(lines.shift)
+    return {} if header.fetch("tables").empty?
+
+    tables = header.fetch("tables").index_with { [] }
+    lines.each do |line|
+      payload = JSON.parse(line)
+      tables.fetch(payload.fetch("table")) << payload.fetch("record")
+    end
+    tables
+  end
+
   describe "#call" do
     it "exports every registered table, including target patterns" do
       expect(service.call).to be(true)
       expect(user.data_export).to be_attached
 
-      exported_data = JSON.parse(user.data_export.download)
+      exported_data = read_exported_data
       expect(exported_data.keys).to match_array(Database::DataTransferRegistry.table_names)
       expect(exported_data.fetch("target_patterns").pluck("id")).to contain_exactly(user_pattern.id)
+    end
+
+    it "writes a versioned NDJSON stream rather than materializing a JSON object" do
+      service.call
+      lines = user.data_export.download.lines
+
+      header = JSON.parse(lines.first)
+      expect(header).to include(
+        "_format" => Database::DataExportService::FORMAT,
+        "version" => Database::DataExportService::FORMAT_VERSION,
+        "tables" => Database::DataTransferRegistry.table_names
+      )
+      expect(lines.drop(1).all? { |line| JSON.parse(line).keys.sort == %w[record table] }).to be(true)
+      expect(user.data_export.blob.content_type).to eq("application/x-ndjson")
     end
 
     it "preserves all data fields serialized by Active Record" do
@@ -40,7 +67,7 @@ RSpec.describe Database::DataExportService do
       user_result.update!(verification_status: "verified", target_id: user_target.id)
 
       service.call
-      exported_data = JSON.parse(user.data_export.download)
+      exported_data = read_exported_data
 
       expect(exported_data.fetch("searches").first.fetch("relevance_mode")).to eq("balanced")
       expect(exported_data.fetch("results").first.fetch("verification_status")).to eq("verified")
@@ -48,7 +75,7 @@ RSpec.describe Database::DataExportService do
 
     it "exports only records owned by the given user, including nested target patterns" do
       service.call
-      exported_data = JSON.parse(user.data_export.download)
+      exported_data = read_exported_data
 
       expected_ids = {
         "categories" => [user_category.id],
@@ -72,7 +99,7 @@ RSpec.describe Database::DataExportService do
 
       it "exports only the requested tables when no dependencies are needed" do
         service.call
-        exported_data = JSON.parse(user.data_export.download)
+        exported_data = read_exported_data
 
         expect(exported_data.keys).to match_array(%w[categories searches])
       end
@@ -91,7 +118,7 @@ RSpec.describe Database::DataExportService do
 
       it "automatically includes the required parent tables" do
         service.call
-        exported_data = JSON.parse(user.data_export.download)
+        exported_data = read_exported_data
 
         expect(exported_data.keys).to eq(%w[categories targets target_patterns])
       end
@@ -100,9 +127,9 @@ RSpec.describe Database::DataExportService do
     context "when an empty table list is explicitly requested" do
       let(:selected_tables) { [] }
 
-      it "exports an empty object rather than silently exporting the whole database" do
+      it "exports an empty table declaration rather than silently exporting the whole database" do
         service.call
-        expect(JSON.parse(user.data_export.download)).to eq({})
+        expect(read_exported_data).to eq({})
       end
     end
 
@@ -116,7 +143,7 @@ RSpec.describe Database::DataExportService do
 
       it "exports every database row rather than a hardcoded sample or first batch" do
         service.call
-        exported_data = JSON.parse(user.data_export.download)
+        exported_data = read_exported_data
 
         expect(exported_data.fetch("results").size).to eq(4)
       end
@@ -127,7 +154,7 @@ RSpec.describe Database::DataExportService do
 
       it "filters out unpermitted tables" do
         service.call
-        exported_data = JSON.parse(user.data_export.download)
+        exported_data = read_exported_data
         expect(exported_data.keys).to eq(%w[categories])
       end
     end
@@ -139,7 +166,7 @@ RSpec.describe Database::DataExportService do
       expect(yielded_steps.size).to eq(Database::DataTransferRegistry.table_names.size + 1)
       expect(yielded_steps.last.first).to eq(100)
       expect(yielded_steps.last.last).to include("Done! Click <a href=")
-      expect(yielded_steps.last.last).to include("rails/active_storage")
+      expect(yielded_steps.last.last).to include("data_transfers/download")
     end
   end
 end

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, controllers: { registrations: "users/registrations" }
   require "sidekiq/web"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -14,7 +14,9 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  mount Sidekiq::Web => "/sidekiq"
+  authenticate :user, ->(user) { user.admin? } do
+    mount Sidekiq::Web => "/sidekiq"
+  end
 
   # Defines the root path route ("/")
   # root "posts#index"
@@ -50,6 +52,8 @@ Rails.application.routes.draw do
       patch :bulk_update
     end
   end
+
+  get "data_transfers/download", to: "data_export_downloads#show", as: :data_transfers_download
 
   resources :data_transfers, only: [:index] do
     collection do

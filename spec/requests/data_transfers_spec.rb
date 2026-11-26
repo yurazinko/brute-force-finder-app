@@ -20,7 +20,7 @@ RSpec.describe "DataTransfers", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Database Sync & Backups")
-      expect(response.body).to include("Export Database to JSON")
+      expect(response.body).to include("Export Database Backup")
       expect(response.body).to include("Import & Upsert Sync")
       Database::DataTransferRegistry.table_names.each do |table_name|
         expect(response.body).to include("value=\"#{table_name}\"")
