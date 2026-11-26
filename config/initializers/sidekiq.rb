@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 require Rails.root.join("lib/rls/context")
+require Rails.root.join("lib/rls/sidekiq_support/client_middleware")
 require Rails.root.join("lib/rls/sidekiq_support/server_middleware")
 
 Sidekiq.configure_server do |config|
   config.redis = { url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1") }
+
+  config.client_middleware do |chain|
+    chain.add Rls::SidekiqSupport::ClientMiddleware
+  end
 
   config.server_middleware do |chain|
     chain.add Rls::SidekiqSupport::ServerMiddleware
@@ -13,4 +18,7 @@ end
 
 Sidekiq.configure_client do |config|
   config.redis = { url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1") }
+  config.client_middleware do |chain|
+    chain.add Rls::SidekiqSupport::ClientMiddleware
+  end
 end

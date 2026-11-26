@@ -34,5 +34,8 @@ module BruteForceFinderApp
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
     config.active_record.schema_format = :sql
+
+    # Shared rate limiting across Puma workers and app instances.
+    config.middleware.use Rack::Attack
   end
 end
