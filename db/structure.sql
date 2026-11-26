@@ -35,6 +35,38 @@ CREATE FUNCTION public.current_user_id() RETURNS bigint
 $$;
 
 
+--
+-- Name: populate_results_user_id(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.populate_results_user_id() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'pg_catalog', 'public'
+    AS $$
+DECLARE
+  search_owner_id bigint;
+BEGIN
+  SELECT searches.user_id
+    INTO search_owner_id
+    FROM public.searches
+   WHERE searches.id = NEW.search_id;
+
+  IF search_owner_id IS NULL THEN
+    RAISE EXCEPTION 'Cannot resolve tenant for result search_id %', NEW.search_id
+      USING ERRCODE = '23503';
+  END IF;
+
+  IF NEW.user_id IS NOT NULL AND NEW.user_id <> search_owner_id THEN
+    RAISE EXCEPTION 'Result tenant does not match search tenant'
+      USING ERRCODE = '42501';
+  END IF;
+
+  NEW.user_id := search_owner_id;
+  RETURN NEW;
+END;
+$$;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -243,7 +275,8 @@ CREATE TABLE public.results (
     verification_status character varying DEFAULT 'pending'::character varying NOT NULL,
     target_domain character varying,
     target_pattern character varying,
-    target_id bigint
+    target_id bigint,
+    user_id bigint NOT NULL
 );
 
 ALTER TABLE ONLY public.results FORCE ROW LEVEL SECURITY;
@@ -765,6 +798,13 @@ CREATE INDEX index_results_on_url_hash ON public.results USING btree (url_hash);
 
 
 --
+-- Name: index_results_on_user_id_and_search_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_results_on_user_id_and_search_id ON public.results USING btree (user_id, search_id);
+
+
+--
 -- Name: index_results_on_verification_status; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -821,6 +861,13 @@ CREATE UNIQUE INDEX index_users_on_username ON public.users USING btree (usernam
 
 
 --
+-- Name: results results_populate_user_id; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER results_populate_user_id BEFORE INSERT OR UPDATE OF search_id ON public.results FOR EACH ROW EXECUTE FUNCTION public.populate_results_user_id();
+
+
+--
 -- Name: results fk_rails_166ffd61a8; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -850,6 +897,14 @@ ALTER TABLE ONLY public.prompts
 
 ALTER TABLE ONLY public.targets
     ADD CONSTRAINT fk_rails_7eab9384bf FOREIGN KEY (category_id) REFERENCES public.categories(id);
+
+
+--
+-- Name: results fk_rails_7f0d5a2cd6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.results
+    ADD CONSTRAINT fk_rails_7f0d5a2cd6 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -932,9 +987,7 @@ ALTER TABLE public.prompts ENABLE ROW LEVEL SECURITY;
 -- Name: results result_user_isolation; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY result_user_isolation ON public.results USING ((EXISTS ( SELECT 1
-   FROM public.searches
-  WHERE ((searches.id = results.search_id) AND (searches.user_id = public.current_user_id())))));
+CREATE POLICY result_user_isolation ON public.results USING ((user_id = public.current_user_id())) WITH CHECK ((user_id = public.current_user_id()));
 
 
 --
@@ -999,6 +1052,8 @@ ALTER TABLE public.targets ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261125182000'),
+('20261125181000'),
 ('20261103204023'),
 ('20261031150000'),
 ('20261031140000'),
