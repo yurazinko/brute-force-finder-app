@@ -5,6 +5,25 @@ module Results
     BATCH_SIZE = 100
     UI_ATTRIBUTES = %i[id search_id url url_hash title content engine status acknowledged
                        relevance_score verification_status matched_keywords created_at].freeze
+    ON_DUPLICATE_SQL = Arel.sql(<<~SQL.squish)
+      title = EXCLUDED.title,
+      content = EXCLUDED.content,
+      engine = EXCLUDED.engine,
+      matched_keywords = EXCLUDED.matched_keywords,
+      relevance_score = CASE
+        WHEN results.verification_status = 'verified'
+          AND EXCLUDED.verification_status <> 'verified'
+        THEN results.relevance_score
+        ELSE EXCLUDED.relevance_score
+      END,
+      verification_status = CASE
+        WHEN results.verification_status = 'verified'
+          AND EXCLUDED.verification_status <> 'verified'
+        THEN results.verification_status
+        ELSE EXCLUDED.verification_status
+      END,
+      updated_at = EXCLUDED.updated_at
+    SQL
 
     def self.call(search, prompt, result_records) = new(search, prompt, result_records).call
 
@@ -42,23 +61,49 @@ module Results
 
     def process_batch(batch)
       existing = fetch_existing_records(batch)
-      [calculate_new_records(batch, existing), persist_records!(batch, existing)]
+      verification_hashes = verification_refresh_hashes(batch, existing)
+      [calculate_new_records(batch, existing), persist_records!(batch, existing, verification_hashes)]
     end
 
     def fetch_existing_records(batch)
       hashes = batch.filter_map { |r| r[:url_hash] }
       hashes = hashes.uniq
-      hashes.empty? ? [] : Result.unscoped.where(url_hash: hashes).pluck(:search_id, :url_hash, :acknowledged)
+      if hashes.empty?
+        []
+      else
+        Result.unscoped.where(url_hash: hashes)
+              .pluck(:search_id, :url_hash, :acknowledged, :verification_status)
+      end
     end
 
     def calculate_new_records(batch, existing)
-      search_hashes = existing.each_with_object(Set.new) { |(id, h), set| set << h if id == @search_id }
-      batch.count { |r| search_hashes.exclude?(r[:url_hash]) }
+      search_hashes = existing.each_with_object(Set.new) do |(id, hash, _ack, _status), set|
+        set << hash if id == @search_id
+      end
+      batch.count { |record| search_hashes.exclude?(record[:url_hash]) }
     end
 
-    def persist_records!(batch, existing)
-      global_ack = existing.each_with_object(Set.new) { |(_, h, ack), set| set << h if ack == true }
-      execute_upsert(batch.map { |r| build_db_payload(r, global_ack) })
+    def verification_refresh_hashes(batch, existing)
+      existing_by_key = existing.index_by { |search_id, url_hash, _ack, _status| [search_id, url_hash] }
+
+      batch.filter_map do |record|
+        incoming_status = record[:verification_status].presence || "pending"
+        next unless incoming_status == "pending" || incoming_status.start_with?("unverified")
+
+        previous = existing_by_key[[@search_id, record[:url_hash]]]
+        previous_status = previous&.last
+        next if previous && !(previous_status.to_s.start_with?("unverified") && incoming_status == "pending")
+
+        record[:url_hash]
+      end.to_set
+    end
+
+    def persist_records!(batch, existing, verification_hashes)
+      global_ack = existing.each_with_object(Set.new) do |(_search_id, hash, acknowledged, _status), set|
+        set << hash if acknowledged == true
+      end
+      payloads = batch.map { |record| build_db_payload(record, global_ack) }
+      execute_upsert(payloads, verification_hashes)
     end
 
     def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
@@ -85,21 +130,24 @@ module Results
       }
     end
 
-    def execute_upsert(enriched_records)
+    def execute_upsert(enriched_records, verification_hashes)
       inserted_rows = []
 
       ActiveRecord::Base.transaction(requires_new: true) do
         result_data = Result.upsert_all(
           enriched_records,
           unique_by: %i[search_id url_hash],
-          update_only: %i[title content engine relevance_score matched_keywords verification_status],
-          returning: %i[id verification_status]
+          on_duplicate: ON_DUPLICATE_SQL,
+          record_timestamps: false,
+          returning: %i[id url_hash verification_status]
         )
 
-        inserted_rows = result_data.rows.map { |id, status| { id: id, status: status } }
+        inserted_rows = result_data.rows.map do |id, url_hash, status|
+          { id: id, url_hash: url_hash, status: status }
+        end
       end
 
-      schedule_for_verification(inserted_rows)
+      schedule_for_verification(inserted_rows, verification_hashes)
 
       inserted_ids = inserted_rows.pluck(:id)
       Result.select(UI_ATTRIBUTES)
@@ -107,11 +155,12 @@ module Results
             .to_a
     end
 
-    def schedule_for_verification(inserted_rows)
+    def schedule_for_verification(inserted_rows, verification_hashes)
       inserted_rows.each do |row|
-        if row[:status] == "pending" || row[:status].to_s.start_with?("unverified")
-          ResultVerificationJob.perform_async(row[:id], @search.user_id)
-        end
+        next unless verification_hashes.include?(row[:url_hash])
+        next unless row[:status] == "pending" || row[:status].to_s.start_with?("unverified")
+
+        ResultVerificationJob.perform_async(row[:id], @search.user_id)
       end
     end
   end

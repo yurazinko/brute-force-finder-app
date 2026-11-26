@@ -7,10 +7,10 @@ module Results
     MAX_BODY_SIZE = 2 * 1024 * 1024
 
     CAPTCHA_INDICATORS = [
-      "cf-challenge", "cf-turnstile", "g-recaptcha", "hcaptcha", "enable javascript",
-      "ray id:", "just a moment...", "attention required!",
+      "cf-challenge", "cf-chl-", "cf-turnstile", "cf-turnstile-response",
+      "g-recaptcha", "hcaptcha", "h-captcha", "just a moment...",
       "are you a human?", "verify you are a human", "please complete the security check",
-      "security check required", "you are being redirected"
+      "security check required", "captcha challenge"
     ].freeze
 
     CAPTCHA_REGEX = Regexp.new(
@@ -32,30 +32,17 @@ module Results
     end
 
     def self.fetch(url, keyword_groups: [])
-      if keyword_groups.present?
-        Results::StreamingPageFetcher.fetch_and_match(url, keyword_groups: keyword_groups)
-      else
-        new(url).fetch
-      end
+      new(url).fetch(keyword_groups: keyword_groups)
     end
 
     def initialize(url)
       @url = url
     end
 
-    def fetch
-      response = fetch_with_safe_redirects(@url)
-      body_text = response.body.to_s
-
-      if captcha_detected?(response, body_text)
-        FetchResult.new(text: "", status: :captcha)
-      else
-        clean_text = extract_and_normalize_text(body_text)
-        FetchResult.new(text: clean_text, status: :verified)
-      end
-    rescue StandardError => e
-      Rails.logger.warn("[PageFetcher] Failed to fetch #{@url}: #{e.message}")
-      FetchResult.new(text: "", status: :error)
+    def fetch(keyword_groups: [])
+      # One transport path for every page: streaming, bounded response body,
+      # validated redirects, Tor adapter and a single overall deadline.
+      Results::StreamingPageFetcher.fetch_and_match(@url, keyword_groups: keyword_groups)
     end
 
     private

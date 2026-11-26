@@ -18,7 +18,7 @@ module SearchCampaigns
       broadcast_metrics(metrics, counts)
       build_response(metrics, counts)
     rescue StandardError => e
-      log_and_return_error(e)
+      report_and_reraise(e)
     end
 
     private
@@ -47,9 +47,20 @@ module SearchCampaigns
       }
     end
 
-    def log_and_return_error(error)
+    def report_and_reraise(error)
+      begin
+        Rails.error.report(
+          error,
+          handled: false,
+          severity: :error,
+          context: { prompt_id: @prompt.id, search_id: @search.id }
+        )
+      rescue StandardError => e
+        Rails.logger.error("[Search::ResultHandler] Error reporter failed: #{e.message}")
+      end
+
       Rails.logger.error("[Search::ResultHandler] Failed for Prompt##{@prompt.id}: #{error.message}")
-      { error: error.message, raw_count: 0, new_count: 0 }
+      raise error
     end
 
     def filter_options

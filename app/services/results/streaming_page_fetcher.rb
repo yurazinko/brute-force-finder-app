@@ -1,13 +1,18 @@
 # frozen_string_literal: true
 
 require "uri"
+require "timeout"
 
 module Results
   class StreamingPageFetcher
-    MAX_BYTES = 1_048_576
+    MAX_BYTES = Results::PageFetcher::MAX_BODY_SIZE
     CAPTCHA_PREFIX_BYTES = 32_768
     EARLY_MATCH_CHECK_INTERVAL = 16_384
     MAX_REDIRECTS = 3
+    REQUEST_IO_TIMEOUT = 5
+    TOTAL_DEADLINE_SECONDS = 15
+
+    class FetchDeadlineExceeded < StandardError; end
 
     StreamState = Struct.new(
       :html_content,
@@ -29,7 +34,11 @@ module Results
     end
 
     def fetch
-      html_content, captcha = stream_page_content(@url)
+      html_content, captcha = Timeout.timeout(TOTAL_DEADLINE_SECONDS, FetchDeadlineExceeded) do
+        stream_page_content(@url)
+      end
+
+      captcha ||= html_content.match?(Results::PageFetcher::CAPTCHA_REGEX)
       return Results::PageFetcher::FetchResult.new(text: "", status: :captcha) if captcha
 
       parsed_text = extract_text_safely(html_content)
@@ -69,7 +78,7 @@ module Results
       Results::TorHttpClient.get(
         uri,
         headers: headers,
-        timeout: 8,
+        timeout: REQUEST_IO_TIMEOUT,
         stream_body: true,
         follow_redirects: false
       ) do |chunk|

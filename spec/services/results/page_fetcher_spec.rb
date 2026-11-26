@@ -21,7 +21,7 @@ RSpec.describe Results::PageFetcher, type: :service do
       it "instantiates PageFetcher and calls #fetch" do
         fetcher_instance = instance_double(described_class)
         expect(described_class).to receive(:new).with(target_url).and_return(fetcher_instance)
-        expect(fetcher_instance).to receive(:fetch)
+        expect(fetcher_instance).to receive(:fetch).with(keyword_groups: [])
 
         described_class.fetch(target_url)
       end
