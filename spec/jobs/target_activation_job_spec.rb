@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe TargetActivationJob, type: :job do
+RSpec.describe Targets::ActivationJob, type: :job do
   let(:user) { create(:user) }
   let(:category) { Category.create!(name: "SaaS", user: user) }
   let!(:target) { Target.create!(category: category, name: "Lever", domain: "lever.co", is_active: true) }

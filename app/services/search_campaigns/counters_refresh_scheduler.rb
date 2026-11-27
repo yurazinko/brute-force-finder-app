@@ -3,27 +3,8 @@
 module SearchCampaigns
   class CountersRefreshScheduler
     DEBOUNCE = 1.second
-    LOCK_TTL = 30
-    GENERATION_TTL = 1.hour
-
-    RELEASE_LOCK_LUA = <<~LUA
-      if redis.call('GET', KEYS[1]) == ARGV[1] then
-        return redis.call('DEL', KEYS[1])
-      else
-        return 0
-      end
-    LUA
-
-    FINALIZE_LUA = <<~LUA
-      if redis.call('GET', KEYS[1]) ~= ARGV[1] then
-        return -1
-      end
-      if (redis.call('GET', KEYS[2]) or '0') ~= ARGV[2] then
-        return 1
-      end
-      redis.call('DEL', KEYS[1])
-      return 0
-    LUA
+    LOCK_TTL = 120
+    GENERATION_TTL = 7.days
 
     class << self
       def schedule(search)
@@ -55,7 +36,30 @@ module SearchCampaigns
 
       def release_lock(search_id, token)
         Sidekiq.redis do |redis|
-          redis.eval(RELEASE_LOCK_LUA, 1, lock_key(search_id), token.to_s)
+          redis.call(
+            "EVAL",
+            "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
+            "1",
+            lock_key(search_id),
+            token.to_s
+          )
+        end
+      end
+
+      # Sidekiq retries may start after the short-lived debounce lock expired.
+      # Reacquire only when it is absent; never overwrite a newer scheduler token.
+      def ensure_lock_ownership(search_id, token)
+        Sidekiq.redis do |redis|
+          key = lock_key(search_id)
+          current = redis.get(key)
+          if current == token.to_s
+            redis.expire(key, LOCK_TTL)
+            true
+          elsif current.nil?
+            !redis.set(key, token.to_s, nx: true, ex: LOCK_TTL).nil?
+          else
+            false
+          end
         end
       end
 
@@ -63,14 +67,20 @@ module SearchCampaigns
       # compare-and-delete closes the race between checking the generation and
       # releasing the debounce lock.
       def finalize(search_id, token, generation)
+        script = <<~LUA
+          if redis.call('GET', KEYS[1]) ~= ARGV[1] then
+            return -1
+          end
+          if (redis.call('GET', KEYS[2]) or '0') ~= ARGV[2] then
+            return 1
+          end
+          redis.call('DEL', KEYS[1])
+          return 0
+        LUA
         result = Sidekiq.redis do |redis|
-          redis.eval(
-            FINALIZE_LUA,
-            2,
-            lock_key(search_id),
-            generation_key(search_id),
-            token.to_s,
-            generation.to_s
+          redis.call(
+            "EVAL", script, "2", lock_key(search_id), generation_key(search_id),
+            token.to_s, generation.to_s
           )
         end
 

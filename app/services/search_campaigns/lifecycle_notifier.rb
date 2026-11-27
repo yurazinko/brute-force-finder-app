@@ -24,10 +24,10 @@ module SearchCampaigns
     end
 
     def broadcast_new_results(new_results)
-      result_ids = Array(new_results).filter_map(&:id)
+      result_ids = Array(new_results).filter_map(&:id).uniq
       return if result_ids.empty?
 
-      records = Result.includes(:search).where(id: result_ids).index_by(&:id)
+      records = Result.where(id: result_ids).index_by(&:id)
       persisted_results = result_ids.filter_map { |id| records[id] }
       return if persisted_results.empty?
 

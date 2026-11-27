@@ -8,8 +8,10 @@ module SearchCampaigns
     sidekiq_options queue: :default, retry: 5
 
     def perform(search_id, user_id, lock_token)
+      return unless CountersRefreshScheduler.ensure_lock_ownership(search_id, lock_token)
+
       generation = Sidekiq.redis do |redis|
-        redis.get(CountersRefreshScheduler.generation_key(search_id)).to_s
+        redis.get(CountersRefreshScheduler.generation_key(search_id)).to_s.presence || "0"
       end
 
       search = Search.find_by(id: search_id, user_id: user_id)

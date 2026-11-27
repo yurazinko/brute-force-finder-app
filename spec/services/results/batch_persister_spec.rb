@@ -201,7 +201,7 @@ RSpec.describe Results::BatchPersister, type: :service do
         end
 
         it "does not enqueue another verification job for the already verified row" do
-          expect(ResultVerificationJob).not_to receive(:perform_async)
+          expect(Results::VerificationJob).not_to receive(:perform_async)
           subject
         end
       end

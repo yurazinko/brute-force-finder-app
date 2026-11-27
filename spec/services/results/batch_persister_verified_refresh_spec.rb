@@ -58,7 +58,7 @@ RSpec.describe Results::BatchPersister, type: :service do
         verification_status: "pending", relevance_score: 0
       }]
 
-      expect(ResultVerificationJob).not_to receive(:perform_async)
+      expect(Results::VerificationJob).not_to receive(:perform_async)
       described_class.call(search, prompt, incoming)
     end
   end

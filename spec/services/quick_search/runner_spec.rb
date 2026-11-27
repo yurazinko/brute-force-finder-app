@@ -81,7 +81,7 @@ RSpec.describe QuickSearch::Runner, type: :service do
       allow(QuickSearch::Store).to receive(:results).with(token, user_id: user.id).and_return([
                                                                                                 search_result.merge("verification_status" => "pending", "relevance_score" => 25)
                                                                                               ])
-      allow(QuickSearchResultVerificationJob).to receive(:perform_async)
+      allow(QuickSearches::ResultVerificationJob).to receive(:perform_async)
 
       allow(SearchEngines::ResultsCollector).to receive(:call) do |_search_query, _options, on_engine_start:, &on_batch|
         collector = SearchEngines::Searxng::RawResultsCollector
@@ -99,7 +99,7 @@ RSpec.describe QuickSearch::Runner, type: :service do
         token,
         hash_including(status: "verifying", verification_total_count: 1, verification_pending_count: 1)
       )
-      expect(QuickSearchResultVerificationJob).to have_received(:perform_async).with(token, user.id, "hash-1")
+      expect(QuickSearches::ResultVerificationJob).to have_received(:perform_async).with(token, user.id, "hash-1")
     end
   end
 end

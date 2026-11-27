@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe ResultVerificationJob, type: :job do
+RSpec.describe Results::VerificationJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:search) { create(:search, query_conditions: "ruby rails", relevance_mode: "strict") }

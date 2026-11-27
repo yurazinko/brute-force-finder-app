@@ -99,7 +99,7 @@ class QuickSearchesController < ApplicationController
     token = SecureRandom.hex(16)
     user_id = current_user&.id
     QuickSearch::Store.create!(token: token, user_id: user_id, query: query)
-    QuickSearchJob.perform_async(token, user_id)
+    QuickSearches::ActivationJob.perform_async(token, user_id)
     session[SESSION_TOKEN_KEY] = token
     token
   end

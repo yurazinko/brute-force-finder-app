@@ -1,0 +1,32 @@
+# frozen_string_literal: true
+
+module System
+  class YacyTriggerCrawlJob < ApplicationJob
+    sidekiq_options queue: :system, retry: 3
+
+    CRAWL_LOCK_TTL = 6.hours.to_i
+
+    def perform(target_site, collection = "default", options = {})
+      options = options.symbolize_keys
+      crawl_query_urls = options.fetch(:crawl_query_urls, false)
+
+      lock_key = "yacy:crawling_lock:#{target_site}"
+
+      acquired = Sidekiq.redis do |conn|
+        conn.set(lock_key, "in_progress", ex: CRAWL_LOCK_TTL, nx: true)
+      end
+
+      return unless acquired
+
+      url = target_site.start_with?("http") ? target_site : "https://#{target_site}"
+
+      SearchEngines::Yacy::Api::Crawler.search(
+        url,
+        depth: 3,
+        max_pages: 200,
+        collection: collection,
+        crawl_query_urls: crawl_query_urls
+      )
+    end
+  end
+end

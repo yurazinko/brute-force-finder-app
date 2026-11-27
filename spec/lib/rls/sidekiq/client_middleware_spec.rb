@@ -18,7 +18,7 @@ end
 RSpec.describe Rls::SidekiqSupport::ClientMiddleware do
   subject(:middleware) { described_class.new }
 
-  it "maps SearchActivationJob-style _user_id by declared argument name" do
+  it "maps SearchCampaigns::ActivationJob-style _user_id by declared argument name" do
     job = { "class" => "DummyClientRlsWorker", "args" => [88, 42] }
     middleware.call(DummyClientRlsWorker, job, "default") { true }
     expect(job["rls_user_id"]).to eq(42)

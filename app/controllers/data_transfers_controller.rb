@@ -7,7 +7,7 @@ class DataTransfersController < ApplicationController
 
   def export
     selected_tables = (Array(params[:tables]).compact_blank if params.key?(:tables))
-    DataExportJob.perform_async(current_user.id, selected_tables)
+    Database::DataExportJob.perform_async(current_user.id, selected_tables)
 
     render_progress_stream("export", "Starting export job...")
   end
@@ -15,7 +15,7 @@ class DataTransfersController < ApplicationController
   def import
     if params[:file].present?
       temp_path = save_uploaded_file!
-      DataImportJob.perform_async(temp_path, current_user.id)
+      Database::DataImportJob.perform_async(temp_path, current_user.id)
 
       render_progress_stream("import", "File uploaded. Starting sync...")
     else

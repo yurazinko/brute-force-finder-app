@@ -1,26 +1,26 @@
 
 nightly_scraping_job:
   cron: "0 2,14 * * *"
-  class: "NightlyScrapingCronJob"
+  class: "System::NightlyScrapingCronJob"
   queue: system
   description: "Nightly scraping job"
 
 searxng_updater_job:
   cron: "0 13 * * *"
-  class: "SearxngUpdaterJob"
+  class: "System::SearxngUpdaterJob"
   queue: system
 
 yacy_updater_job:
   cron: "15 13 * * *"
-  class: "YacyUpdaterJob"
+  class: "System::YacyUpdaterJob"
   queue: system
 
 fourget_updater_job:
   cron: "10 13 * * *"
-  class: FourgetUpdaterJob
+  class: "System::FourgetUpdaterJob"
   queue: system
 
 degoog_updater_job:
   cron: "20 13 * * *"
-  class: DegoogUpdaterJob
+  class: "System::DegoogUpdaterJob"
   queue: system

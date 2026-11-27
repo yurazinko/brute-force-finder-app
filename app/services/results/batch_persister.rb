@@ -153,7 +153,7 @@ module Results
         next if existing_search_hashes.include?(row[:url_hash])
 
         if row[:status] == "pending" || row[:status].to_s.start_with?("unverified")
-          ResultVerificationJob.perform_async(row[:id], @search.user_id)
+          Results::VerificationJob.perform_async(row[:id], @search.user_id)
         end
       end
     end

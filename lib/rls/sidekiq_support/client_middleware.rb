@@ -13,7 +13,7 @@ module Rls
 
         tenant_id = job["rls_user_id"].presence || tenant_from_declared_argument(klass, worker_arguments(job))
         # Chained jobs may intentionally omit user_id (for example, a retry
-        # scheduled by ResultVerificationJob). Inherit only the active database
+        # scheduled by Results::VerificationJob). Inherit only the active database
         # tenant, never infer it from an arbitrary numeric job argument.
         tenant_id ||= current_database_tenant_id
         if tenant_id.blank?
@@ -46,7 +46,7 @@ module Rls
       end
 
       # This is a declared parameter-name contract, not a numeric/shape heuristic.
-      # SearchActivationJob(search_id, _user_id) therefore uses the second argument.
+      # SearchCampaigns::ActivationJob(search_id, _user_id) therefore uses the second argument.
       def current_database_tenant_id
         ActiveRecord::Base.connection.select_value("SELECT current_user_id()")
       end

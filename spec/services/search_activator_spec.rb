@@ -56,7 +56,7 @@ RSpec.describe SearchCampaigns::Activator, type: :service do
 
         expect(Sidekiq::Client).to have_received(:push_bulk).with(
           hash_including(
-            "class" => "PromptProcessorJob",
+            "class" => "Prompts::ProcessorJob",
             "args" => satisfy { |args| args.all? { |prompt_id, uid| prompt_id.is_a?(Integer) && uid == user.id } },
             "at" => kind_of(Array)
           )

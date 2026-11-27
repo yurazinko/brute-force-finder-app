@@ -75,7 +75,7 @@ module SearchCampaigns
 
       # Sidekiq's push_bulk job envelope uses string keys as part of its JSON payload contract.
       Sidekiq::Client.push_bulk(
-        "class" => "PromptProcessorJob",
+        "class" => "Prompts::ProcessorJob",
         "args" => args,
         "at" => ats
       )
