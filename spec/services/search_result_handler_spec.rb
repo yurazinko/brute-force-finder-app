@@ -20,12 +20,14 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
       it "processes records, persists them, and returns metrics summary" do
         allow(Results::DataTransformer).to receive(:process).and_return([{ url: "https://github.com/ruby/ruby" }])
         allow(Results::BatchPersister).to receive(:call).and_return({ raw_count: 1, new_count: 1, persisted_results: [] })
+        allow(Results::Counters).to receive(:calculate_filtered).and_return(double(total: 1))
+        allow(SearchCampaigns::LifecycleNotifier).to receive(:broadcast_metrics)
 
         result = described_class.call(prompt, raw_results)
 
         expect(result[:raw_count]).to eq(1)
         expect(result[:new_count]).to eq(1)
-        expect(result[:total]).to eq(0)
+        expect(result[:total]).to eq(1)
       end
     end
 
@@ -38,16 +40,18 @@ RSpec.describe SearchCampaigns::ResultHandler, type: :service do
       end
     end
 
-    context "when persistence fails" do
-      it "reports and reraises so Sidekiq can retry" do
-        error = ActiveRecord::StatementInvalid.new("database unavailable")
+    context "when processing fails" do
+      it "reports the exception and re-raises it for Sidekiq retry" do
+        error = StandardError.new("database unavailable")
         allow(Results::DataTransformer).to receive(:process).and_raise(error)
         allow(Rails.error).to receive(:report)
 
         expect { described_class.call(prompt, raw_results) }.to raise_error(error)
         expect(Rails.error).to have_received(:report).with(
-          error, handled: false, severity: :error,
-                 context: { prompt_id: prompt.id, search_id: search.id }
+          error,
+          handled: false,
+          severity: :error,
+          context: { prompt_id: prompt.id, search_id: search.id }
         )
       end
     end

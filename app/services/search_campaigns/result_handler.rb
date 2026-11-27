@@ -14,9 +14,9 @@ module SearchCampaigns
     def call
       return { raw_count: 0, new_count: 0 } if @scraped_data.blank?
 
-      metrics, total = process_and_persist_batch
-      broadcast_new_results(metrics)
-      build_response(metrics, total)
+      metrics, counts = process_and_persist_batch
+      broadcast_metrics(metrics, counts)
+      build_response(metrics, counts)
     rescue StandardError => e
       report_and_reraise(e)
     end
@@ -27,29 +27,36 @@ module SearchCampaigns
       result_records = Results::DataTransformer.process(@search, @scraped_data, @prompt)
       metrics = Results::BatchPersister.call(@search, @prompt, result_records)
       @search.results.reset
-      total = Results::Query.new(@search.results, filter_options, search: @search).filtered_scope.count
-      SearchCampaigns::CountersRefreshScheduler.schedule(@search)
-      [metrics, total]
+      counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
+      [metrics, counts]
     end
 
-    def broadcast_new_results(metrics)
-      SearchCampaigns::LifecycleNotifier.broadcast_new_results(
-        @search, metrics[:persisted_results]
+    def broadcast_metrics(metrics, counts)
+      SearchCampaigns::LifecycleNotifier.broadcast_metrics(
+        @search,
+        counts,
+        new_results: metrics[:persisted_results]
       )
     end
 
-    def build_response(metrics, total)
-      { raw_count: metrics[:raw_count], new_count: metrics[:new_count], total: total }
+    def build_response(metrics, counts)
+      {
+        raw_count: metrics[:raw_count],
+        new_count: metrics[:new_count],
+        total: counts.total
+      }
     end
 
     def report_and_reraise(error)
       begin
         Rails.error.report(
-          error, handled: false, severity: :error,
-                 context: { prompt_id: @prompt.id, search_id: @search.id }
+          error,
+          handled: false,
+          severity: :error,
+          context: { prompt_id: @prompt.id, search_id: @search.id }
         )
-      rescue StandardError => e
-        Rails.logger.error("[Search::ResultHandler] Error reporter failed: #{e.message}")
+      rescue StandardError => reporting_error
+        Rails.logger.error("[Search::ResultHandler] Error reporter failed: #{reporting_error.message}")
       end
 
       Rails.logger.error("[Search::ResultHandler] Failed for Prompt##{@prompt.id}: #{error.message}")

@@ -2,6 +2,8 @@
 
 module Results
   class BatchPersister
+    include Rls::Context
+
     BATCH_SIZE = 100
     UI_ATTRIBUTES = %i[id search_id url url_hash title content engine status acknowledged
                        relevance_score verification_status matched_keywords created_at].freeze
@@ -38,15 +40,23 @@ module Results
     def call
       return { raw_count: 0, new_count: 0, persisted_results: [] } if @result_records.blank?
 
-      total_new = 0
-      all_persisted = []
-      prepare_and_deduplicate(@result_records).each_slice(BATCH_SIZE) do |batch|
-        new_c, persisted = process_batch(batch)
-        total_new += new_c
-        all_persisted.concat(persisted)
+      active_tenant_id = self.class.current_rls_user_id
+      search_tenant_id = @search.user_id
+      if active_tenant_id.present? && search_tenant_id.present? && active_tenant_id.to_s != search_tenant_id.to_s
+        raise Rls::Context::StaleTenantContextError, "Search owner does not match the active RLS tenant"
       end
 
-      { raw_count: @result_records.size, new_count: total_new, persisted_results: all_persisted }
+      with_rls_user(search_tenant_id.presence || active_tenant_id) do
+        total_new = 0
+        all_persisted = []
+        prepare_and_deduplicate(@result_records).each_slice(BATCH_SIZE) do |batch|
+          new_c, persisted = process_batch(batch)
+          total_new += new_c
+          all_persisted.concat(persisted)
+        end
+
+        { raw_count: @result_records.size, new_count: total_new, persisted_results: all_persisted }
+      end
     end
 
     private
@@ -61,49 +71,32 @@ module Results
 
     def process_batch(batch)
       existing = fetch_existing_records(batch)
-      verification_hashes = verification_refresh_hashes(batch, existing)
-      [calculate_new_records(batch, existing), persist_records!(batch, existing, verification_hashes)]
+      [calculate_new_records(batch, existing), persist_records!(batch, existing)]
+    end
+
+    def persist_records!(batch, existing)
+      existing_search_hashes = existing.each_with_object(Set.new) do |(search_id, h, _), set|
+        set << h if search_id == @search_id
+      end
+      global_ack = existing.each_with_object(Set.new) { |(_, h, ack), set| set << h if ack == true }
+
+      execute_upsert(batch.map { |r| build_db_payload(r, global_ack) }, existing_search_hashes)
     end
 
     def fetch_existing_records(batch)
       hashes = batch.filter_map { |r| r[:url_hash] }
       hashes = hashes.uniq
-      if hashes.empty?
-        []
-      else
-        Result.unscoped.where(url_hash: hashes)
-              .pluck(:search_id, :url_hash, :acknowledged, :verification_status)
-      end
+      return [] if hashes.empty?
+
+      Result.unscoped.joins(:search)
+            .where(searches: { user_id: @search.user_id })
+            .where(url_hash: hashes)
+            .pluck(:search_id, :url_hash, :acknowledged)
     end
 
     def calculate_new_records(batch, existing)
-      search_hashes = existing.each_with_object(Set.new) do |(id, hash, _ack, _status), set|
-        set << hash if id == @search_id
-      end
-      batch.count { |record| search_hashes.exclude?(record[:url_hash]) }
-    end
-
-    def verification_refresh_hashes(batch, existing)
-      existing_by_key = existing.index_by { |search_id, url_hash, _ack, _status| [search_id, url_hash] }
-
-      batch.filter_map do |record|
-        incoming_status = record[:verification_status].presence || "pending"
-        next unless incoming_status == "pending" || incoming_status.start_with?("unverified")
-
-        previous = existing_by_key[[@search_id, record[:url_hash]]]
-        previous_status = previous&.last
-        next if previous && !(previous_status.to_s.start_with?("unverified") && incoming_status == "pending")
-
-        record[:url_hash]
-      end.to_set
-    end
-
-    def persist_records!(batch, existing, verification_hashes)
-      global_ack = existing.each_with_object(Set.new) do |(_search_id, hash, acknowledged, _status), set|
-        set << hash if acknowledged == true
-      end
-      payloads = batch.map { |record| build_db_payload(record, global_ack) }
-      execute_upsert(payloads, verification_hashes)
+      search_hashes = existing.each_with_object(Set.new) { |(id, h), set| set << h if id == @search_id }
+      batch.count { |r| search_hashes.exclude?(r[:url_hash]) }
     end
 
     def build_db_payload(record, global_ack_set) # rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
@@ -130,7 +123,7 @@ module Results
       }
     end
 
-    def execute_upsert(enriched_records, verification_hashes)
+    def execute_upsert(enriched_records, existing_search_hashes = Set.new)
       inserted_rows = []
 
       ActiveRecord::Base.transaction(requires_new: true) do
@@ -147,7 +140,7 @@ module Results
         end
       end
 
-      schedule_for_verification(inserted_rows, verification_hashes)
+      schedule_for_verification(inserted_rows, existing_search_hashes)
 
       inserted_ids = inserted_rows.pluck(:id)
       Result.select(UI_ATTRIBUTES)
@@ -155,12 +148,13 @@ module Results
             .to_a
     end
 
-    def schedule_for_verification(inserted_rows, verification_hashes)
+    def schedule_for_verification(inserted_rows, existing_search_hashes)
       inserted_rows.each do |row|
-        next unless verification_hashes.include?(row[:url_hash])
-        next unless row[:status] == "pending" || row[:status].to_s.start_with?("unverified")
+        next if existing_search_hashes.include?(row[:url_hash])
 
-        ResultVerificationJob.perform_async(row[:id], @search.user_id)
+        if row[:status] == "pending" || row[:status].to_s.start_with?("unverified")
+          ResultVerificationJob.perform_async(row[:id], @search.user_id)
+        end
       end
     end
   end

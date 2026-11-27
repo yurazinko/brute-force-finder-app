@@ -187,6 +187,53 @@ RSpec.describe Results::BatchPersister, type: :service do
         )
         expect(subject[:persisted_results].size).to eq(1)
       end
+
+      context "when the existing record is already verified" do
+        before do
+          existing_result.update!(verification_status: "verified", relevance_score: 100)
+        end
+
+        it "does not downgrade verification or relevance on a later pending scrape" do
+          subject
+
+          expect(existing_result.reload.verification_status).to eq("verified")
+          expect(existing_result.relevance_score).to eq(100)
+        end
+
+        it "does not enqueue another verification job for the already verified row" do
+          expect(ResultVerificationJob).not_to receive(:perform_async)
+          subject
+        end
+      end
+    end
+
+    context "when the same URL was acknowledged by a different user" do
+      let(:other_user) do
+        User.create!(username: "other-persister@example.com", password: "password123")
+      end
+      let(:other_search) do
+        Search.create!(user: other_user, title: "Other Tenant", query_conditions: "rails", status: "completed")
+      end
+
+      before do
+        Result.create!(
+          search_id: other_search.id,
+          url: url1,
+          url_hash: hash1,
+          title: "Other tenant job",
+          status: "watched",
+          acknowledged: true
+        )
+      end
+
+      let(:result_records) { [valid_records.first] }
+
+      it "does not copy another user's acknowledged state" do
+        subject
+
+        imported = Result.find_by!(search_id: search.id, url_hash: hash1)
+        expect(imported.acknowledged).to be(false)
+      end
     end
 
     context "when cross-search global acknowledged inheritance applies" do
