@@ -8,7 +8,10 @@
         <%= link_to "Clear", results_path(status: params[:status], d: params[:d], sort: params[:sort]), class: "text-[11px] text-breeze-muted hover:text-breeze-accent font-semibold" if @selected_search_ids.any? %>
       </div>
 
-      <%= form_with(url: results_path, method: :get, local: true, data: { turbo_frame: "results_pool", turbo_action: "advance" }, id: "campaign_filter_form") do |f| %>
+      <%= form_with(url: results_path, method: :get, local: true,
+                    data: { controller: "form-submit", action: "change->form-submit#submit",
+                            turbo_frame: "results_pool", turbo_action: "advance" },
+                    id: "campaign_filter_form") do |f| %>
         <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
         <%= hidden_field_tag :d, params[:d] if params[:d].present? %>
         <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
@@ -18,8 +21,7 @@
           <% @available_searches.each do |search| %>
             <label class="flex items-start space-x-2.5 cursor-pointer text-xs group py-1 px-1.5 rounded hover:bg-breeze-bg transition">
               <%= check_box_tag "search_ids[]", search.id, @selected_search_ids.include?(search.id.to_s),
-                                class: "rounded border-breeze-border text-breeze-accent scale-95 mt-0.5 cursor-pointer",
-                                onchange: "this.form.requestSubmit();" %>
+                                class: "rounded border-breeze-border text-breeze-accent scale-95 mt-0.5 cursor-pointer" %>
               <div class="flex flex-col min-w-0 flex-1">
                 <span class="text-breeze-text font-medium truncate group-hover:text-breeze-accent"><%= search.title %></span>
               </div>
@@ -30,8 +32,7 @@
         <div class="border-b border-breeze-border pb-3 mb-3">
           <label class="flex items-center space-x-3 cursor-pointer py-1.5 px-1 rounded hover:bg-breeze-bg transition">
             <%= check_box_tag :show_acknowledged, "true", params[:show_acknowledged] == "true",
-                              class: "rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer",
-                              onchange: "this.form.requestSubmit();" %>
+                              class: "rounded border-breeze-border text-breeze-accent focus:ring-breeze-accent cursor-pointer" %>
             <div class="flex flex-col">
               <span class="text-xs font-semibold text-breeze-text">Show Acknowledged</span>
               <span class="text-[10px] text-breeze-muted">Include archived/reviewed hits</span>

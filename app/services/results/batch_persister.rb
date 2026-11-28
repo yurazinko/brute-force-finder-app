@@ -38,28 +38,42 @@ module Results
     end
 
     def call
-      return { raw_count: 0, new_count: 0, persisted_results: [] } if @result_records.blank?
+      return empty_result if @result_records.blank?
 
-      active_tenant_id = self.class.current_rls_user_id
-      search_tenant_id = @search.user_id
-      if active_tenant_id.present? && search_tenant_id.present? && active_tenant_id.to_s != search_tenant_id.to_s
-        raise Rls::Context::StaleTenantContextError, "Search owner does not match the active RLS tenant"
-      end
-
-      with_rls_user(search_tenant_id.presence || active_tenant_id) do
-        total_new = 0
-        all_persisted = []
-        prepare_and_deduplicate(@result_records).each_slice(BATCH_SIZE) do |batch|
-          new_c, persisted = process_batch(batch)
-          total_new += new_c
-          all_persisted.concat(persisted)
-        end
-
-        { raw_count: @result_records.size, new_count: total_new, persisted_results: all_persisted }
-      end
+      with_rls_user(tenant_id) { persist_all_batches }
     end
 
     private
+
+    def empty_result
+      { raw_count: 0, new_count: 0, persisted_results: [] }
+    end
+
+    def tenant_id
+      active_tenant_id = self.class.current_rls_user_id
+      search_tenant_id = @search.user_id
+      validate_tenant_ownership!(active_tenant_id, search_tenant_id)
+      search_tenant_id.presence || active_tenant_id
+    end
+
+    def validate_tenant_ownership!(active_tenant_id, search_tenant_id)
+      return unless active_tenant_id.present? && search_tenant_id.present?
+      return if active_tenant_id.to_s == search_tenant_id.to_s
+
+      raise Rls::Context::StaleTenantContextError, "Search owner does not match the active RLS tenant"
+    end
+
+    def persist_all_batches
+      total_new = 0
+      all_persisted = []
+      prepare_and_deduplicate(@result_records).each_slice(BATCH_SIZE) do |batch|
+        new_count, persisted = process_batch(batch)
+        total_new += new_count
+        all_persisted.concat(persisted)
+      end
+
+      { raw_count: @result_records.size, new_count: total_new, persisted_results: all_persisted }
+    end
 
     def prepare_and_deduplicate(records)
       records.each_with_object({}) do |record, acc|
@@ -124,8 +138,13 @@ module Results
     end
 
     def execute_upsert(enriched_records, existing_search_hashes = Set.new)
-      inserted_rows = []
+      inserted_rows = upsert_records(enriched_records)
+      schedule_for_verification(inserted_rows, existing_search_hashes)
+      fetch_persisted_results(inserted_rows)
+    end
 
+    def upsert_records(enriched_records)
+      result_data = nil
       ActiveRecord::Base.transaction(requires_new: true) do
         result_data = Result.upsert_all(
           enriched_records,
@@ -134,14 +153,11 @@ module Results
           record_timestamps: false,
           returning: %i[id url_hash verification_status]
         )
-
-        inserted_rows = result_data.rows.map do |id, url_hash, status|
-          { id: id, url_hash: url_hash, status: status }
-        end
       end
+      result_data.rows.map { |id, url_hash, status| { id: id, url_hash: url_hash, status: status } }
+    end
 
-      schedule_for_verification(inserted_rows, existing_search_hashes)
-
+    def fetch_persisted_results(inserted_rows)
       inserted_ids = inserted_rows.pluck(:id)
       Result.select(UI_ATTRIBUTES)
             .where(id: inserted_ids, acknowledged: [false, @search.show_acknowledged].uniq)

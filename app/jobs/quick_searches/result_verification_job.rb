@@ -124,7 +124,8 @@ module QuickSearches
 
     def handle_verification_error(error)
       Rails.logger.warn(
-        "[QuickSearches::Results::VerificationJob] Verification failed for #{url_hash}: #{error.class}: #{error.message}"
+        "[QuickSearches::Results::VerificationJob] Verification failed for #{url_hash}: " \
+          "#{error.class}: #{error.message}"
       )
       persist_and_broadcast(verification_status: "unverified_error")
     end

@@ -10,6 +10,8 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     libyaml-dev \
     libjemalloc-dev \
     postgresql-client \
+    chromium \
+    fonts-liberation \
     && install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
     && chmod a+r /etc/apt/keyrings/docker.gpg \
@@ -21,6 +23,8 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && corepack enable \
     && corepack prepare yarn@stable --activate
+
+ENV BROWSER_PATH=/usr/bin/chromium
 
 WORKDIR /app
 

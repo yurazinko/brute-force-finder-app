@@ -66,15 +66,25 @@ module Database
 
     def attach_export_file(path)
       previous_blob = user.data_export.blob if user.data_export.attached?
-      filename = "export-user-#{user.id}-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.ndjson"
-      buffer = StringIO.new(File.binread(path))
+      filename = export_filename
+      attach_new_export(path, filename)
+      purge_replaced_export(previous_blob)
+    end
 
+    def attach_new_export(path, filename)
       user.data_export.attach(
-        io: buffer,
+        io: StringIO.new(File.binread(path)),
         filename: filename,
         content_type: "application/x-ndjson"
       )
+    end
 
+    def export_filename
+      timestamp = Time.current.strftime("%Y-%m-%d-%H%M%S")
+      "export-user-#{user.id}-#{timestamp}.ndjson"
+    end
+
+    def purge_replaced_export(previous_blob)
       return unless previous_blob && user.data_export.blob&.id != previous_blob.id
 
       previous_blob.purge_later

@@ -24,7 +24,8 @@ module SearchCampaigns
     end
 
     def broadcast_new_results(new_results)
-      result_ids = Array(new_results).filter_map(&:id).uniq
+      result_ids = Array(new_results).filter_map(&:id)
+      result_ids.uniq!
       return if result_ids.empty?
 
       records = Result.where(id: result_ids).index_by(&:id)

@@ -60,4 +60,6 @@ Rails.application.configure do
   config.hosts << "www.example.com"
   config.hosts << "example.com"
   config.hosts << "localhost"
+  # Capybara::Cuprite serves Puma on 127.0.0.1 with a random port.
+  config.hosts << "127.0.0.1"
 end

@@ -177,6 +177,17 @@ RSpec.describe "Results", type: :request do
     end
   end
 
+  describe "PATCH /results/:id/mark_as_read" do
+    it "marks the result as reviewed and acknowledges it without redirecting" do
+      expect do
+        patch mark_as_read_result_path(result)
+      end.to change { result.reload.status }.from("unread").to("watched")
+
+      expect(response).to have_http_status(:no_content)
+      expect(result.reload.acknowledged).to be(true)
+    end
+  end
+
   describe "PATCH /results/:id (update)" do
     context "with Turbo Stream format (JS/Async)" do
       it "removes the updated card from DOM and updates counters without appending anything" do

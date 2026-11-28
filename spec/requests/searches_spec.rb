@@ -269,18 +269,18 @@ RSpec.describe "Searches", type: :request do
           expect(search.reload.title).to eq("Updated Title")
           expect(search.relevance_mode).to eq("balanced")
 
-          assert_select "turbo-stream[action='prepend'][target='flash']"
+          assert_select "turbo-stream[action='replace'][target='flash-container']"
         end
       end
 
       context "with invalid parameters" do
-        it "does not update and prepends error alert to the flash container" do
+        it "does not update and replaces the flash container with an error alert" do
           allow_any_instance_of(Search).to receive(:update).and_return(false)
 
           patch search_path(search, format: :turbo_stream), params: { search: { title: "" } }
 
           expect(response).to have_http_status(:ok)
-          assert_select "turbo-stream[action='prepend'][target='flash']"
+          assert_select "turbo-stream[action='replace'][target='flash-container']"
         end
       end
     end
@@ -338,11 +338,11 @@ RSpec.describe "Searches", type: :request do
           allow_any_instance_of(Search).to receive(:activate_search!).and_return(false)
         end
 
-        it "prepends an error alert to the flash container via turbo stream" do
+        it "replaces the flash container with an error alert via turbo stream" do
           post activate_search_path(search, format: :turbo_stream), params: { target_ids: [target1.id] }
 
           expect(response).to have_http_status(:ok)
-          assert_select "turbo-stream[action='prepend'][target='flash']"
+          assert_select "turbo-stream[action='replace'][target='flash-container']"
         end
       end
     end

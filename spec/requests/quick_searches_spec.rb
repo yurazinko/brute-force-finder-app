@@ -53,7 +53,7 @@ RSpec.describe "Quick searches", type: :request do
       expect(response.body).to include("Ruby on Rails", "Rails job", "Save as campaign")
       expect(response.body).not_to include("Move to Trash", "Configure")
       assert_select "#quick_result_abc[data-controller='read-status']"
-      assert_select "#quick_result_abc a[data-action*='auxclick->read-status#markAsRead']"
+      assert_select "#quick_result_abc[data-controller~='read-status'] a[data-read-url]"
       assert_select "#quick_result_abc a[data-read-url='#{mark_as_read_quick_search_path(token, url_hash: 'abc')}']"
     end
 

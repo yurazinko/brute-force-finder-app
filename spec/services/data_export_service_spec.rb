@@ -26,16 +26,22 @@ RSpec.describe Database::DataExportService do
   let!(:other_result) { create(:result, search: other_search, target: other_target) }
 
   def read_exported_data
-    lines = user.data_export.download.each_line.reject { |line| line.strip.empty? }
+    export_lines = user.data_export.download.each_line.reject { |line| line.strip.empty? }
+    parse_export_lines(export_lines)
+  end
+
+  def parse_export_lines(lines)
     header = JSON.parse(lines.shift)
     return {} if header.fetch("tables").empty?
 
     tables = header.fetch("tables").index_with { [] }
-    lines.each do |line|
-      payload = JSON.parse(line)
-      tables.fetch(payload.fetch("table")) << payload.fetch("record")
-    end
+    lines.each { |line| append_export_record(tables, line) }
     tables
+  end
+
+  def append_export_record(tables, line)
+    payload = JSON.parse(line)
+    tables.fetch(payload.fetch("table")) << payload.fetch("record")
   end
 
   describe "#call" do

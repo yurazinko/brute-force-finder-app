@@ -45,7 +45,9 @@
 
         <div class="hidden lg:block h-4 border-l border-breeze-border/80 ml-auto"></div>
 
-        <%= form_with(url: path_provider, method: :get, local: true, class: "flex items-center gap-2 w-full lg:w-auto", data: { turbo_frame: "results_pool", turbo_action: "advance" }) do |f| %>
+        <%= form_with(url: path_provider, method: :get, local: true,
+                      class: "flex items-center gap-2 w-full lg:w-auto",
+                      data: { controller: "form-submit", turbo_frame: "results_pool", turbo_action: "advance" }) do |f| %>
           <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
           <%= hidden_field_tag :d, params[:d] if params[:d].present? %>
           <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
@@ -59,7 +61,7 @@
             <%= text_field_tag :q, params[:q],
                                 placeholder: "Filter matches...",
                                 class: "w-full bg-breeze-view text-xs text-breeze-text placeholder:text-breeze-muted/60 px-2.5 py-1.5 pr-7 rounded-md border border-breeze-border focus:outline-none focus:border-breeze-accent transition-all font-sans shadow-inner",
-                                oninput: "if(this.value.length > 0 && this.value.length < 3) { this.setCustomValidity('Min 3 chars') } else { this.setCustomValidity(''); if(this.value.length === 0) { this.form.requestSubmit(); } }" %>
+                                data: { action: "input->form-submit#validateAndSubmit", minimum_length: 3 } %>
             <% if params[:q].present? %>
               <%= link_to "✕", url_for(params.to_unsafe_h.merge(page: nil, q: nil)), class: "absolute right-2.5 text-[10px] text-breeze-muted hover:text-red-400 transition" %>
             <% end %>

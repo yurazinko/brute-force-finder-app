@@ -24,13 +24,10 @@ module Database
 
       target_user_id = determine_target_user_id
       validate_upload_size!
-      with_import_lock(target_user_id) do
+      DataImport::AdvisoryLock.synchronize(target_user_id) do
         import_file(target_user_id, &progress_callback)
       end
-
-      progress_callback&.call(100, "Import completed successfully!")
-      @import_succeeded = true
-      true
+      complete_import(&progress_callback)
     rescue StandardError => e
       Rails.logger.error("[DataImportService] Critical failure: #{e.full_message}")
       raise
@@ -63,192 +60,52 @@ module Database
       Integer(id.to_s, 10)
     end
 
-    # Hold a session advisory lock across batch transactions so two simultaneous
-    # restores for the same user cannot race on natural-key matching. The same
-    # checked-out connection is reused by Rls::Context on this thread.
-    def with_import_lock(target_user_id)
-      ActiveRecord::Base.connection_pool.with_connection do |connection|
-        lock_namespace = 729_194
-        lock_sql = "SELECT pg_advisory_lock(#{lock_namespace}, #{Integer(target_user_id)})"
-        unlock_sql = "SELECT pg_advisory_unlock(#{lock_namespace}, #{Integer(target_user_id)})"
-        connection.select_value(lock_sql)
-        begin
-          yield
-        ensure
-          begin
-            connection.select_value(unlock_sql)
-          rescue StandardError
-            ActiveRecord::Base.connection_pool.remove(connection)
-            raise
-          end
-        end
-      end
-    end
-
-    def import_file(target_user_id, &)
+    def import_file(target_user_id, &progress_callback)
       File.open(@file_path, "r") do |file|
         first_line = file.gets(MAX_NDJSON_LINE_BYTES + 1)
         raise ArgumentError, "Backup file is empty." if first_line.blank?
 
-        header = begin
-          JSON.parse(first_line)
-        rescue JSON::ParserError
-          nil
-        end
-
-        if header.is_a?(Hash) && header["_format"] == NDJSON_FORMAT
-          import_ndjson(file, header, target_user_id, &)
+        header = parse_header(first_line)
+        importer = build_importer(header, target_user_id, &progress_callback)
+        if ndjson_header?(header)
+          importer.call(file, header)
         else
-          import_legacy_json(file, target_user_id, &)
+          importer.call(file)
         end
       end
     end
 
-    def import_ndjson(file, header, target_user_id, &progress_callback)
-      unless header["version"].to_i == NDJSON_VERSION && header["tables"].is_a?(Array)
-        raise ArgumentError, "Unsupported backup format/version."
-      end
+    def build_importer(header, target_user_id, &progress_callback)
+      batch_importer = ->(entry, records, user_id) { import_batch(entry, records, user_id) }
+      options = importer_options(target_user_id, batch_importer, progress_callback)
 
-      table_names = header["tables"].map(&:to_s)
-      validate_declared_tables!(table_names)
-
-      entry_by_name = DataTransferRegistry.entries.index_by(&:name)
-      expected_order = DataTransferRegistry.table_names
-      declared_tables = table_names.to_set
-      last_table_index = -1
-      current_table = nil
-      current_buffer = []
-      current_buffer_bytes = 0
-      line_number = 1
-      total_tables = table_names.size
-
-      while (line = file.gets(MAX_NDJSON_LINE_BYTES + 1))
-        line_number += 1
-        if line.bytesize > MAX_NDJSON_LINE_BYTES
-          raise ArgumentError, "Backup line #{line_number} exceeds the maximum line size."
-        end
-        next if line.strip.empty?
-
-        payload = parse_json_line(line, line_number)
-        unless payload.is_a?(Hash) && payload["table"].present? && payload.key?("record")
-          raise ArgumentError, "Backup line #{line_number} must contain table and record."
-        end
-
-        table_name = payload["table"].to_s
-        unless DataTransferRegistry.include?(table_name) && declared_tables.include?(table_name)
-          raise ArgumentError, "Backup line #{line_number} references undeclared table '#{table_name}'."
-        end
-
-        table_index = expected_order.index(table_name)
-        if table_index.nil? || table_index < last_table_index
-          raise ArgumentError, "Backup tables are not in dependency-safe order near line #{line_number}."
-        end
-
-        if table_name != current_table
-          if current_table.present?
-            flush_import_buffer(entry_by_name.fetch(current_table), current_buffer,
-                                target_user_id)
-          end
-          current_buffer = []
-          current_buffer_bytes = 0
-          current_table = table_name
-
-          table_number = table_names.index(table_name).to_i
-          progress = total_tables.zero? ? 95 : ((table_number.to_f / total_tables) * 95).to_i
-          progress_callback&.call(progress, "Importing #{table_name}...")
-        end
-
-        record = payload["record"]
-        raise ArgumentError, "Backup record at line #{line_number} must be an object." unless record.is_a?(Hash)
-
-        current_buffer << record
-        current_buffer_bytes += line.bytesize
-        last_table_index = table_index
-
-        next unless current_buffer.size >= BATCH_SIZE || current_buffer_bytes >= MAX_BATCH_BYTES
-
-        flush_import_buffer(entry_by_name.fetch(current_table), current_buffer, target_user_id)
-        current_buffer = []
-        current_buffer_bytes = 0
-      end
-
-      flush_import_buffer(entry_by_name.fetch(current_table), current_buffer, target_user_id) if current_table.present?
-    end
-
-    def flush_import_buffer(entry, records, target_user_id)
-      return if records.blank?
-
-      import_batch(entry, records, target_user_id)
-    end
-
-    def import_legacy_json(file, target_user_id, &progress_callback)
-      if File.size(@file_path) > MAX_LEGACY_JSON_BYTES
-        raise ArgumentError,
-              "Legacy JSON backups are limited to #{MAX_LEGACY_JSON_BYTES} bytes; export again using the new format."
-      end
-
-      file.rewind
-      raw_data = JSON.parse(file.read)
-      raw_data = JSON.parse(raw_data) if raw_data.is_a?(String)
-      raise ArgumentError, "Backup JSON root must be an object." unless raw_data.is_a?(Hash)
-
-      normalized = raw_data.each_with_object({}) do |(raw_name, records), result|
-        table_name = raw_name.to_s.strip
-        next unless DataTransferRegistry.include?(table_name)
-
-        unless records.is_a?(Array) && records.all?(Hash)
-          raise ArgumentError, "Backup table '#{table_name}' must contain an array of objects."
-        end
-
-        result[table_name] = records
-      end
-
-      entries = DataTransferRegistry.import_entries.select { |entry| normalized[entry.name].present? }
-      validate_dependencies!(entries, normalized.keys)
-      entries.each_with_index do |entry, index|
-        progress_callback&.call(
-          entries.empty? ? 95 : ((index.to_f / entries.size) * 95).to_i,
-          "Importing #{entry.name}..."
+      if ndjson_header?(header)
+        DataImport::NdjsonImporter.new(
+          options: options.merge(max_batch_bytes: MAX_BATCH_BYTES, max_line_bytes: MAX_NDJSON_LINE_BYTES)
         )
-        normalized.fetch(entry.name).each_slice(BATCH_SIZE) do |batch|
-          import_batch(entry, batch, target_user_id)
-        end
+      else
+        DataImport::LegacyJsonImporter.new(options: options.merge(max_file_bytes: MAX_LEGACY_JSON_BYTES))
       end
     end
 
-    def validate_declared_tables!(table_names, enforce_order: true)
-      unknown_tables = table_names.reject { |name| DataTransferRegistry.include?(name) }
-      if unknown_tables.any?
-        raise ArgumentError,
-              "Backup contains unsupported tables: #{unknown_tables.uniq.join(', ')}"
-      end
-      raise ArgumentError, "Backup declares duplicate table names." unless table_names.uniq == table_names
-
-      if enforce_order
-        registry_order = DataTransferRegistry.table_names
-        sorted_names = table_names.sort_by { |name| registry_order.index(name) || Float::INFINITY }
-        unless sorted_names == table_names
-          raise ArgumentError, "Backup table declarations are not in dependency-safe order."
-        end
-      end
-
-      expanded = DataTransferRegistry.resolve_selection(table_names)
-      missing_dependencies = expanded - table_names
-      return if missing_dependencies.empty?
-
-      raise ArgumentError, "Backup is missing dependencies: #{missing_dependencies.join(', ')}"
+    def importer_options(target_user_id, batch_importer, progress_callback)
+      {
+        target_user_id: target_user_id,
+        batch_importer: batch_importer,
+        progress_callback: progress_callback,
+        validator: DataImport::TableValidator.new,
+        batch_size: BATCH_SIZE
+      }
     end
 
-    def validate_dependencies!(entries, provided_names)
-      # Legacy JSON object key order is semantically irrelevant; importers
-      # process the allow-listed registry in dependency-safe order.
-      validate_declared_tables!(provided_names, enforce_order: false)
-      entries.each do |entry|
-        missing = entry.dependencies.reject { |dependency| provided_names.include?(dependency) }
-        next if missing.empty?
+    def parse_header(first_line)
+      JSON.parse(first_line)
+    rescue JSON::ParserError
+      nil
+    end
 
-        raise ArgumentError, "Backup table '#{entry.name}' is missing dependencies: #{missing.join(', ')}"
-      end
+    def ndjson_header?(header)
+      header.is_a?(Hash) && header["_format"] == NDJSON_FORMAT
     end
 
     def import_batch(entry, records, target_user_id)
@@ -259,10 +116,10 @@ module Database
       end
     end
 
-    def parse_json_line(line, line_number)
-      JSON.parse(line)
-    rescue JSON::ParserError => e
-      raise ArgumentError, "Invalid JSON at backup line #{line_number}: #{e.message}"
+    def complete_import(&progress_callback)
+      progress_callback&.call(100, "Import completed successfully!")
+      @import_succeeded = true
+      true
     end
   end
 end

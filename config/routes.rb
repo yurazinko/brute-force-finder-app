@@ -47,6 +47,10 @@ Rails.application.routes.draw do
   resources :target_patterns, only: %i[new create update destroy]
 
   resources :results, only: %i[index update] do
+    member do
+      patch :mark_as_read
+    end
+
     collection do
       patch :bulk_update
     end

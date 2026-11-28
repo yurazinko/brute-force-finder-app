@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# These tests run Rails through Puma and Cuprite. Keep all test-side Redis
+# writes away from the development Sidekiq/Quick Search database (DB 1).
+export RAILS_ENV=test
+export REDIS_URL="${SYSTEM_TEST_REDIS_URL:-redis://redis:6379/15}"
+
+if [[ "$#" -eq 0 ]]; then
+  set -- spec/system
+fi
+
+exec bundle exec rspec "$@"

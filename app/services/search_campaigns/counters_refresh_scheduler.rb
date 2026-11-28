@@ -5,27 +5,24 @@ module SearchCampaigns
     DEBOUNCE = 1.second
     LOCK_TTL = 120
     GENERATION_TTL = 7.days
+    FINALIZE_SCRIPT = <<~LUA
+      if redis.call('GET', KEYS[1]) ~= ARGV[1] then
+        return -1
+      end
+      if (redis.call('GET', KEYS[2]) or '0') ~= ARGV[2] then
+        return 1
+      end
+      redis.call('DEL', KEYS[1])
+      return 0
+    LUA
 
     class << self
       def schedule(search)
-        key = lock_key(search.id)
-        generation = generation_key(search.id)
         token = SecureRandom.hex(16)
+        return false unless acquire_lock(search.id, token)
 
-        acquired = Sidekiq.redis do |redis|
-          redis.incr(generation)
-          redis.expire(generation, GENERATION_TTL.to_i)
-          redis.set(key, token, nx: true, ex: LOCK_TTL)
-        end
-
-        return false unless acquired
-
-        SearchCampaigns::CountersRefreshJob.perform_in(
-          DEBOUNCE, search.id, search.user_id, token
-        )
-        true
+        enqueue_refresh(search, token)
       rescue StandardError
-        # Only delete the lock if this scheduler call owns it.
         release_lock(search.id, token) if token.present?
         raise
       end
@@ -67,24 +64,32 @@ module SearchCampaigns
       # compare-and-delete closes the race between checking the generation and
       # releasing the debounce lock.
       def finalize(search_id, token, generation)
-        script = <<~LUA
-          if redis.call('GET', KEYS[1]) ~= ARGV[1] then
-            return -1
-          end
-          if (redis.call('GET', KEYS[2]) or '0') ~= ARGV[2] then
-            return 1
-          end
-          redis.call('DEL', KEYS[1])
-          return 0
-        LUA
-        result = Sidekiq.redis do |redis|
+        result = run_finalize_script(search_id, token, generation)
+        { -1 => :lost_lock, 0 => :released, 1 => :dirty }.fetch(result.to_i, :lost_lock)
+      end
+
+      private
+
+      def run_finalize_script(search_id, token, generation)
+        Sidekiq.redis do |redis|
           redis.call(
-            "EVAL", script, "2", lock_key(search_id), generation_key(search_id),
+            "EVAL", FINALIZE_SCRIPT, "2", lock_key(search_id), generation_key(search_id),
             token.to_s, generation.to_s
           )
         end
+      end
 
-        { -1 => :lost_lock, 0 => :released, 1 => :dirty }.fetch(result.to_i, :lost_lock)
+      def acquire_lock(search_id, token)
+        Sidekiq.redis do |redis|
+          redis.incr(generation_key(search_id))
+          redis.expire(generation_key(search_id), GENERATION_TTL.to_i)
+          redis.set(lock_key(search_id), token, nx: true, ex: LOCK_TTL)
+        end
+      end
+
+      def enqueue_refresh(search, token)
+        SearchCampaigns::CountersRefreshJob.perform_in(DEBOUNCE, search.id, search.user_id, token)
+        true
       end
     end
   end
