@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe SearchActivationJob, type: :job do
+RSpec.describe SearchCampaigns::ActivationJob, type: :job do
   include FactoryBot::Syntax::Methods
 
   describe "#perform" do

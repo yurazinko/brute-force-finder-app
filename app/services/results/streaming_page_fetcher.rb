@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 require "uri"
+require "timeout"
 
 module Results
   class StreamingPageFetcher
-    MAX_BYTES = 1_048_576
+    MAX_BYTES = Results::PageFetcher::MAX_BODY_SIZE
+    REQUEST_IO_TIMEOUT = 5
+    TOTAL_DEADLINE_SECONDS = 15
+
+    class FetchDeadlineExceeded < StandardError; end
     CAPTCHA_PREFIX_BYTES = 32_768
     EARLY_MATCH_CHECK_INTERVAL = 16_384
     MAX_REDIRECTS = 3
@@ -29,7 +34,10 @@ module Results
     end
 
     def fetch
-      html_content, captcha = stream_page_content(@url)
+      @deadline = monotonic_now + TOTAL_DEADLINE_SECONDS
+      html_content, captcha = Timeout.timeout(TOTAL_DEADLINE_SECONDS, FetchDeadlineExceeded) do
+        stream_page_content(@url)
+      end
       return Results::PageFetcher::FetchResult.new(text: "", status: :captcha) if captcha
 
       parsed_text = extract_text_safely(html_content)
@@ -42,6 +50,7 @@ module Results
     private
 
     def stream_page_content(current_url, redirects_remaining = MAX_REDIRECTS)
+      check_deadline!
       raise "Too many HTTP redirects" if redirects_remaining.negative?
       raise "SSRF blocked: unsafe URL destination (#{current_url})" unless Results::SafeUrlValidator.safe?(current_url)
 
@@ -69,7 +78,7 @@ module Results
       Results::TorHttpClient.get(
         uri,
         headers: headers,
-        timeout: 8,
+        timeout: REQUEST_IO_TIMEOUT,
         stream_body: true,
         follow_redirects: false
       ) do |chunk|
@@ -85,6 +94,7 @@ module Results
     end
 
     def process_chunk(chunk, state)
+      check_deadline!
       append_chunk(chunk.to_s, state)
 
       if captcha_prefix_detected?(state.html_content)
@@ -173,6 +183,14 @@ module Results
       doc.search("script, style, noscript, svg, header, footer, nav").remove
 
       doc.text.gsub(/\s+/, " ").strip.downcase
+    end
+
+    def monotonic_now
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+
+    def check_deadline!
+      raise FetchDeadlineExceeded, "Total page-fetch deadline exceeded" if monotonic_now >= @deadline
     end
 
     def headers

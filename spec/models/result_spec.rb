@@ -24,6 +24,7 @@ require "rails_helper"
 #  updated_at          :datetime         not null
 #  search_id           :bigint           not null
 #  target_id           :bigint
+#  user_id             :bigint           not null
 #
 # Indexes
 #
@@ -42,12 +43,14 @@ require "rails_helper"
 #  index_results_on_target_domain                  (target_domain)
 #  index_results_on_target_id                      (target_id)
 #  index_results_on_url_hash                       (url_hash)
+#  index_results_on_user_id_and_search_id          (user_id,search_id)
 #  index_results_on_verification_status            (verification_status)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (search_id => searches.id)
 #  fk_rails_...  (target_id => targets.id)
+#  fk_rails_...  (user_id => users.id)
 #
 RSpec.describe Result, type: :model do
   let(:user) { User.create!(username: "test@example.com", password: "password") }

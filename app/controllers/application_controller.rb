@@ -23,6 +23,8 @@ class ApplicationController < ActionController::Base
   end
 
   def set_rls_user(&)
-    with_rls_user(current_user&.id, &)
+    return yield unless current_user
+
+    with_rls_user(current_user.id, &)
   end
 end

@@ -18,6 +18,7 @@ SimpleCov.start "rails"
 # Previous content of test helper now starts here
 require "webmock/rspec"
 require "sidekiq/testing"
+require "database_cleaner/active_record"
 
 Sidekiq::Testing.fake!
 
@@ -54,10 +55,10 @@ RSpec.configure do |config|
     ActionController::Base.allow_forgery_protection = false
   end
 
-  # If you're not using ActiveRecord, or you'd prefer not to run each of your
-  # examples within a transaction, remove the following line or assign false
-  # instead of true.
-  config.use_transactional_fixtures = true
+  # Browser-driven system specs run the app through a separate Puma request
+  # thread/connection. Do not wrap setup records in an uncommitted Rails
+  # transaction; DatabaseCleaner owns cleanup for every spec type.
+  config.use_transactional_fixtures = false
 
   # You can uncomment this line to turn off ActiveRecord support entirely.
   # config.use_active_record = false
@@ -89,22 +90,25 @@ RSpec.configure do |config|
   config.include Devise::Test::IntegrationHelpers, type: :system
 
   config.before(:suite) do
+    raise "Disable transactional fixtures; DatabaseCleaner must own test cleanup." if config.use_transactional_fixtures
+
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  config.before(:each) do
-    DatabaseCleaner.strategy = :transaction
-  end
-
-  config.before(:each, type: :request) do
-    DatabaseCleaner.strategy = :truncation
-  end
-
-  config.before(:each) do
+  config.before(:each) do |example|
+    # Request specs and browser-driven system specs cross the Rails test
+    # connection boundary. Keep their setup records committed and visible.
+    DatabaseCleaner.strategy = if %i[request system].include?(example.metadata[:type])
+                                 :truncation
+                               else
+                                 :transaction
+                               end
     DatabaseCleaner.start
   end
 
-  config.after(:each) do
+  # Capybara resets its browser/server session in an after hook. Run database
+  # cleanup after that hook so no in-flight request can race with truncation.
+  config.append_after(:each) do
     DatabaseCleaner.clean
   end
 end

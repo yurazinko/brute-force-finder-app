@@ -20,7 +20,7 @@ RSpec.describe "DataTransfers", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.body).to include("Database Sync & Backups")
-      expect(response.body).to include("Export Database to JSON")
+      expect(response.body).to include("Export Database Backup")
       expect(response.body).to include("Import & Upsert Sync")
       Database::DataTransferRegistry.table_names.each do |table_name|
         expect(response.body).to include("value=\"#{table_name}\"")
@@ -37,9 +37,9 @@ RSpec.describe "DataTransfers", type: :request do
           post export_data_transfers_path,
                params: { tables: selected_tables + [""] },
                headers: { "Accept" => "text/vnd.turbo-stream.html" }
-        end.to change(DataExportJob.jobs, :size).by(1)
+        end.to change(Database::DataExportJob.jobs, :size).by(1)
 
-        expect(DataExportJob.jobs.last["args"]).to eq([user.id, selected_tables])
+        expect(Database::DataExportJob.jobs.last["args"]).to eq([user.id, selected_tables])
         expect(response).to have_http_status(:success)
         expect(response.media_type).to eq("text/vnd.turbo-stream.html")
         expect(response.body).to include('<turbo-stream action="replace" target="export">')
@@ -51,7 +51,7 @@ RSpec.describe "DataTransfers", type: :request do
              params: { tables: [""] },
              headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-        expect(DataExportJob.jobs.last["args"]).to eq([user.id, []])
+        expect(Database::DataExportJob.jobs.last["args"]).to eq([user.id, []])
       end
     end
 
@@ -59,7 +59,7 @@ RSpec.describe "DataTransfers", type: :request do
       it "enqueues DataExportJob and redirects back to data_transfers_path" do
         post export_data_transfers_path, params: { tables: selected_tables }
 
-        expect(DataExportJob.jobs.last["args"]).to eq([user.id, selected_tables])
+        expect(Database::DataExportJob.jobs.last["args"]).to eq([user.id, selected_tables])
         expect(response).to redirect_to(data_transfers_path)
       end
     end
@@ -80,7 +80,7 @@ RSpec.describe "DataTransfers", type: :request do
            params: { file: file },
            headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-      job = DataImportJob.jobs.last
+      job = Database::DataImportJob.jobs.last
       expect(job["args"].second).to eq(user.id)
       expect(File.read(job["args"].first)).to eq(json_content)
       expect(response).to have_http_status(:success)
@@ -92,7 +92,7 @@ RSpec.describe "DataTransfers", type: :request do
     it "does not enqueue an import job when no file is uploaded" do
       expect do
         post import_data_transfers_path, params: { file: nil }
-      end.not_to change(DataImportJob.jobs, :size)
+      end.not_to change(Database::DataImportJob.jobs, :size)
 
       expect(response).to redirect_to(data_transfers_path)
       expect(flash[:alert]).to eq("Please upload a valid JSON file.")

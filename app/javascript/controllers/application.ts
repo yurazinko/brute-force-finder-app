@@ -1,6 +1,4 @@
 import { Application } from "@hotwired/stimulus"
-import "./../controllers"
-
 const application = Application.start()
 
 // Configure Stimulus development experience

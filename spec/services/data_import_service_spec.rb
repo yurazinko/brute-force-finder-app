@@ -90,6 +90,31 @@ RSpec.describe Database::DataImportService, type: :service do
       )
     end
 
+    it "imports NDJSON in bounded batches and commits the complete stream" do
+      data = valid_json_data
+      table_names = Database::DataTransferRegistry.table_names
+      lines = [
+        JSON.generate(
+          "_format" => Database::DataExportService::FORMAT,
+          "version" => Database::DataExportService::FORMAT_VERSION,
+          "tables" => table_names
+        )
+      ]
+      data.each do |table_name, rows|
+        rows.each { |record| lines << JSON.generate("table" => table_name, "record" => record) }
+      end
+      File.write(temp_file_path, lines.join("\n"))
+
+      stub_const("Database::DataImportService::BATCH_SIZE", 1)
+      expect { run_import }
+        .to change(Category, :count).by(1)
+        .and change(Target, :count).by(1)
+        .and change(TargetPattern, :count).by(1)
+        .and change(Search, :count).by(1)
+        .and change(Prompt, :count).by(1)
+        .and change(Result, :count).by(1)
+    end
+
     it "is idempotent when the same backup is imported more than once" do
       importer = -> { described_class.new(temp_file_path, user_id: user.id).call }
       importer.call
@@ -119,13 +144,13 @@ RSpec.describe Database::DataImportService, type: :service do
       expect(targets.map(&:name)).to contain_exactly("Example", "Other Example")
     end
 
-    it "rolls back the entire import and keeps the file when a dependency is missing" do
+    it "validates the dependency graph before writing any rows and keeps the file on failure" do
       broken_data = valid_json_data.except("categories")
       File.write(temp_file_path, JSON.generate(broken_data))
 
       expect do
         described_class.new(temp_file_path, user_id: user.id).call
-      end.to raise_error(ArgumentError, /category that was not imported/)
+      end.to raise_error(ArgumentError, /missing dependencies/)
 
       expect(Category.where(user_id: user.id)).to be_empty
       expect(Target.joins(:category).where(categories: { user_id: user.id })).to be_empty
@@ -139,6 +164,48 @@ RSpec.describe Database::DataImportService, type: :service do
         described_class.new(temp_file_path, user_id: user.id).call
       end.to raise_error(ArgumentError, /must contain an array of objects/)
       expect(Category.where(user_id: user.id)).to be_empty
+    end
+
+    it "accepts legacy pretty-printed JSON backups" do
+      File.write(temp_file_path, JSON.pretty_generate(valid_json_data))
+
+      expect { run_import }.to change(Category, :count).by(1).and change(Result, :count).by(1)
+    end
+
+    it "rejects NDJSON records that are not declared in the header" do
+      payload = [
+        JSON.generate(
+          "_format" => Database::DataExportService::FORMAT,
+          "version" => Database::DataExportService::FORMAT_VERSION,
+          "tables" => %w[categories]
+        ),
+        JSON.generate("table" => "searches", "record" => { "title" => "unexpected" })
+      ].join("\n")
+      File.write(temp_file_path, payload)
+
+      expect do
+        run_import
+      end.to raise_error(ArgumentError, /undeclared table/)
+      expect(Category.where(user_id: user.id)).to be_empty
+    end
+
+    it "rejects an oversized NDJSON record line using a bounded read" do
+      header = JSON.generate(
+        "_format" => Database::DataExportService::FORMAT,
+        "version" => Database::DataExportService::FORMAT_VERSION,
+        "tables" => %w[categories]
+      )
+      oversized_record = JSON.generate(
+        "table" => "categories",
+        "record" => { "id" => 1, "name" => "x" * 2_000 }
+      )
+      File.write(temp_file_path, [header, oversized_record].join("\n"))
+      stub_const("Database::DataImportService::MAX_NDJSON_LINE_BYTES", 1_024)
+
+      expect do
+        run_import
+      end.to raise_error(ArgumentError, /maximum line size/)
+      expect(File.exist?(temp_file_path)).to be(true)
     end
 
     it "tracks progress and deletes the file after successful import" do

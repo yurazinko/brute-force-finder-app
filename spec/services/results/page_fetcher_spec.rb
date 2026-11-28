@@ -18,10 +18,9 @@ RSpec.describe Results::PageFetcher, type: :service do
     end
 
     context "when keyword_groups are empty" do
-      it "instantiates PageFetcher and calls #fetch" do
-        fetcher_instance = instance_double(described_class)
-        expect(described_class).to receive(:new).with(target_url).and_return(fetcher_instance)
-        expect(fetcher_instance).to receive(:fetch)
+      it "still uses the bounded streaming fetcher" do
+        expect(Results::StreamingPageFetcher).to receive(:fetch_and_match)
+          .with(target_url, keyword_groups: [])
 
         described_class.fetch(target_url)
       end
@@ -134,6 +133,16 @@ RSpec.describe Results::PageFetcher, type: :service do
           result = fetch
           expect(result).to be_captcha_detected
         end
+      end
+
+      it "does not treat generic JavaScript notices or Ray IDs as CAPTCHA by themselves" do
+        stub_request(:get, target_url).to_return(
+          status: 200,
+          body: "<html><body>Please enable JavaScript. Ray ID: 12345. You are being redirected to the job listing.</body></html>"
+        )
+
+        result = fetch
+        expect(result).to be_verified
       end
     end
 

@@ -49,3 +49,6 @@ application.register("targets-selector", TargetsSelectorController)
 import FlashController from "./flash_controller"
 application.register("flash", FlashController)
 
+import FormSubmitController from "./form_submit_controller"
+application.register("form-submit", FormSubmitController)
+

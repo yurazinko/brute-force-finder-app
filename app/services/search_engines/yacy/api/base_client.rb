@@ -100,7 +100,8 @@ module SearchEngines
         def trigger_fallback_crawl_if_needed(results)
           return unless results.empty? && @extracted_site.present?
 
-          YacyTriggerCrawlJob.perform_in(10.seconds, @extracted_site, { "crawl_query_urls" => @options[:dynamic_url] })
+          System::YacyTriggerCrawlJob.perform_in(10.seconds, @extracted_site,
+                                                 { "crawl_query_urls" => @options[:dynamic_url] })
         end
       end
     end

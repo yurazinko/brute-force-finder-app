@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe QuickSearchResultVerificationJob, type: :job do
+RSpec.describe QuickSearches::ResultVerificationJob, type: :job do
   let(:token) { SecureRandom.hex(16) }
   let(:user_id) { nil }
   let(:query) { '"Ruby" "developer"' }

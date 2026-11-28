@@ -5,6 +5,8 @@ require "tempfile"
 module Database
   class DataExportService
     BATCH_SIZE = 1_000
+    FORMAT = "brute-force-finder-ndjson"
+    FORMAT_VERSION = 2
 
     attr_reader :user, :requested_tables
 
@@ -15,12 +17,17 @@ module Database
 
     def call(&progress_callback)
       datasets = scoped_datasets
+      path = Rails.root.join("tmp", "database-export-#{user.id}-#{SecureRandom.hex(8)}.ndjson")
 
-      Tempfile.create(["database-export-", ".json"], Rails.root.join("tmp")) do |file|
-        generate_export_json(file, datasets, &progress_callback)
-        file.flush
-        file.rewind
-        attach_export_file(file)
+      begin
+        File.open(path, "wb") do |file|
+          generate_export(file, datasets, &progress_callback)
+          file.flush
+        end
+
+        attach_export_file(path)
+      ensure
+        FileUtils.rm_f(path)
       end
 
       notify_completion(&progress_callback) if progress_callback
@@ -36,43 +43,51 @@ module Database
       end
     end
 
-    # Write each record as it is fetched instead of materializing every table in
-    # memory with Relation#as_json. This exports every matching row in batches.
-    def generate_export_json(io, datasets, &)
-      io.write("{")
+    def generate_export(io, datasets, &)
+      header = {
+        "_format" => FORMAT,
+        "version" => FORMAT_VERSION,
+        "tables" => datasets.map(&:first)
+      }
+      write_line(io, header)
 
       datasets.each_with_index do |(table_name, scope), index|
         notify_progress(index, datasets.size, table_name, &) if block_given?
-        io.write(",") unless index.zero?
-        io.write(JSON.generate(table_name))
-        io.write(":")
-        write_relation_rows(io, scope)
+        scope.find_each(batch_size: BATCH_SIZE) do |record|
+          write_line(io, "table" => table_name, "record" => record.as_json)
+        end
       end
-
-      io.write("}")
     end
 
-    def write_relation_rows(io, relation)
-      io.write("[")
-      first_record = true
-
-      relation.find_each(batch_size: BATCH_SIZE) do |record|
-        io.write(",") unless first_record
-        io.write(JSON.generate(record.as_json))
-        first_record = false
-      end
-
-      io.write("]")
+    def write_line(io, payload)
+      io.write(JSON.generate(payload))
+      io.write("\n")
     end
 
-    def attach_export_file(io)
-      filename = "export-user-#{user.id}-#{Time.current.strftime('%Y-%m-%d-%H%M%S')}.json"
+    def attach_export_file(path)
+      previous_blob = user.data_export.blob if user.data_export.attached?
+      filename = export_filename
+      attach_new_export(path, filename)
+      purge_replaced_export(previous_blob)
+    end
 
+    def attach_new_export(path, filename)
       user.data_export.attach(
-        io: io,
+        io: StringIO.new(File.binread(path)),
         filename: filename,
-        content_type: "application/json"
+        content_type: "application/x-ndjson"
       )
+    end
+
+    def export_filename
+      timestamp = Time.current.strftime("%Y-%m-%d-%H%M%S")
+      "export-user-#{user.id}-#{timestamp}.ndjson"
+    end
+
+    def purge_replaced_export(previous_blob)
+      return unless previous_blob && user.data_export.blob&.id != previous_blob.id
+
+      previous_blob.purge_later
     end
 
     def notify_progress(index, total_steps, table_name)
@@ -81,15 +96,10 @@ module Database
     end
 
     def notify_completion
-      download_url = Rails.application.routes.url_helpers.rails_blob_path(
-        user.data_export.blob,
-        expires_in: 1.hour,
-        disposition: "attachment",
-        only_path: true
-      )
+      download_url = Rails.application.routes.url_helpers.data_transfers_download_path
 
-      html = "Done! Click <a href='#{download_url}' download class='text-breeze-accent " \
-             "underline font-semibold'>here</a> to download (link expires in 1 hour)."
+      html = "Done! Click <a href='#{download_url}' class='text-breeze-accent " \
+             "underline font-semibold'>here</a> to download (available for 1 hour while signed in)."
       yield(100, html)
     end
   end

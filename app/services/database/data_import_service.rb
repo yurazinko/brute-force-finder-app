@@ -4,6 +4,14 @@ module Database
   class DataImportService
     include Rls::Context
 
+    NDJSON_FORMAT = Database::DataExportService::FORMAT
+    NDJSON_VERSION = Database::DataExportService::FORMAT_VERSION
+    BATCH_SIZE = 500
+    MAX_BATCH_BYTES = 8 * 1024 * 1024
+    MAX_UPLOAD_BYTES = 512 * 1024 * 1024
+    MAX_LEGACY_JSON_BYTES = 32 * 1024 * 1024
+    MAX_NDJSON_LINE_BYTES = 16 * 1024 * 1024
+
     def initialize(file_path, user_id: nil)
       @file_path = file_path
       @user_id = user_id
@@ -11,32 +19,24 @@ module Database
       @import_succeeded = false
     end
 
-    def call(&)
+    def call(&progress_callback)
       return false unless validate_file_exists
 
-      execute_import(load_and_sanitize_data, determine_target_user_id, &)
-      @import_succeeded = true
-      true
+      target_user_id = determine_target_user_id
+      validate_upload_size!
+      DataImport::AdvisoryLock.synchronize(target_user_id) do
+        import_file(target_user_id, &progress_callback)
+      end
+      complete_import(&progress_callback)
     rescue StandardError => e
       Rails.logger.error("[DataImportService] Critical failure: #{e.full_message}")
       raise
     ensure
-      # Keep the uploaded file after a failure: Sidekiq may retry this job.
-      # The job's retries-exhausted hook is responsible for final cleanup.
+      # Sidekiq retry needs the original file. Delete only after full success.
       FileUtils.rm_f(@file_path) if @import_succeeded
     end
 
     private
-
-    def execute_import(raw_data, target_user_id, &progress_callback)
-      with_rls_user(target_user_id) do
-        ActiveRecord::Base.transaction do
-          process_import(raw_data, target_user_id, &progress_callback)
-        end
-      end
-
-      progress_callback&.call(100, "Import completed successfully!")
-    end
 
     def validate_file_exists
       Rails.logger.info("[DataImportService] Starting import from: #{@file_path}")
@@ -46,48 +46,80 @@ module Database
       false
     end
 
+    def validate_upload_size!
+      size = File.size(@file_path)
+      return if size.positive? && size <= MAX_UPLOAD_BYTES
+
+      raise ArgumentError, "Backup file must be between 1 byte and #{MAX_UPLOAD_BYTES} bytes."
+    end
+
     def determine_target_user_id
       id = @user_id || self.class.current_rls_user_id
       raise "RLS Error: Target user context is missing!" if id.blank?
 
-      id
+      Integer(id.to_s, 10)
     end
 
-    def load_and_sanitize_data
-      parsed = JSON.parse(File.read(@file_path))
-      parsed = JSON.parse(parsed) if parsed.is_a?(String)
-      raise ArgumentError, "Backup JSON root must be an object." unless parsed.is_a?(Hash)
+    def import_file(target_user_id, &progress_callback)
+      File.open(@file_path, "r") do |file|
+        first_line = file.gets(MAX_NDJSON_LINE_BYTES + 1)
+        raise ArgumentError, "Backup file is empty." if first_line.blank?
 
-      parsed.each_with_object({}.with_indifferent_access) do |(raw_table_name, records), normalized|
-        table_name = raw_table_name.to_s.strip
-        next unless DataTransferRegistry.include?(table_name)
-
-        unless records.is_a?(Array) && records.all?(Hash)
-          raise ArgumentError, "Backup table '#{table_name}' must contain an array of objects."
+        header = parse_header(first_line)
+        importer = build_importer(header, target_user_id, &progress_callback)
+        if ndjson_header?(header)
+          importer.call(file, header)
+        else
+          importer.call(file)
         end
-
-        normalized[table_name] = records
       end
     end
 
-    def process_import(raw_data, target_user_id, &)
-      # Serialize imports for one account so two uploads of the same backup cannot
-      # race each other through the natural-key deduplication checks.
-      User.lock.find(target_user_id)
+    def build_importer(header, target_user_id, &progress_callback)
+      batch_importer = ->(entry, records, user_id) { import_batch(entry, records, user_id) }
+      options = importer_options(target_user_id, batch_importer, progress_callback)
 
-      entries = DataTransferRegistry.import_entries.select do |entry|
-        raw_data.key?(entry.name) && raw_data[entry.name].any?
-      end
-
-      entries.each_with_index do |entry, index|
-        notify_progress(index, entries.size, entry.name, &) if block_given?
-        entry.importer.new(raw_data[entry.name], target_user_id, @id_maps).call
+      if ndjson_header?(header)
+        DataImport::NdjsonImporter.new(
+          options: options.merge(max_batch_bytes: MAX_BATCH_BYTES, max_line_bytes: MAX_NDJSON_LINE_BYTES)
+        )
+      else
+        DataImport::LegacyJsonImporter.new(options: options.merge(max_file_bytes: MAX_LEGACY_JSON_BYTES))
       end
     end
 
-    def notify_progress(index, total_steps, table_name)
-      progress = total_steps.zero? ? 95 : ((index.to_f / total_steps) * 95).to_i
-      yield(progress, "Importing #{table_name}...")
+    def importer_options(target_user_id, batch_importer, progress_callback)
+      {
+        target_user_id: target_user_id,
+        batch_importer: batch_importer,
+        progress_callback: progress_callback,
+        validator: DataImport::TableValidator.new,
+        batch_size: BATCH_SIZE
+      }
+    end
+
+    def parse_header(first_line)
+      JSON.parse(first_line)
+    rescue JSON::ParserError
+      nil
+    end
+
+    def ndjson_header?(header)
+      header.is_a?(Hash) && header["_format"] == NDJSON_FORMAT
+    end
+
+    def import_batch(entry, records, target_user_id)
+      return if records.blank?
+
+      with_rls_user(target_user_id) do
+        entry.importer.new(records, target_user_id, @id_maps).call
+      end
+    end
+
+    def complete_import(&progress_callback)
+      progress_callback&.call(100, "Import completed successfully!")
+      @import_succeeded = true
+      true
     end
   end
 end

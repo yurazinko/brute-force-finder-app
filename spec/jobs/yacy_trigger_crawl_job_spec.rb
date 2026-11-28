@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe YacyTriggerCrawlJob, type: :job do
+RSpec.describe System::YacyTriggerCrawlJob, type: :job do
   let(:target_site) { "example.com" }
   let(:collection) { "custom_collection" }
   let(:lock_key) { "yacy:crawling_lock:#{target_site}" }
@@ -66,7 +66,7 @@ RSpec.describe YacyTriggerCrawlJob, type: :job do
     context "when lock is already acquired (duplicate run within TTL)" do
       before do
         Sidekiq.redis do |conn|
-          conn.set(lock_key, "in_progress", ex: YacyTriggerCrawlJob::CRAWL_LOCK_TTL, nx: true)
+          conn.set(lock_key, "in_progress", ex: System::YacyTriggerCrawlJob::CRAWL_LOCK_TTL, nx: true)
         end
       end
 

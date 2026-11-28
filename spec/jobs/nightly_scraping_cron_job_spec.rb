@@ -3,7 +3,7 @@
 require "rails_helper"
 require "sidekiq/testing"
 
-RSpec.describe NightlyScrapingCronJob, type: :job do
+RSpec.describe System::NightlyScrapingCronJob, type: :job do
   describe "#perform" do
     let(:user) { User.create!(username: "cron_test@example.com", password: "password123") }
 
@@ -14,16 +14,16 @@ RSpec.describe NightlyScrapingCronJob, type: :job do
 
     before do
       Sidekiq::Testing.fake!
-      SearchActivationJob.jobs.clear
+      SearchCampaigns::ActivationJob.jobs.clear
       allow(Rails.env).to receive(:development?).and_return(false)
     end
 
-    it "triggers SearchActivationJob only for completed, processing and failed searches" do
+    it "triggers SearchCampaigns::ActivationJob only for completed, processing and failed searches" do
       expect do
         described_class.new.perform
-      end.to change(SearchActivationJob.jobs, :size).by(3)
+      end.to change(SearchCampaigns::ActivationJob.jobs, :size).by(3)
 
-      enqueued_ids = SearchActivationJob.jobs.map { |j| j["args"].first }
+      enqueued_ids = SearchCampaigns::ActivationJob.jobs.map { |j| j["args"].first }
       expect(enqueued_ids).to include(completed_search.id, processing_search.id, failed_search.id)
       expect(enqueued_ids).not_to include(paused_search.id)
     end
@@ -31,7 +31,7 @@ RSpec.describe NightlyScrapingCronJob, type: :job do
     it "calculates delayed scheduling correctly" do
       described_class.new.perform
 
-      first_job = SearchActivationJob.jobs.first
+      first_job = SearchCampaigns::ActivationJob.jobs.first
       expect(first_job["at"]).to be_present
       expect(first_job["at"]).to be > Time.current.to_f
     end

@@ -8,7 +8,7 @@
       <span>Database Sync & Backups</span>
     </h1>
     <p class="text-xs sm:text-sm text-breeze-muted mt-1">
-      Export campaign structures, categories, and leads to JSON or restore database state seamlessly.
+      Export campaign data as a streaming NDJSON backup or restore an existing JSON/NDJSON backup.
     </p>
   </header>
 
@@ -22,7 +22,7 @@
           <div class="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-base">
             📤
           </div>
-          <h2 class="text-base sm:text-lg font-bold text-breeze-text">Export Database to JSON</h2>
+          <h2 class="text-base sm:text-lg font-bold text-breeze-text">Export Database Backup</h2>
         </div>
         <p class="text-xs text-breeze-muted mb-4">
           Choose data tables for export. Required parent tables are included automatically so the backup can be restored safely.
@@ -70,14 +70,14 @@
           <h2 class="text-base sm:text-lg font-bold text-breeze-text">Import & Upsert Sync</h2>
         </div>
         <p class="text-xs text-breeze-muted mb-4">
-          Upload a previously exported JSON backup file to restore records or merge changes.
+          Upload a previously exported JSON or NDJSON backup file to restore records or merge changes.
         </p>
 
         <div id="import">
           <%= form_with url: import_data_transfers_path, method: :post, local: false, multipart: true, class: "space-y-4" do |f| %>
             <div class="p-3 bg-breeze-bg/40 border border-breeze-border/60 rounded-xl space-y-1">
-              <%= f.label :file, "Backup JSON File", class: "block text-[11px] font-semibold text-breeze-muted" %>
-              <%= f.file_field :file, accept: '.json', class: "block w-full text-xs text-breeze-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-breeze-bg file:text-breeze-text hover:file:bg-breeze-border/40 cursor-pointer border-0 focus:outline-none" %>
+              <%= f.label :file, "Backup JSON / NDJSON File", class: "block text-[11px] font-semibold text-breeze-muted" %>
+              <%= f.file_field :file, accept: '.json,.ndjson', class: "block w-full text-xs text-breeze-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-breeze-bg file:text-breeze-text hover:file:bg-breeze-border/40 cursor-pointer border-0 focus:outline-none" %>
             </div>
 
             <%= f.submit "Upload & Sync Database", class: "w-full sm:w-auto px-5 py-2.5 bg-breeze-accent hover:opacity-90 text-white text-xs font-bold rounded-lg shadow-sm transition-all cursor-pointer border border-breeze-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-breeze-accent focus-visible:ring-offset-2 focus-visible:ring-offset-breeze-view" %>
@@ -87,5 +87,3 @@
     </div>
   </div>
 </div>
-
-

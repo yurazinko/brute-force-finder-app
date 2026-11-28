@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe QuickSearchJob, type: :job do
+RSpec.describe QuickSearches::ActivationJob, type: :job do
   describe "#perform" do
     it "delegates the ephemeral search to QuickSearch::Runner" do
       runner = instance_double(QuickSearch::Runner, call: true)

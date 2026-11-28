@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-RSpec.describe PromptProcessorJob, type: :job do
+RSpec.describe Prompts::ProcessorJob, type: :job do
   let(:job) { described_class.new }
   let(:user) { User.create!(username: "test@example.com", password: "password123") }
   let(:search) { Search.create!(user: user, title: "Test Search", query_conditions: "ruby", time_frame: "month") }

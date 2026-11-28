@@ -2,6 +2,7 @@
 
 class SearchesController < ApplicationController
   include ResultFilterable
+  include Searches::LifecycleActions
 
   before_action :set_search, only: %i[show edit update activate destroy toggle_pause complete]
   before_action :set_categories_for_form, only: %i[new show edit create update]
@@ -53,46 +54,6 @@ class SearchesController < ApplicationController
   end
 
   def update = @search.update(search_params) ? handle_successful_update : handle_failed_update
-
-  def activate
-    target_ids = params[:target_ids] || []
-
-    if @search.activate_search!(target_ids)
-      @search.reload
-
-      respond_to do |format|
-        format.html { redirect_to search_path(@search), notice: "Scraping pipeline successfully initialized!" }
-        format.turbo_stream { render "searches/update", status: :ok }
-      end
-    else
-      respond_to do |format|
-        format.html { redirect_to search_path(@search), alert: "Failed to activate search. Check system logs." }
-        format.turbo_stream { render turbo_stream: turbo_stream.prepend("flash", partial: "layouts/flash") }
-      end
-    end
-  end
-
-  def toggle_pause
-    paused = @search.paused?
-
-    paused ? @search.resume! : @search.pause!
-
-    notice = paused ? "Campaign resumed." : "Campaign paused."
-
-    respond_to do |format|
-      format.html { redirect_back_or_to search_path(@search), notice: notice }
-      format.turbo_stream { render "searches/update", status: :ok }
-    end
-  end
-
-  def complete
-    @search.force_complete!
-
-    respond_to do |format|
-      format.html { redirect_back_or_to search_path(@search), notice: "Campaign completed." }
-      format.turbo_stream { render "searches/update", status: :ok }
-    end
-  end
 
   def destroy
     @search.destroy
@@ -146,7 +107,10 @@ class SearchesController < ApplicationController
   def handle_successful_update
     respond_to do |format|
       format.html { redirect_to determine_update_redirect_path, notice: "Search criteria was successfully updated." }
-      format.turbo_stream { render "searches/update", status: :ok }
+      format.turbo_stream do
+        flash.now[:notice] = "Search criteria was successfully updated."
+        render "searches/update", status: :ok
+      end
     end
   end
 
@@ -155,7 +119,7 @@ class SearchesController < ApplicationController
       format.html { render :edit, status: :unprocessable_content }
       format.turbo_stream do
         flash.now[:alert] = @search.errors.full_messages.to_sentence
-        render turbo_stream: turbo_stream.prepend("flash", partial: "layouts/flash")
+        render turbo_stream: turbo_stream.replace("flash-container", partial: "layouts/flash")
       end
     end
   end

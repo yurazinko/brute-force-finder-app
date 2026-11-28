@@ -110,7 +110,7 @@ module QuickSearch
 
     def enqueue_verification_jobs(results)
       results.each do |result|
-        QuickSearchResultVerificationJob.perform_async(@token, @user_id, result.fetch("url_hash"))
+        QuickSearches::ResultVerificationJob.perform_async(@token, @user_id, result.fetch("url_hash"))
       rescue StandardError => e
         Rails.logger.error("[QuickSearch::Runner] Could not enqueue verification: #{e.message}")
         mark_verification_failed(result.fetch("url_hash"))

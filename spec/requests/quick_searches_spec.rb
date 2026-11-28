@@ -53,14 +53,14 @@ RSpec.describe "Quick searches", type: :request do
       expect(response.body).to include("Ruby on Rails", "Rails job", "Save as campaign")
       expect(response.body).not_to include("Move to Trash", "Configure")
       assert_select "#quick_result_abc[data-controller='read-status']"
-      assert_select "#quick_result_abc a[data-action*='auxclick->read-status#markAsRead']"
+      assert_select "#quick_result_abc[data-controller~='read-status'] a[data-read-url]"
       assert_select "#quick_result_abc a[data-read-url='#{mark_as_read_quick_search_path(token, url_hash: 'abc')}']"
     end
 
     it "restores the most recent search from the browser session when root is opened without a token" do
       allow(SecureRandom).to receive(:hex).with(16).and_return(token)
       allow(QuickSearch::Store).to receive(:create!)
-      allow(QuickSearchJob).to receive(:perform_async)
+      allow(QuickSearches::ActivationJob).to receive(:perform_async)
       allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(quick_search_data)
       allow(QuickSearch::Store).to receive(:results).with(token).and_return([])
 
@@ -75,7 +75,7 @@ RSpec.describe "Quick searches", type: :request do
     it "renders a clean page and forgets the token after its Redis entry expires" do
       allow(SecureRandom).to receive(:hex).with(16).and_return(token)
       allow(QuickSearch::Store).to receive(:create!)
-      allow(QuickSearchJob).to receive(:perform_async)
+      allow(QuickSearches::ActivationJob).to receive(:perform_async)
       allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(nil)
 
       post quick_searches_path, params: { query: "Ruby on Rails" }
@@ -117,7 +117,7 @@ RSpec.describe "Quick searches", type: :request do
   describe "POST /quick_searches" do
     before do
       allow(QuickSearch::Store).to receive(:create!)
-      allow(QuickSearchJob).to receive(:perform_async).and_return("quick-search-job-id")
+      allow(QuickSearches::ActivationJob).to receive(:perform_async).and_return("quick-search-job-id")
     end
 
     it "accepts a guest search and enqueues it immediately without creating campaign records" do
@@ -128,7 +128,7 @@ RSpec.describe "Quick searches", type: :request do
       expect(QuickSearch::Store).to have_received(:create!).with(
         token: kind_of(String), user_id: nil, query: "Ruby on Rails jobs"
       )
-      expect(QuickSearchJob).to have_received(:perform_async).with(kind_of(String), nil)
+      expect(QuickSearches::ActivationJob).to have_received(:perform_async).with(kind_of(String), nil)
       expect(response).to have_http_status(:see_other)
       expect(response.location).to include("quick_search=")
     end
@@ -145,14 +145,14 @@ RSpec.describe "Quick searches", type: :request do
     it "rejects blank queries without enqueuing a job" do
       post quick_searches_path, params: { query: "   " }
 
-      expect(QuickSearchJob).not_to have_received(:perform_async)
+      expect(QuickSearches::ActivationJob).not_to have_received(:perform_async)
       expect(response).to redirect_to(root_path)
     end
 
     it "rejects queries that exceed the maximum length" do
       post quick_searches_path, params: { query: "x" * (QuickSearch::Store::MAX_QUERY_LENGTH + 1) }
 
-      expect(QuickSearchJob).not_to have_received(:perform_async)
+      expect(QuickSearches::ActivationJob).not_to have_received(:perform_async)
       expect(response).to redirect_to(root_path)
     end
   end
@@ -208,7 +208,7 @@ RSpec.describe "Quick searches", type: :request do
     it "clears the current token from Redis and the browser session" do
       allow(SecureRandom).to receive(:hex).with(16).and_return(token)
       allow(QuickSearch::Store).to receive(:create!)
-      allow(QuickSearchJob).to receive(:perform_async)
+      allow(QuickSearches::ActivationJob).to receive(:perform_async)
       allow(QuickSearch::Store).to receive(:fetch).with(token).and_return(quick_search_data)
       expect(QuickSearch::Store).to receive(:clear!).with(token)
 

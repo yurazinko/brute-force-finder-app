@@ -12,14 +12,7 @@
                         mark_as_read_quick_search_path(quick_search_token, url_hash: result.url_hash)
                       end
                     else
-                      result_path(
-                        result,
-                        status: params[:status],
-                        current_tab: current_tab,
-                        d: params[:d],
-                        show_acknowledged: params[:show_acknowledged],
-                        show_less_relevant: params[:show_less_relevant]
-                      )
+                      mark_as_read_result_path(result)
                     end
 
   engine = result.engine.presence || "N/A"
@@ -37,6 +30,7 @@
 
 <div id="<%= card_id %>"
      data-controller="<%= quick_search ? 'read-status' : 'read-status result-card' %>"
+     data-read-status-current-status-value="<%= result.status %>"
      <% if quick_search %>
        data-quick-result="true"
        data-relevance-score="<%= score %>"
@@ -45,7 +39,6 @@
      <% else %>
        data-result-card-id="<%= result.id %>"
        data-read-status-url-value="<%= result_path(result) %>"
-       data-read-status-current-status-value="<%= result.status %>"
      <% end %>
      class="p-4 sm:p-5 border border-breeze-border/80 rounded-xl hover:border-breeze-accent/50 hover:bg-breeze-view/40 transition-all bg-breeze-bg/40 flex flex-col gap-3 shadow-xs <%= 'opacity-50 duration-500' if should_dim %>">
 
@@ -67,7 +60,6 @@
         target="_blank"
         rel="noopener"
         data-turbo="false"
-        data-action="click->read-status#markAsRead contextmenu->read-status#markAsRead auxclick->read-status#markAsRead"
         data-current-tab="<%= current_tab %>"
         data-read-url="<%= read_status_url %>"
         data-read-status="<%= result.status %>"

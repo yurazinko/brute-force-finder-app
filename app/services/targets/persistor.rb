@@ -19,7 +19,7 @@ module Targets
       end
 
       if @search_ids&.compact_blank&.any?
-        TargetActivationJob.perform_async(@target.id, @search_ids, @target.category.user_id)
+        Targets::ActivationJob.perform_async(@target.id, @search_ids, @target.category.user_id)
       end
 
       true

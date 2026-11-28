@@ -5,7 +5,9 @@
       <p class="text-xs text-breeze-muted mt-0.5">Overview of domain productivity and target efficiency metrics.</p>
     </div>
 
-    <%= form_with url: request.path, method: :get, local: true, class: "flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto" do |f| %>
+    <%= form_with url: request.path, method: :get, local: true,
+                  data: { controller: "form-submit", action: "change->form-submit#submit" },
+                  class: "flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto" do |f| %>
       <%= f.label :period, "Timeframe:", class: "text-xs font-medium text-breeze-muted uppercase tracking-wider" %>
       <%= f.select :period,
             options_for_select([
@@ -17,7 +19,6 @@
             ], @period),
             {},
             {
-              onchange: 'this.form.requestSubmit();',
               class: 'w-full sm:w-auto bg-breeze-bg border border-breeze-border text-breeze-text text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-breeze-accent focus:border-breeze-accent focus:outline-none cursor-pointer'
             } %>
     <% end %>

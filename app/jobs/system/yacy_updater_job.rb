@@ -1,0 +1,70 @@
+# frozen_string_literal: true
+
+module System
+  class YacyUpdaterJob < BaseContainerUpdaterJob
+    sidekiq_options queue: :system, retry: 3
+
+    YACY_IMAGE = ENV.fetch("YACY_IMAGE", "yacy/yacy_search_server:latest-alpine")
+
+    private
+
+    def image_name
+      YACY_IMAGE
+    end
+
+    def containers_to_update
+      [{ service: "yacy", container_name: "finder_yacy" }]
+    end
+
+    def before_recreate(info)
+      clean_cache(info[:container_name])
+    end
+
+    def clean_cache(container_name)
+      logger.info "[#{self.class.name}] Cleaning YaCy index cache..."
+
+      if container_running?(container_name)
+        system("docker", "exec", container_name, "sh", "-c", "rm -rf /opt/yacy_search_server/DATA/INDEX/*")
+      else
+        volume_name = "#{PROJECT_NAME}_yacy_data"
+        system("docker", "run", "--rm", "-v", "#{volume_name}:/data", "alpine:latest", "sh", "-c",
+               "rm -rf /data/INDEX/*")
+      end
+    rescue StandardError => e
+      logger.error "[#{self.class.name}] Failed to clean YaCy cache: #{e.message}"
+    end
+
+    def container_running?(container_name)
+      capture_cmd("docker", "inspect", "--format", "{{.State.Running}}", container_name).strip == "true"
+    end
+
+    def run_smoke_test(info) # rubocop:disable Metrics/MethodLength
+      service_host = info[:service]
+      url = URI("http://#{service_host}:8090/yacysearch.json?query=test")
+
+      max_retries = 20
+      sleep_interval = 30
+
+      found = false
+      max_retries.times do |attempt|
+        begin
+          response = Net::HTTP.get_response(url)
+          if response.is_a?(Net::HTTPSuccess)
+            json = JSON.parse(response.body).with_indifferent_access
+            if json.key?(:channels)
+              found = true
+              break
+            end
+          end
+        end
+
+        logger.info "[YacyUpdaterJob] Waiting for HTTP server on #{service_host} (#{attempt + 1}/#{max_retries})..."
+        sleep sleep_interval
+      end
+
+      return if found
+
+      raise "Smoke test failed for #{service_host}: Server was not ready after #{max_retries * sleep_interval} seconds"
+    end
+  end
+end

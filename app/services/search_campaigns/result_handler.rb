@@ -14,11 +14,11 @@ module SearchCampaigns
     def call
       return { raw_count: 0, new_count: 0 } if @scraped_data.blank?
 
-      metrics, counts = process_and_persist_batch
-      broadcast_metrics(metrics, counts)
-      build_response(metrics, counts)
+      metrics, total = process_and_persist_batch
+      SearchCampaigns::LifecycleNotifier.broadcast_new_results(@search, metrics[:persisted_results])
+      build_response(metrics, total)
     rescue StandardError => e
-      log_and_return_error(e)
+      report_and_reraise(e)
     end
 
     private
@@ -27,29 +27,33 @@ module SearchCampaigns
       result_records = Results::DataTransformer.process(@search, @scraped_data, @prompt)
       metrics = Results::BatchPersister.call(@search, @prompt, result_records)
       @search.results.reset
-      counts = Results::Counters.calculate_filtered(@search.results, filter_options, @search)
-      [metrics, counts]
+      # Preserve Counters#total semantics: the total includes all statuses and
+      # relevance bands after time-frame/keyword filtering. Query#filtered_scope
+      # intentionally applies only those two filters (not tab/relevance filters).
+      total = Results::Query.new(@search.results, filter_options, search: @search)
+                            .filtered_scope.unscope(:order).count
+      SearchCampaigns::CountersRefreshScheduler.schedule(@search)
+      [metrics, total]
     end
 
-    def broadcast_metrics(metrics, counts)
-      SearchCampaigns::LifecycleNotifier.broadcast_metrics(
-        @search,
-        counts,
-        new_results: metrics[:persisted_results]
-      )
+    def build_response(metrics, total)
+      { raw_count: metrics[:raw_count], new_count: metrics[:new_count], total: total }
     end
 
-    def build_response(metrics, counts)
-      {
-        raw_count: metrics[:raw_count],
-        new_count: metrics[:new_count],
-        total: counts.total
-      }
-    end
+    def report_and_reraise(error)
+      begin
+        Rails.error.report(
+          error,
+          handled: false,
+          severity: :error,
+          context: { prompt_id: @prompt.id, search_id: @search.id }
+        )
+      rescue StandardError => e
+        Rails.logger.error("[Search::ResultHandler] Error reporter failed: #{e.message}")
+      end
 
-    def log_and_return_error(error)
       Rails.logger.error("[Search::ResultHandler] Failed for Prompt##{@prompt.id}: #{error.message}")
-      { error: error.message, raw_count: 0, new_count: 0 }
+      raise error
     end
 
     def filter_options
